@@ -30,7 +30,7 @@ type Glyph =
 type Tier = 1 | 2 | 3 | 4 | 5 | 6;
 
 
-const Letter = (props: {
+export const Letter = (props: {
   name: Glyph;
   tier: Tier;
 }): { name: string; tier: number; value: number } => {
