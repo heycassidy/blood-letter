@@ -29,7 +29,7 @@ W8 Reduce the value of one of the opponent's Cards to
 
 */
 
-//LETTER ITEMS 
+// LETTER ITEMS
 
 // L1 Increase Value of Card by 1
 // L2 Double Value of Card
@@ -43,7 +43,7 @@ W8 Reduce the value of one of the opponent's Cards to
 // L9 Replaces this Card with a random Card of any tier
 // Word Items
 
-//WORD ITEMS
+// WORD ITEMS
 
 // W1 Multiply the Hand bonus by the letter value of your last letter
 // W2 If you have two or more of the same letters in your Hand, remove the first card of the opponent's Hand
