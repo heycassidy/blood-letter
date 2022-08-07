@@ -2,7 +2,7 @@ import { useContext, useEffect, useState } from 'react'
 import type { Letter } from '../lib/types'
 import { GameConfig } from '../lib/GameConfig'
 import css from 'styled-jsx/css'
-import LetterCard from './Letter'
+import LetterCard from './LetterCard'
 import { computeLetterValueFromTier } from '../lib/helpers'
 
 const LetterStore = ({
