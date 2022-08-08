@@ -11,3 +11,8 @@ export const groupLettersByTier = (letters: Letter[]): LetterTierMap => {
       : { ...result, [tier]: [letter] }
   }, {})
 }
+
+export const randomLetters = (amount: number, letters: Letter[]) =>
+  [...Array(amount)]
+    .map(() => Math.floor(Math.random() * letters.length))
+    .map((index) => letters[index])

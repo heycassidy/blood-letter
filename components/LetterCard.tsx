@@ -2,13 +2,19 @@ import type { Letter } from '../lib/types'
 import { computeLetterValueFromTier } from '../lib/helpers'
 import css from 'styled-jsx/css'
 
-const LetterCard = (props: Letter) => {
-  const { name, tier } = props
+type Props = {
+  letter: Letter
+  onClick?: () => void
+}
+
+const LetterCard: React.FC<Props> = (props) => {
+  const { letter } = props
+  const { name, tier } = letter
 
   const value = computeLetterValueFromTier(tier)
 
   return (
-    <div className="letter">
+    <div className="letter" {...props}>
       <div className="tier">{tier}</div>
       <div className="name">{name.toUpperCase()}</div>
       <div className="value">{value}</div>
@@ -27,6 +33,8 @@ const styles = css`
     display: flex;
     width: 4rem;
     height: 4rem;
+    cursor: pointer;
+    user-select: none;
   }
   .name {
     font-weight: 700;
