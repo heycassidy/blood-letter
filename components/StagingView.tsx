@@ -9,10 +9,10 @@ import { randomLetters } from '../lib/helpers'
 type Props = {
   highestTier: number
   storeAmount: number
-  stageAmount: number
+  stageCapacity: number
 }
 
-const StagingView = ({ highestTier, storeAmount, stageAmount }: Props) => {
+const StagingView = ({ highestTier, storeAmount, stageCapacity }: Props) => {
   const { alphabet } = useContext(GameConfig)
   const availableLetters = alphabet.filter((letter) =>
     [...Array(highestTier)].map((_, i) => i + 1).includes(letter.tier)
@@ -27,14 +27,12 @@ const StagingView = ({ highestTier, storeAmount, stageAmount }: Props) => {
   return (
     <div className="staging-view">
       <div className="info-list">
-        <span className="info-box">Max Stage Letters: {stageAmount}</span>
+        <span className="info-box">Max Stage Letters: {stageCapacity}</span>
       </div>
 
       <Stage
         letters={state.stageLetters}
-        clearStage={() => {
-          dispatch({ type: ActionKind.ClearStage })
-        }}
+        capacity={stageCapacity}
         sellLetter={(letter: Letter, index: number) => {
           dispatch({
             type: ActionKind.Sell,
@@ -50,8 +48,9 @@ const StagingView = ({ highestTier, storeAmount, stageAmount }: Props) => {
 
       <LetterStore
         letters={state.storeLetters}
+        amount={storeAmount}
         buyLetter={(letter: Letter, index: number) => {
-          if (state.stageLetters.length < stageAmount) {
+          if (state.stageLetters.length < stageCapacity) {
             dispatch({
               type: ActionKind.Buy,
               payload: { letters: [letter], index },
@@ -60,18 +59,28 @@ const StagingView = ({ highestTier, storeAmount, stageAmount }: Props) => {
         }}
       />
 
-      <button
-        onClick={() => {
-          dispatch({
-            type: ActionKind.RefreshStore,
-            payload: {
-              letters: randomLetters(storeAmount, availableLetters),
-            },
-          })
-        }}
-      >
-        Refresh
-      </button>
+      <div className="info-list">
+        <button
+          onClick={() => {
+            dispatch({
+              type: ActionKind.RefreshStore,
+              payload: {
+                letters: randomLetters(storeAmount, availableLetters),
+              },
+            })
+          }}
+        >
+          Refresh Store
+        </button>
+
+        <button
+          onClick={() => {
+            dispatch({ type: ActionKind.ClearStage })
+          }}
+        >
+          Clear Stage
+        </button>
+      </div>
 
       <style jsx>{styles}</style>
     </div>
@@ -153,6 +162,7 @@ const styles = css`
     gap: 1rem;
     display: grid;
     justify-content: start;
+    justify-items: start;
   }
   .info-list {
     display: flex;

@@ -1,16 +1,17 @@
 import { useEffect, useState } from 'react'
 import type { Letter } from '../lib/types'
 import css from 'styled-jsx/css'
+import LetterList from './LetterList'
 import LetterCard from './LetterCard'
 import { computeLetterValueFromTier } from '../lib/helpers'
 
 type Props = {
   letters: Letter[]
-  clearStage: () => void
+  capacity: number
   sellLetter: (letter: Letter, index: number) => void
 }
 
-const Stage = ({ letters = [], clearStage, sellLetter }: Props) => {
+const Stage = ({ letters = [], capacity, sellLetter }: Props) => {
   const [stageLetters, setStageLetters] = useState<Letter[]>(letters)
   const [valueSum, setValueSum] = useState(0)
 
@@ -31,10 +32,10 @@ const Stage = ({ letters = [], clearStage, sellLetter }: Props) => {
       <strong>Stage</strong>
 
       <div className="info-list">
-        <span className="info-box">Value Sum: {valueSum}</span>
+        <span className="info-box">Total: {valueSum}</span>
       </div>
 
-      <div className="horizontal-list">
+      <LetterList capacity={capacity}>
         {stageLetters.map((letter, index) => (
           <LetterCard
             letter={{ name: letter.name, tier: letter.tier }}
@@ -44,9 +45,7 @@ const Stage = ({ letters = [], clearStage, sellLetter }: Props) => {
             }}
           />
         ))}
-      </div>
-
-      <button onClick={clearStage}>Clear Stage</button>
+      </LetterList>
 
       <style jsx>{styles}</style>
     </div>
@@ -59,12 +58,6 @@ const styles = css`
     background-color: #e7e7e7;
     padding: 0.5rem;
     display: grid;
-    gap: 0.5rem;
-  }
-  .horizontal-list {
-    display: grid;
-    justify-content: start;
-    grid-auto-flow: column;
     gap: 0.5rem;
   }
   .info-list {
