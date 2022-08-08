@@ -7,7 +7,7 @@ import LetterCard from './LetterCard'
 type Props = {
   letters: Letter[]
   amount: number
-  buyLetter: (letter: Letter, index: number) => void
+  buyLetter: (letter: Letter) => void
 }
 
 const LetterStore = ({ letters = [], amount, buyLetter }: Props) => {
@@ -22,12 +22,12 @@ const LetterStore = ({ letters = [], amount, buyLetter }: Props) => {
       <strong>Letter Store</strong>
 
       <LetterList capacity={amount}>
-        {storeLetters.map((letter, index) => (
+        {storeLetters.map((letter) => (
           <LetterCard
-            letter={{ name: letter.name, tier: letter.tier }}
-            key={index}
+            letter={{ name: letter.name, tier: letter.tier, id: letter.id }}
+            key={letter.id}
             onClick={() => {
-              buyLetter(letter, index)
+              buyLetter(letter)
             }}
           />
         ))}

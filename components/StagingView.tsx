@@ -1,4 +1,4 @@
-import { useContext, useReducer } from 'react'
+import { useContext, useEffect, useReducer } from 'react'
 import type { Letter } from '../lib/types'
 import { GameConfig } from '../lib/GameConfig'
 import css from 'styled-jsx/css'
@@ -17,12 +17,17 @@ const StagingView = ({ highestTier, storeAmount, stageCapacity }: Props) => {
   const availableLetters = alphabet.filter((letter) =>
     [...Array(highestTier)].map((_, i) => i + 1).includes(letter.tier)
   )
+
   const initialState: State = {
     storeLetters: randomLetters(storeAmount, availableLetters),
     stageLetters: [],
   }
 
   const [state, dispatch] = useReducer(reducer, initialState)
+
+  useEffect(() => {
+    console.log(state)
+  }, [state])
 
   return (
     <div className="staging-view">
@@ -33,10 +38,10 @@ const StagingView = ({ highestTier, storeAmount, stageCapacity }: Props) => {
       <Stage
         letters={state.stageLetters}
         capacity={stageCapacity}
-        sellLetter={(letter: Letter, index: number) => {
+        sellLetter={(letter: Letter) => {
           dispatch({
             type: ActionKind.Sell,
-            payload: { letters: [letter], index },
+            payload: { letter },
           })
         }}
       />
@@ -49,11 +54,11 @@ const StagingView = ({ highestTier, storeAmount, stageCapacity }: Props) => {
       <LetterStore
         letters={state.storeLetters}
         amount={storeAmount}
-        buyLetter={(letter: Letter, index: number) => {
+        buyLetter={(letter: Letter) => {
           if (state.stageLetters.length < stageCapacity) {
             dispatch({
               type: ActionKind.Buy,
-              payload: { letters: [letter], index },
+              payload: { letter },
             })
           }
         }}
@@ -99,11 +104,11 @@ enum ActionKind {
 }
 interface BuyAction {
   type: ActionKind.Buy
-  payload: { letters: Letter[]; index: number }
+  payload: { letter: Letter }
 }
 interface SellAction {
   type: ActionKind.Sell
-  payload: { letters: Letter[]; index: number }
+  payload: { letter: Letter }
 }
 interface RefreshStoreAction {
   type: ActionKind.RefreshStore
@@ -127,15 +132,15 @@ const reducer = (state: State, action: StagingViewAction): State => {
     case ActionKind.Buy:
       return {
         storeLetters: state.storeLetters.filter(
-          (_, index) => index !== payload.index
+          (letter) => letter.id !== payload.letter.id
         ),
-        stageLetters: [...state.stageLetters, ...payload.letters],
+        stageLetters: [...state.stageLetters, payload.letter],
       }
 
     case ActionKind.Sell:
       return {
         stageLetters: state.stageLetters.filter(
-          (_, index) => index !== payload.index
+          (letter) => letter.id !== payload.letter.id
         ),
         storeLetters: state.storeLetters,
       }

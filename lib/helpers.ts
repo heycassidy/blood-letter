@@ -1,4 +1,5 @@
 import type { Letter, LetterTierMap } from '../lib/types'
+import { nanoid } from 'nanoid'
 
 export const computeLetterValueFromTier = (tier: number): number => tier ** 2
 
@@ -13,6 +14,9 @@ export const groupLettersByTier = (letters: Letter[]): LetterTierMap => {
 }
 
 export const randomLetters = (amount: number, letters: Letter[]) =>
-  [...Array(amount)]
-    .map(() => Math.floor(Math.random() * letters.length))
-    .map((index) => letters[index])
+  [...Array(amount)].map(() => {
+    return {
+      ...letters[Math.floor(Math.random() * letters.length)],
+      id: nanoid(10),
+    }
+  })

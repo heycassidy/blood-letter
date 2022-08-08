@@ -8,7 +8,7 @@ import { computeLetterValueFromTier } from '../lib/helpers'
 type Props = {
   letters: Letter[]
   capacity: number
-  sellLetter: (letter: Letter, index: number) => void
+  sellLetter: (letter: Letter) => void
 }
 
 const Stage = ({ letters = [], capacity, sellLetter }: Props) => {
@@ -36,12 +36,12 @@ const Stage = ({ letters = [], capacity, sellLetter }: Props) => {
       </div>
 
       <LetterList capacity={capacity}>
-        {stageLetters.map((letter, index) => (
+        {stageLetters.map((letter) => (
           <LetterCard
-            letter={{ name: letter.name, tier: letter.tier }}
-            key={index}
+            letter={{ name: letter.name, tier: letter.tier, id: letter.id }}
+            key={letter.id}
             onClick={() => {
-              sellLetter(letter, index)
+              sellLetter(letter)
             }}
           />
         ))}
