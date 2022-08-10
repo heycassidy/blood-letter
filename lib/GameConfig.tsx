@@ -1,38 +1,39 @@
 import type { Letter } from '../lib/types'
 import { createContext } from 'react'
+import { nanoid } from 'nanoid'
 
 const alphabet: Letter[] = [
-  { name: 'e', tier: 1 },
-  { name: 't', tier: 1 },
-  { name: 'a', tier: 1 },
-  { name: 'i', tier: 1 },
-  { name: 'o', tier: 1 },
-  { name: 'n', tier: 1 },
+  { name: 'e', tier: 1, id: nanoid(10) },
+  { name: 't', tier: 1, id: nanoid(10) },
+  { name: 'a', tier: 1, id: nanoid(10) },
+  { name: 'i', tier: 1, id: nanoid(10) },
+  { name: 'o', tier: 1, id: nanoid(10) },
+  { name: 'n', tier: 1, id: nanoid(10) },
 
-  { name: 's', tier: 2 },
-  { name: 'h', tier: 2 },
-  { name: 'r', tier: 2 },
-  { name: 'd', tier: 2 },
+  { name: 's', tier: 2, id: nanoid(10) },
+  { name: 'h', tier: 2, id: nanoid(10) },
+  { name: 'r', tier: 2, id: nanoid(10) },
+  { name: 'd', tier: 2, id: nanoid(10) },
 
-  { name: 'l', tier: 3 },
-  { name: 'c', tier: 3 },
-  { name: 'u', tier: 3 },
-  { name: 'm', tier: 3 },
+  { name: 'l', tier: 3, id: nanoid(10) },
+  { name: 'c', tier: 3, id: nanoid(10) },
+  { name: 'u', tier: 3, id: nanoid(10) },
+  { name: 'm', tier: 3, id: nanoid(10) },
 
-  { name: 'w', tier: 4 },
-  { name: 'f', tier: 4 },
-  { name: 'g', tier: 4 },
-  { name: 'y', tier: 4 },
+  { name: 'w', tier: 4, id: nanoid(10) },
+  { name: 'f', tier: 4, id: nanoid(10) },
+  { name: 'g', tier: 4, id: nanoid(10) },
+  { name: 'y', tier: 4, id: nanoid(10) },
 
-  { name: 'p', tier: 5 },
-  { name: 'b', tier: 5 },
-  { name: 'v', tier: 5 },
-  { name: 'k', tier: 5 },
+  { name: 'p', tier: 5, id: nanoid(10) },
+  { name: 'b', tier: 5, id: nanoid(10) },
+  { name: 'v', tier: 5, id: nanoid(10) },
+  { name: 'k', tier: 5, id: nanoid(10) },
 
-  { name: 'j', tier: 6 },
-  { name: 'x', tier: 6 },
-  { name: 'q', tier: 6 },
-  { name: 'z', tier: 6 },
+  { name: 'j', tier: 6, id: nanoid(10) },
+  { name: 'x', tier: 6, id: nanoid(10) },
+  { name: 'q', tier: 6, id: nanoid(10) },
+  { name: 'z', tier: 6, id: nanoid(10) },
 ]
 
 export const GameConfig = createContext({

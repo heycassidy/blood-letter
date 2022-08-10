@@ -5,6 +5,15 @@ import css from 'styled-jsx/css'
 import LetterStore from './LetterStore'
 import Stage from './Stage'
 import { randomLetters } from '../lib/helpers'
+import {
+  DndContext,
+  closestCenter,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+} from '@dnd-kit/core'
+import { arrayMove } from '@dnd-kit/sortable'
 
 type Props = {
   highestTier: number
@@ -18,6 +27,15 @@ const StagingView = ({ highestTier, storeAmount, stageCapacity }: Props) => {
     [...Array(highestTier)].map((_, i) => i + 1).includes(letter.tier)
   )
 
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        delay: 150,
+        tolerance: 5,
+      },
+    })
+  )
+
   const initialState: State = {
     storeLetters: randomLetters(storeAmount, availableLetters),
     stageLetters: [],
@@ -25,70 +43,94 @@ const StagingView = ({ highestTier, storeAmount, stageCapacity }: Props) => {
 
   const [state, dispatch] = useReducer(reducer, initialState)
 
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event
+
+    if (over !== null && active.id !== over.id) {
+      const oldIndex = state.stageLetters.findIndex(
+        (letter) => letter.id === active.id
+      )
+      const newIndex = state.stageLetters.findIndex(
+        (letter) => letter.id === over.id
+      )
+
+      dispatch({
+        type: ActionKind.SortStage,
+        payload: { letters: arrayMove(state.stageLetters, oldIndex, newIndex) },
+      })
+    }
+  }
+
   useEffect(() => {
-    console.log(state)
+    // console.log(state)
   }, [state])
 
   return (
-    <div className="staging-view">
-      <div className="info-list">
-        <span className="info-box">Max Stage Letters: {stageCapacity}</span>
-      </div>
+    <DndContext
+      sensors={sensors}
+      collisionDetection={closestCenter}
+      onDragEnd={handleDragEnd}
+    >
+      <div className="staging-view">
+        <div className="info-list">
+          <span className="info-box">Max Stage Letters: {stageCapacity}</span>
+        </div>
 
-      <Stage
-        letters={state.stageLetters}
-        capacity={stageCapacity}
-        sellLetter={(letter: Letter) => {
-          dispatch({
-            type: ActionKind.Sell,
-            payload: { letter },
-          })
-        }}
-      />
-
-      <div className="info-list">
-        <span className="info-box">Tier: {highestTier}</span>
-        <span className="info-box">Amount: {storeAmount}</span>
-      </div>
-
-      <LetterStore
-        letters={state.storeLetters}
-        amount={storeAmount}
-        buyLetter={(letter: Letter) => {
-          if (state.stageLetters.length < stageCapacity) {
+        <Stage
+          letters={state.stageLetters}
+          capacity={stageCapacity}
+          sellLetter={(letter: Letter) => {
             dispatch({
-              type: ActionKind.Buy,
+              type: ActionKind.Sell,
               payload: { letter },
             })
-          }
-        }}
-      />
-
-      <div className="info-list">
-        <button
-          onClick={() => {
-            dispatch({
-              type: ActionKind.RefreshStore,
-              payload: {
-                letters: randomLetters(storeAmount, availableLetters),
-              },
-            })
           }}
-        >
-          Refresh Store
-        </button>
+        />
 
-        <button
-          onClick={() => {
-            dispatch({ type: ActionKind.ClearStage })
+        <div className="info-list">
+          <span className="info-box">Tier: {highestTier}</span>
+          <span className="info-box">Amount: {storeAmount}</span>
+        </div>
+
+        <LetterStore
+          letters={state.storeLetters}
+          amount={storeAmount}
+          buyLetter={(letter: Letter) => {
+            if (state.stageLetters.length < stageCapacity) {
+              dispatch({
+                type: ActionKind.Buy,
+                payload: { letter },
+              })
+            }
           }}
-        >
-          Clear Stage
-        </button>
+        />
+
+        <div className="info-list">
+          <button
+            onClick={() => {
+              dispatch({
+                type: ActionKind.RefreshStore,
+                payload: {
+                  letters: randomLetters(storeAmount, availableLetters),
+                },
+              })
+            }}
+          >
+            Refresh Store
+          </button>
+
+          <button
+            onClick={() => {
+              dispatch({ type: ActionKind.ClearStage })
+            }}
+          >
+            Clear Stage
+          </button>
+        </div>
+
+        <style jsx>{styles}</style>
       </div>
-
-      <style jsx>{styles}</style>
-    </div>
+    </DndContext>
   )
 }
 
@@ -101,6 +143,7 @@ enum ActionKind {
   Sell = 'SELL',
   RefreshStore = 'REFRESH_STORE',
   ClearStage = 'CLEAR_STAGE',
+  SortStage = 'SORT_STAGE',
 }
 interface BuyAction {
   type: ActionKind.Buy
@@ -114,6 +157,10 @@ interface RefreshStoreAction {
   type: ActionKind.RefreshStore
   payload: { letters: Letter[] }
 }
+interface SortStageAction {
+  type: ActionKind.SortStage
+  payload: { letters: Letter[] }
+}
 interface ClearStageAction {
   type: ActionKind.ClearStage
   payload?: unknown
@@ -124,6 +171,7 @@ type StagingViewAction =
   | SellAction
   | RefreshStoreAction
   | ClearStageAction
+  | SortStageAction
 
 const reducer = (state: State, action: StagingViewAction): State => {
   const { type, payload } = action
@@ -149,6 +197,12 @@ const reducer = (state: State, action: StagingViewAction): State => {
       return {
         ...state,
         storeLetters: payload.letters,
+      }
+
+    case ActionKind.SortStage:
+      return {
+        ...state,
+        stageLetters: payload.letters,
       }
 
     case ActionKind.ClearStage:

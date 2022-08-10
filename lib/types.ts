@@ -26,7 +26,7 @@ export type AlphabetCharacter =
   | 'y'
   | 'z'
 
-export type Letter = { name: AlphabetCharacter; tier: number; id?: string }
+export type Letter = { name: AlphabetCharacter; tier: number; id: string }
 
 export interface LetterTierMap {
   [index: string]: Letter[]

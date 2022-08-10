@@ -9,7 +9,7 @@ type Props = {
 const LetterList = ({ children = [], capacity = 1 }: Props) => {
   return (
     <>
-      <div className="horizontal-list">
+      <div className="letter-list">
         {children}
 
         {capacity > children.length &&
@@ -18,13 +18,18 @@ const LetterList = ({ children = [], capacity = 1 }: Props) => {
           ))}
       </div>
 
+      <style jsx>{`
+        .letter-list {
+          grid-template-columns: repeat(${capacity}, 4rem);
+        }
+      `}</style>
       <style jsx>{styles}</style>
     </>
   )
 }
 
 const styles = css`
-  .horizontal-list {
+  .letter-list {
     display: grid;
     justify-content: start;
     grid-auto-flow: column;

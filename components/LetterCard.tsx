@@ -8,13 +8,13 @@ type Props = {
 }
 
 const LetterCard: React.FC<Props> = (props) => {
-  const { letter } = props
+  const { letter, onClick } = props
   const { name, tier } = letter
 
   const value = computeLetterValueFromTier(tier)
 
   return (
-    <div className="letter" {...props}>
+    <div className="letter" onClick={onClick}>
       <div className="tier">{tier}</div>
       <div className="name">{name.toUpperCase()}</div>
       <div className="value">{value}</div>

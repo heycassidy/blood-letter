@@ -1,9 +1,13 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useLayoutEffect, useState } from 'react'
 import type { Letter } from '../lib/types'
 import css from 'styled-jsx/css'
 import LetterList from './LetterList'
-import LetterCard from './LetterCard'
+import SortableLetterCard from './SortableLetterCard'
 import { computeLetterValueFromTier } from '../lib/helpers'
+import {
+  SortableContext,
+  horizontalListSortingStrategy,
+} from '@dnd-kit/sortable'
 
 type Props = {
   letters: Letter[]
@@ -15,7 +19,7 @@ const Stage = ({ letters = [], capacity, sellLetter }: Props) => {
   const [stageLetters, setStageLetters] = useState<Letter[]>(letters)
   const [valueSum, setValueSum] = useState(0)
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     setStageLetters(letters)
   }, [letters])
 
@@ -35,17 +39,20 @@ const Stage = ({ letters = [], capacity, sellLetter }: Props) => {
         <span className="info-box">Total: {valueSum}</span>
       </div>
 
-      <LetterList capacity={capacity}>
-        {stageLetters.map((letter) => (
-          <LetterCard
-            letter={{ name: letter.name, tier: letter.tier, id: letter.id }}
-            key={letter.id}
-            onClick={() => {
-              sellLetter(letter)
-            }}
-          />
-        ))}
-      </LetterList>
+      <SortableContext items={letters} strategy={horizontalListSortingStrategy}>
+        <LetterList capacity={capacity}>
+          {stageLetters.map((letter) => (
+            <SortableLetterCard
+              key={letter.id}
+              id={letter.id}
+              letter={{ name: letter.name, tier: letter.tier, id: letter.id }}
+              onClick={() => {
+                sellLetter(letter)
+              }}
+            />
+          ))}
+        </LetterList>
+      </SortableContext>
 
       <style jsx>{styles}</style>
     </div>
