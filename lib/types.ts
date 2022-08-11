@@ -31,3 +31,8 @@ export type Letter = { name: AlphabetCharacter; tier: number; id: string }
 export interface LetterTierMap {
   [index: string]: Letter[]
 }
+
+export type PlayerState = {
+  gold: number
+  setGold: (gold: number) => void
+}

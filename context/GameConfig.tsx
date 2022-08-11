@@ -38,4 +38,8 @@ const alphabet: Letter[] = [
 
 export const GameConfig = createContext({
   alphabet,
+  initialGold: 10,
+  storeRefreshCost: 1,
+  letterBuyCost: 3,
+  letterSellValue: 2,
 })
