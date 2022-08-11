@@ -38,8 +38,8 @@ const StagingView = ({ highestTier, storeAmount, stageCapacity }: Props) => {
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: {
-        delay: 150,
-        tolerance: 5,
+        delay: 100,
+        tolerance: 20,
       },
     })
   )
