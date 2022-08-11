@@ -13,7 +13,7 @@ const Home: NextPage = () => {
       <Layout>
         <h1 style={{ margin: 0, flexBasis: '100%' }}>Blood Letter</h1>
 
-        <StagingView highestTier={3} storeAmount={6} stageCapacity={6} />
+        <StagingView highestTier={1} storeAmount={3} stageCapacity={6} />
       </Layout>
     </div>
   )
