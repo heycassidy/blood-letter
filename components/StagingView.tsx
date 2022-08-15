@@ -1,6 +1,5 @@
 import { useContext, useEffect, useReducer } from 'react'
-import type { Letter } from '../lib/types'
-import { PlayerContext } from '../context/PlayerState'
+import type { Letter, Player } from '../lib/types'
 import { GameConfig } from '../context/GameConfig'
 import css from 'styled-jsx/css'
 import LetterStore from './LetterStore'
@@ -15,22 +14,24 @@ import {
   DragEndEvent,
 } from '@dnd-kit/core'
 import { arrayMove } from '@dnd-kit/sortable'
+import { useGameContext } from '../context/GameContext'
 
-type Props = {
-  highestTier: number
-  storeAmount: number
-  stageCapacity: number
-}
-
-const StagingView = ({ highestTier, storeAmount, stageCapacity }: Props) => {
+const StagingView = () => {
   const {
     alphabet,
-    initialGold,
+    stageCapacity,
     letterBuyCost,
     letterSellValue,
     storeRefreshCost,
+    storeTierFromRound,
+    storeCapacityFromRound,
   } = useContext(GameConfig)
-  const { gold, setGold } = useContext(PlayerContext)
+  const { round, activePlayer, updatePlayer } = useGameContext()
+  const { name: playerName, gold, health } = activePlayer
+
+  const highestTier = storeTierFromRound(round)
+  const storeAmount = storeCapacityFromRound(round)
+
   const availableLetters = alphabet.filter((letter) =>
     [...Array(highestTier)].map((_, i) => i + 1).includes(letter.tier)
   )
@@ -44,38 +45,36 @@ const StagingView = ({ highestTier, storeAmount, stageCapacity }: Props) => {
     })
   )
 
-  const initialState: State = {
-    storeLetters: randomLetters(storeAmount, availableLetters),
-    stageLetters: [],
-  }
-
-  const [state, dispatch] = useReducer(reducer, initialState)
+  const [state, dispatch] = useReducer(reducer, activePlayer)
 
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event
 
     if (over !== null && active.id !== over.id) {
-      const oldIndex = state.stageLetters.findIndex(
+      const oldIndex = state.stage.findIndex(
         (letter) => letter.id === active.id
       )
-      const newIndex = state.stageLetters.findIndex(
-        (letter) => letter.id === over.id
-      )
+      const newIndex = state.stage.findIndex((letter) => letter.id === over.id)
 
       dispatch({
         type: ActionKind.SortStage,
-        payload: { letters: arrayMove(state.stageLetters, oldIndex, newIndex) },
+        payload: { letters: arrayMove(state.stage, oldIndex, newIndex) },
       })
     }
   }
 
+  // update player in game context when local state changes
   useEffect(() => {
-    // setGold(gold + 1)
-  })
+    updatePlayer(activePlayer.id, { stage: state.stage, store: state.store })
+  }, [state.stage, state.store])
 
+  // update local state active player when game context active player changes
   useEffect(() => {
-    // console.log(gold)
-  }, [gold])
+    dispatch({
+      type: ActionKind.RecallPlayer,
+      payload: { player: activePlayer },
+    })
+  }, [activePlayer.id])
 
   return (
     <DndContext
@@ -85,14 +84,17 @@ const StagingView = ({ highestTier, storeAmount, stageCapacity }: Props) => {
     >
       <div className="staging-view">
         <div className="info-list">
+          <span className="info-box">{playerName}</span>
+          <span className="info-box">Turn: {round}</span>
           <span className="info-box">Gold: {gold}</span>
+          <span className="info-box">Health: {health}</span>
         </div>
 
         <Stage
-          letters={state.stageLetters}
+          letters={state.stage}
           capacity={stageCapacity}
           sellLetter={(letter: Letter) => {
-            setGold(gold + letterSellValue)
+            updatePlayer(activePlayer.id, { gold: gold + letterSellValue })
             dispatch({
               type: ActionKind.Sell,
               payload: { letter },
@@ -102,18 +104,14 @@ const StagingView = ({ highestTier, storeAmount, stageCapacity }: Props) => {
 
         <div className="info-list">
           <span className="info-box">Tier: {highestTier}</span>
-          <span className="info-box">Amount: {storeAmount}</span>
         </div>
 
         <LetterStore
-          letters={state.storeLetters}
+          letters={state.store}
           amount={storeAmount}
           buyLetter={(letter: Letter) => {
-            if (
-              state.stageLetters.length < stageCapacity &&
-              gold >= letterBuyCost
-            ) {
-              setGold(gold - letterBuyCost)
+            if (state.stage.length < stageCapacity && gold >= letterBuyCost) {
+              updatePlayer(activePlayer.id, { gold: gold - letterBuyCost })
               dispatch({
                 type: ActionKind.Buy,
                 payload: { letter },
@@ -125,22 +123,10 @@ const StagingView = ({ highestTier, storeAmount, stageCapacity }: Props) => {
         <div className="info-list">
           <button
             onClick={() => {
-              setGold(initialGold)
-              dispatch({
-                type: ActionKind.Reset,
-                payload: {
-                  letters: randomLetters(storeAmount, availableLetters),
-                },
-              })
-            }}
-          >
-            Reset
-          </button>
-
-          <button
-            onClick={() => {
               if (gold >= storeRefreshCost) {
-                setGold(gold - storeRefreshCost)
+                updatePlayer(activePlayer.id, {
+                  gold: gold - storeRefreshCost,
+                })
                 dispatch({
                   type: ActionKind.RefreshStore,
                   payload: {
@@ -161,16 +147,17 @@ const StagingView = ({ highestTier, storeAmount, stageCapacity }: Props) => {
 }
 
 type State = {
-  stageLetters: Letter[]
-  storeLetters: Letter[]
+  stage: Letter[]
+  store: Letter[]
 }
 enum ActionKind {
-  Buy = 'BUY',
-  Sell = 'SELL',
-  RefreshStore = 'REFRESH_STORE',
-  ClearStage = 'CLEAR_STAGE',
-  SortStage = 'SORT_STAGE',
-  Reset = 'RESET',
+  Buy,
+  Sell,
+  RefreshStore,
+  ClearStage,
+  SortStage,
+  RecallPlayer,
+  Reset,
 }
 interface BuyAction {
   type: ActionKind.Buy
@@ -192,6 +179,10 @@ interface ClearStageAction {
   type: ActionKind.ClearStage
   payload?: unknown
 }
+interface RecallPlayerAction {
+  type: ActionKind.RecallPlayer
+  payload: { player: Player }
+}
 interface ResetAction {
   type: ActionKind.Reset
   payload: { letters: Letter[] }
@@ -203,51 +194,61 @@ type StagingViewAction =
   | RefreshStoreAction
   | ClearStageAction
   | SortStageAction
+  | RecallPlayerAction
   | ResetAction
 
 const reducer = (state: State, action: StagingViewAction): State => {
   const { type, payload } = action
 
   switch (type) {
-    case ActionKind.Buy:
+    case ActionKind.Buy: {
       return {
-        storeLetters: state.storeLetters.filter(
-          (letter) => letter.id !== payload.letter.id
-        ),
-        stageLetters: [...state.stageLetters, payload.letter],
+        store: state.store.filter((letter) => letter.id !== payload.letter.id),
+        stage: [...state.stage, payload.letter],
       }
+    }
 
-    case ActionKind.Sell:
+    case ActionKind.Sell: {
       return {
-        stageLetters: state.stageLetters.filter(
-          (letter) => letter.id !== payload.letter.id
-        ),
-        storeLetters: state.storeLetters,
+        stage: state.stage.filter((letter) => letter.id !== payload.letter.id),
+        store: state.store,
       }
+    }
 
-    case ActionKind.RefreshStore:
+    case ActionKind.RefreshStore: {
       return {
         ...state,
-        storeLetters: payload.letters,
+        store: payload.letters,
       }
+    }
 
-    case ActionKind.SortStage:
+    case ActionKind.SortStage: {
       return {
         ...state,
-        stageLetters: payload.letters,
+        stage: payload.letters,
       }
+    }
 
-    case ActionKind.ClearStage:
+    case ActionKind.ClearStage: {
       return {
         ...state,
-        stageLetters: [],
+        stage: [],
       }
+    }
 
-    case ActionKind.Reset:
+    case ActionKind.RecallPlayer: {
       return {
-        storeLetters: payload.letters,
-        stageLetters: [],
+        store: payload.player.store,
+        stage: payload.player.stage,
       }
+    }
+
+    case ActionKind.Reset: {
+      return {
+        store: payload.letters,
+        stage: [],
+      }
+    }
 
     default:
       throw new Error()

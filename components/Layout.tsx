@@ -11,11 +11,10 @@ const Layout = ({ children }: LayoutProps) => {
 
       <style jsx>{`
         .layout {
-          padding: 1rem;
           gap: 1rem;
-          display: flex;
-          flex-wrap: wrap;
+          display: grid;
           justify-content: start;
+          justify-items: start;
         }
       `}</style>
     </div>

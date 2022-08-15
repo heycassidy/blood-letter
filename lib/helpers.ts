@@ -20,3 +20,10 @@ export const randomLetters = (amount: number, letters: Letter[]) =>
       id: nanoid(10),
     }
   })
+
+export const getNextMod = (items: unknown[], currentItem: unknown): unknown => {
+  const currentIndex = items.indexOf(currentItem)
+  const nextIndex = (currentIndex + 1) % items.length
+
+  return items[nextIndex]
+}
