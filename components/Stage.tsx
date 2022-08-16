@@ -8,14 +8,15 @@ import {
   SortableContext,
   horizontalListSortingStrategy,
 } from '@dnd-kit/sortable'
+import { useBuildPhaseContext } from '../context/BuildPhaseContext'
 
 type Props = {
   letters: Letter[]
   capacity: number
-  sellLetter: (letter: Letter) => void
 }
 
-const Stage = ({ letters = [], capacity, sellLetter }: Props) => {
+const Stage = ({ letters = [], capacity }: Props) => {
+  const { sellLetter } = useBuildPhaseContext()
   const [stageLetters, setStageLetters] = useState<Letter[]>(letters)
   const [valueSum, setValueSum] = useState(0)
 

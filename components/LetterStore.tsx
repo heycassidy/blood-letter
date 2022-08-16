@@ -3,14 +3,15 @@ import type { Letter } from '../lib/types'
 import css from 'styled-jsx/css'
 import LetterList from './LetterList'
 import LetterCard from './LetterCard'
+import { useBuildPhaseContext } from '../context/BuildPhaseContext'
 
 type Props = {
   letters: Letter[]
   amount: number
-  buyLetter: (letter: Letter) => void
 }
 
-const LetterStore = ({ letters = [], amount, buyLetter }: Props) => {
+const LetterStore = ({ letters = [], amount }: Props) => {
+  const { buyLetter } = useBuildPhaseContext()
   const [storeLetters, setStoreLetters] = useState<Letter[]>([])
 
   useEffect(() => {

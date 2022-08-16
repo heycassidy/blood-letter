@@ -1,16 +1,3 @@
-export interface GameState {
-  players: Map<string, Player>
-  activePlayer: Player
-  round: number
-  phase: Phase
-  gameOver: boolean
-  winner: Player | undefined
-
-  updatePlayer: (id: string, player: Partial<Player>) => void
-  setActivePlayer: (id: string) => void
-  togglePlayer: () => void
-}
-
 export interface Player {
   id: string
   name: string
@@ -57,4 +44,27 @@ export type Letter = { name: AlphabetCharacter; tier: number; id: string }
 
 export interface LetterTierMap {
   [index: string]: Letter[]
+}
+
+export interface GameState {
+  players: Map<string, Player>
+  activePlayer: Player
+  round: number
+  phase: Phase
+  gameOver: boolean
+  winner: Player | undefined
+
+  updatePlayer: (id: string, player: Partial<Player>) => void
+  setActivePlayer: (id: string) => void
+  togglePlayer: () => void
+}
+
+export interface BuildPhaseState {
+  stage: Letter[]
+  store: Letter[]
+  gold: number
+
+  buyLetter: (letter: Letter) => void
+  sellLetter: (letter: Letter) => void
+  rollStore: () => void
 }

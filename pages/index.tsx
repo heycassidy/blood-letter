@@ -1,11 +1,13 @@
 import type { NextPage } from 'next'
 import Head from 'next/head'
 import Layout from '../components/Layout'
-import StagingView from '../components/StagingView'
+import BuildPhase from '../components/BuildPhase'
 import { useGameContext } from '../context/GameContext'
+import { BuildPhaseContextProvider } from '../context/BuildPhaseContext'
 
 const Home: NextPage = () => {
-  const { togglePlayer } = useGameContext()
+  const gameContext = useGameContext()
+  const { togglePlayer } = gameContext
 
   return (
     <div className="layout">
@@ -18,7 +20,9 @@ const Home: NextPage = () => {
       <button onClick={togglePlayer}>Toggle Player</button>
 
       <Layout>
-        <StagingView />
+        <BuildPhaseContextProvider>
+          <BuildPhase />
+        </BuildPhaseContextProvider>
       </Layout>
 
       <style jsx>{`
