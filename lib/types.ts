@@ -5,11 +5,12 @@ export interface Player {
   gold: number
   stage: Letter[]
   store: Letter[]
+  stageScore: number
 }
 
-export enum Phase {
-  Stage = 1,
-  Battle,
+export enum PhaseKind {
+  Build = 'BUILD',
+  Battle = 'BATTLE',
 }
 
 export type AlphabetCharacter =
@@ -50,13 +51,14 @@ export interface GameState {
   players: Map<string, Player>
   activePlayer: Player
   round: number
-  phase: Phase
+  phase: PhaseKind
   gameOver: boolean
   winner: Player | undefined
 
   updatePlayer: (id: string, player: Partial<Player>) => void
   setActivePlayer: (id: string) => void
   togglePlayer: () => void
+  togglePhase: () => void
 }
 
 export interface BuildPhaseState {

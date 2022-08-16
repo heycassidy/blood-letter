@@ -9,7 +9,7 @@ import { useBuildPhaseContext } from '../context/BuildPhaseContext'
 const BuildPhase = () => {
   const { stageCapacity, storeTierFromRound, storeCapacityFromRound } =
     useContext(GameConfig)
-  const { round, activePlayer } = useGameContext()
+  const { round, activePlayer, togglePlayer } = useGameContext()
   const { stage, store, rollStore } = useBuildPhaseContext()
 
   const highestTier = storeTierFromRound(round)
@@ -24,7 +24,7 @@ const BuildPhase = () => {
   }, [])
 
   return (
-    <div className="staging-view">
+    <div className="build-phase">
       <div className="info-list">
         <span className="info-box">{playerName}</span>
         <span className="info-box">Turn: {round}</span>
@@ -42,6 +42,7 @@ const BuildPhase = () => {
 
       <div className="info-list">
         <button onClick={rollStore}>Roll Store</button>
+        <button onClick={togglePlayer}>Toggle Player</button>
       </div>
 
       <style jsx>{styles}</style>
@@ -50,7 +51,9 @@ const BuildPhase = () => {
 }
 
 const styles = css`
-  .staging-view {
+  .build-phase {
+    border: 1px solid black;
+    padding: 1rem;
     gap: 1rem;
     display: grid;
     justify-content: start;

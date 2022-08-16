@@ -1,9 +1,8 @@
-import { useEffect, useLayoutEffect, useState } from 'react'
+import { useLayoutEffect, useState } from 'react'
 import type { Letter } from '../lib/types'
 import css from 'styled-jsx/css'
 import LetterList from './LetterList'
 import SortableLetterCard from './SortableLetterCard'
-import { computeLetterValueFromTier } from '../lib/helpers'
 import {
   SortableContext,
   horizontalListSortingStrategy,
@@ -18,27 +17,14 @@ type Props = {
 const Stage = ({ letters = [], capacity }: Props) => {
   const { sellLetter } = useBuildPhaseContext()
   const [stageLetters, setStageLetters] = useState<Letter[]>(letters)
-  const [valueSum, setValueSum] = useState(0)
 
   useLayoutEffect(() => {
     setStageLetters(letters)
   }, [letters])
 
-  useEffect(() => {
-    setValueSum(
-      stageLetters
-        .map((letter) => computeLetterValueFromTier(letter.tier))
-        .reduce((sum, value) => sum + value, 0)
-    )
-  }, [stageLetters])
-
   return (
     <div className="stage">
       <strong>Stage</strong>
-
-      <div className="info-list">
-        <span className="info-box">Total: {valueSum}</span>
-      </div>
 
       <SortableContext items={letters} strategy={horizontalListSortingStrategy}>
         <LetterList capacity={capacity}>

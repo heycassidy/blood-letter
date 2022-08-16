@@ -17,7 +17,7 @@ import {
   DragEndEvent,
 } from '@dnd-kit/core'
 import { arrayMove } from '@dnd-kit/sortable'
-import { randomLetters } from '../lib/helpers'
+import { randomLetters, computeLetterValueFromTier } from '../lib/helpers'
 
 const BuildPhaseContext = createContext<BuildPhaseState | undefined>(undefined)
 
@@ -81,6 +81,9 @@ export const BuildPhaseContextProvider = ({ children }: Props) => {
       store: state.store,
       stage: state.stage,
       gold: state.gold,
+      stageScore: state.stage
+        .map((letter) => computeLetterValueFromTier(letter.tier))
+        .reduce((sum, value) => sum + value, 0),
     })
   }, [state.store, state.stage, state.gold])
 

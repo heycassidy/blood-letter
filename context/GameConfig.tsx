@@ -1,4 +1,4 @@
-import type { Letter } from '../lib/types'
+import { Letter, PhaseKind } from '../lib/types'
 import { createContext } from 'react'
 import { nanoid } from 'nanoid'
 
@@ -81,8 +81,8 @@ export const GameConfig = createContext({
   storeRefreshCost: 1,
   letterBuyCost: 3,
   letterSellValue: 2,
-  initialRound: 1,
-  initialPhase: 1,
+  initialRound: 4,
+  initialPhase: PhaseKind.Build,
   stageCapacity: 6,
   storeTierFromRound,
   storeCapacityFromRound,

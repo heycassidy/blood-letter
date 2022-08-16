@@ -5,7 +5,7 @@ import {
   useReducer,
   useEffect,
 } from 'react'
-import type { GameState, Player } from '../lib/types'
+import { GameState, Player, PhaseKind } from '../lib/types'
 import { GameConfig } from './GameConfig'
 import { nanoid } from 'nanoid'
 import { getNextMod, randomLetters } from '../lib/helpers'
@@ -48,6 +48,7 @@ export const GameContextProvider = ({ children }: PropsWithChildren) => {
       health: initialHealth,
       gold: initialGold,
       stage: [],
+      stageScore: 0,
       store: randomLetters(storeAmount, availableLetters),
     },
     {
@@ -56,6 +57,7 @@ export const GameContextProvider = ({ children }: PropsWithChildren) => {
       health: initialHealth,
       gold: initialGold,
       stage: [],
+      stageScore: 0,
       store: randomLetters(storeAmount, availableLetters),
     },
   ]
@@ -74,6 +76,7 @@ export const GameContextProvider = ({ children }: PropsWithChildren) => {
     updatePlayer,
     setActivePlayer,
     togglePlayer,
+    togglePhase,
   }
 
   const [state, dispatch] = useReducer(reducer, initialState)
@@ -101,6 +104,12 @@ export const GameContextProvider = ({ children }: PropsWithChildren) => {
     })
   }
 
+  function togglePhase(): void {
+    dispatch({
+      type: ActionKind.TogglePhase,
+    })
+  }
+
   useEffect(() => {
     // console.log(state)
   }, [state])
@@ -112,6 +121,7 @@ enum ActionKind {
   UpdatePlayer,
   SetActivePlayer,
   ToggleActivePlayer,
+  TogglePhase,
 }
 interface UpdatePlayerAction {
   type: ActionKind.UpdatePlayer
@@ -125,10 +135,15 @@ interface ToggleActivePlayerAction {
   type: ActionKind.ToggleActivePlayer
   payload?: unknown
 }
+interface TogglePhaseAction {
+  type: ActionKind.TogglePhase
+  payload?: unknown
+}
 type GameContextAction =
   | UpdatePlayerAction
   | SetActivePlayerAction
   | ToggleActivePlayerAction
+  | TogglePhaseAction
 
 const reducer = (state: GameState, action: GameContextAction): GameState => {
   const { type, payload } = action
@@ -161,6 +176,18 @@ const reducer = (state: GameState, action: GameContextAction): GameState => {
       return {
         ...state,
         activePlayer: player,
+      }
+    }
+
+    case ActionKind.TogglePhase: {
+      const nextPhase = getNextMod(
+        Object.values(PhaseKind),
+        state.phase
+      ) as PhaseKind
+
+      return {
+        ...state,
+        phase: nextPhase,
       }
     }
 
