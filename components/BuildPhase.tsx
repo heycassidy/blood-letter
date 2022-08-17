@@ -9,7 +9,7 @@ import { useBuildPhaseContext } from '../context/BuildPhaseContext'
 const BuildPhase = () => {
   const { stageCapacity, storeTierFromRound, storeCapacityFromRound } =
     useContext(GameConfig)
-  const { round, activePlayer, togglePlayer } = useGameContext()
+  const { round, activePlayer, updatePlayer } = useGameContext()
   const { stage, store, rollStore } = useBuildPhaseContext()
 
   const highestTier = storeTierFromRound(round)
@@ -17,7 +17,7 @@ const BuildPhase = () => {
 
   const [showStage, setShowStage] = useState(false)
 
-  const { name: playerName, gold, health } = activePlayer
+  const { name: playerName, gold, health, battlesWon } = activePlayer
 
   useEffect(() => {
     setShowStage(true)
@@ -26,10 +26,13 @@ const BuildPhase = () => {
   return (
     <div className="build-phase">
       <div className="info-list">
-        <span className="info-box">{playerName}</span>
-        <span className="info-box">Turn: {round}</span>
+        <span className="info-box">
+          <strong>{playerName}</strong>
+        </span>
         <span className="info-box">Gold: {gold}</span>
         <span className="info-box">Health: {health}</span>
+        <span className="info-box">Round: {round}</span>
+        <span className="info-box">Wins: {battlesWon}</span>
       </div>
 
       {showStage && <Stage letters={stage} capacity={stageCapacity} />}
@@ -42,7 +45,15 @@ const BuildPhase = () => {
 
       <div className="info-list">
         <button onClick={rollStore}>Roll Store</button>
-        <button onClick={togglePlayer}>Toggle Player</button>
+        <button
+          onClick={() => {
+            updatePlayer(activePlayer.id, {
+              completedTurn: true,
+            })
+          }}
+        >
+          End Turn
+        </button>
       </div>
 
       <style jsx>{styles}</style>

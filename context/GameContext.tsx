@@ -31,6 +31,7 @@ export const GameContextProvider = ({ children }: PropsWithChildren) => {
     initialPhase,
     storeTierFromRound,
     storeCapacityFromRound,
+    healthLossFromRound,
   } = useContext(GameConfig)
 
   const availableLetters = alphabet.filter((letter) =>
@@ -41,7 +42,7 @@ export const GameContextProvider = ({ children }: PropsWithChildren) => {
 
   const storeAmount = storeCapacityFromRound(initialRound)
 
-  const initialPlayersData = [
+  const initialPlayersData: Player[] = [
     {
       id: nanoid(7),
       name: 'Player One',
@@ -50,6 +51,8 @@ export const GameContextProvider = ({ children }: PropsWithChildren) => {
       stage: [],
       stageScore: 0,
       store: randomLetters(storeAmount, availableLetters),
+      completedTurn: false,
+      battlesWon: 0,
     },
     {
       id: nanoid(7),
@@ -59,6 +62,8 @@ export const GameContextProvider = ({ children }: PropsWithChildren) => {
       stage: [],
       stageScore: 0,
       store: randomLetters(storeAmount, availableLetters),
+      completedTurn: false,
+      battlesWon: 0,
     },
   ]
 
@@ -71,12 +76,14 @@ export const GameContextProvider = ({ children }: PropsWithChildren) => {
     round: initialRound,
     phase: initialPhase,
     gameOver: false,
-    winner: undefined,
+    gameWinner: undefined,
+    battleWinner: undefined,
 
     updatePlayer,
     setActivePlayer,
     togglePlayer,
     togglePhase,
+    incrementRound,
   }
 
   const [state, dispatch] = useReducer(reducer, initialState)
@@ -110,9 +117,60 @@ export const GameContextProvider = ({ children }: PropsWithChildren) => {
     })
   }
 
+  function incrementRound(): void {
+    dispatch({
+      type: ActionKind.IncrementRound,
+      payload: { gold: initialGold },
+    })
+  }
+
+  useEffect(() => {
+    if (state.phase === PhaseKind.Build) {
+      const players = Array.from(state.players.values())
+
+      if (players.every((p) => p.completedTurn)) {
+        dispatch({
+          type: ActionKind.SetPhase,
+          payload: PhaseKind.Battle,
+        })
+        return
+      }
+
+      if (state.activePlayer.completedTurn) {
+        dispatch({
+          type: ActionKind.ToggleActivePlayer,
+        })
+      }
+    }
+  }, [state.activePlayer])
+
+  useEffect(() => {
+    if (state.phase === PhaseKind.Battle) {
+      const players = Array.from(state.players.values())
+
+      const isDraw = players.every(
+        (p) => p.stageScore === players[0].stageScore
+      )
+
+      const winner = players.reduce((p, c) =>
+        p.stageScore > c.stageScore ? p : c
+      )
+      const losers = players.filter((p) => p !== winner)
+
+      dispatch({
+        type: ActionKind.SetBattleResult,
+        payload: {
+          winner: isDraw ? false : winner,
+          losers: isDraw ? [] : losers,
+          healthLoss: healthLossFromRound(state.round),
+        },
+      })
+    }
+  }, [state.phase])
+
   useEffect(() => {
     // console.log(state)
-  }, [state])
+  }, [state.phase])
 
   return <GameContext.Provider value={state}>{children}</GameContext.Provider>
 }
@@ -122,6 +180,9 @@ enum ActionKind {
   SetActivePlayer,
   ToggleActivePlayer,
   TogglePhase,
+  SetPhase,
+  SetBattleResult,
+  IncrementRound,
 }
 interface UpdatePlayerAction {
   type: ActionKind.UpdatePlayer
@@ -133,17 +194,32 @@ interface SetActivePlayerAction {
 }
 interface ToggleActivePlayerAction {
   type: ActionKind.ToggleActivePlayer
-  payload?: unknown
+  payload?: null
 }
 interface TogglePhaseAction {
   type: ActionKind.TogglePhase
-  payload?: unknown
+  payload?: null
+}
+interface SetPhaseAction {
+  type: ActionKind.SetPhase
+  payload: PhaseKind
+}
+interface SetBattleResultAction {
+  type: ActionKind.SetBattleResult
+  payload: { winner: Player | false; losers: Player[]; healthLoss: number }
+}
+interface IncrementRoundAction {
+  type: ActionKind.IncrementRound
+  payload: { gold: number }
 }
 type GameContextAction =
   | UpdatePlayerAction
   | SetActivePlayerAction
   | ToggleActivePlayerAction
   | TogglePhaseAction
+  | SetPhaseAction
+  | SetBattleResultAction
+  | IncrementRoundAction
 
 const reducer = (state: GameState, action: GameContextAction): GameState => {
   const { type, payload } = action
@@ -191,6 +267,35 @@ const reducer = (state: GameState, action: GameContextAction): GameState => {
       }
     }
 
+    case ActionKind.SetPhase: {
+      return {
+        ...state,
+        phase: payload,
+      }
+    }
+
+    case ActionKind.SetBattleResult: {
+      const { winner, losers, healthLoss } = payload
+      const players = new Map(state.players) // must clone Map
+
+      if (winner) {
+        players.set(winner.id, { ...winner, battlesWon: winner.battlesWon + 1 })
+      }
+
+      losers.forEach((loser) => {
+        players.set(loser.id, {
+          ...loser,
+          health: loser.health - healthLoss,
+        })
+      })
+
+      return {
+        ...state,
+        players,
+        battleWinner: winner,
+      }
+    }
+
     case ActionKind.UpdatePlayer: {
       const players = new Map(state.players) // must clone Map
       const player = players.get(payload.id)
@@ -207,6 +312,26 @@ const reducer = (state: GameState, action: GameContextAction): GameState => {
         activePlayer:
           player.id === payload.id ? updatedPlayer : state.activePlayer,
         players: players.set(payload.id, updatedPlayer),
+      }
+    }
+
+    case ActionKind.IncrementRound: {
+      const players = new Map(state.players) // must clone Map
+
+      players.forEach((player) => {
+        players.set(player.id, {
+          ...player,
+          gold: payload.gold,
+          completedTurn: false,
+        })
+      })
+
+      return {
+        ...state,
+        round: state.round + 1,
+        phase: PhaseKind.Build,
+        players,
+        activePlayer: [...players.values()][0],
       }
     }
 

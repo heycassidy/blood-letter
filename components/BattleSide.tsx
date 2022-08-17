@@ -4,15 +4,27 @@ import type { Player } from '../lib/types'
 import css from 'styled-jsx/css'
 import LetterList from './LetterList'
 import LetterCard from './LetterCard'
+import { useGameContext } from '../context/GameContext'
 
 const BattleSide = ({ player }: { player: Player }) => {
-  const { stageCapacity } = useContext(GameConfig)
+  const { stageCapacity, healthLossFromRound } = useContext(GameConfig)
+  const { round, battleWinner } = useGameContext()
 
   return (
     <div className="battle-side">
       <div className="info-list">
+        {battleWinner && battleWinner.id === player.id && (
+          <div className="info-box">
+            <strong>Winner</strong>
+          </div>
+        )}
         <div className="info-box">{player.name}</div>
         <div className="info-box">Score: {player.stageScore}</div>
+        {battleWinner && battleWinner.id !== player.id && (
+          <div className="info-box">
+            Health Change: -{healthLossFromRound(round)}
+          </div>
+        )}
       </div>
 
       <LetterList capacity={stageCapacity}>

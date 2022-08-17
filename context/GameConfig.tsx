@@ -74,6 +74,25 @@ const storeCapacityFromRound = (round: number): number => {
   return capacities[round]
 }
 
+const healthLossFromRound = (round: number): number => {
+  if (round > 10) return 3
+
+  const capacities: { [tier: number]: number } = {
+    1: 1,
+    2: 1,
+    3: 1,
+    4: 1,
+    5: 2,
+    6: 2,
+    7: 2,
+    8: 3,
+    9: 3,
+    10: 3,
+  }
+
+  return capacities[round]
+}
+
 export const GameConfig = createContext({
   alphabet,
   initialGold: 10,
@@ -81,9 +100,10 @@ export const GameConfig = createContext({
   storeRefreshCost: 1,
   letterBuyCost: 3,
   letterSellValue: 2,
-  initialRound: 4,
+  initialRound: 1,
   initialPhase: PhaseKind.Build,
   stageCapacity: 6,
   storeTierFromRound,
   storeCapacityFromRound,
+  healthLossFromRound,
 })

@@ -8,7 +8,7 @@ import { BuildPhaseContextProvider } from '../context/BuildPhaseContext'
 import { PhaseKind } from '../lib/types'
 
 const Home: NextPage = () => {
-  const { phase, togglePhase } = useGameContext()
+  const { phase } = useGameContext()
 
   return (
     <div className="layout">
@@ -19,8 +19,6 @@ const Home: NextPage = () => {
       <h1 style={{ margin: 0, flexBasis: '100%' }}>Blood Letter</h1>
 
       <Layout>
-        <button onClick={togglePhase}>Toggle Phase</button>
-
         {phase === PhaseKind.Build && (
           <>
             <h3>Build Phase</h3>

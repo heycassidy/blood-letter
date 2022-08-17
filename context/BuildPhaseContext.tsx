@@ -90,7 +90,14 @@ export const BuildPhaseContextProvider = ({ children }: Props) => {
   useEffect(() => {
     dispatch({
       type: ActionKind.RecallPlayer,
-      payload: { player: activePlayer },
+      payload: {
+        player: {
+          ...activePlayer,
+          store: !activePlayer.completedTurn
+            ? randomLetters(storeAmount, availableLetters)
+            : activePlayer.store,
+        },
+      },
     })
   }, [activePlayer.id])
 

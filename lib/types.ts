@@ -6,6 +6,8 @@ export interface Player {
   stage: Letter[]
   store: Letter[]
   stageScore: number
+  completedTurn: boolean
+  battlesWon: number
 }
 
 export enum PhaseKind {
@@ -53,12 +55,14 @@ export interface GameState {
   round: number
   phase: PhaseKind
   gameOver: boolean
-  winner: Player | undefined
+  gameWinner: Player | undefined
+  battleWinner: Player | undefined | false
 
   updatePlayer: (id: string, player: Partial<Player>) => void
   setActivePlayer: (id: string) => void
   togglePlayer: () => void
   togglePhase: () => void
+  incrementRound: () => void
 }
 
 export interface BuildPhaseState {
