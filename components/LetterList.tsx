@@ -20,7 +20,8 @@ const LetterList = ({ children = [], capacity = 1 }: Props) => {
 
       <style jsx>{`
         .letter-list {
-          grid-template-columns: repeat(${capacity}, 4rem);
+          grid-template-columns: repeat(${capacity}, 3rem);
+          grid-template-rows: 3rem;
         }
       `}</style>
       <style jsx>{styles}</style>
@@ -34,14 +35,11 @@ const styles = css`
     justify-content: start;
     grid-auto-flow: column;
     gap: 0.5rem;
-    min-height: 4rem;
     box-sizing: content-box;
   }
   .empty-slot {
     border: 1px solid white;
     aspect-ratio: 1;
-    width: 4rem;
-    height: 4rem;
   }
 `
 

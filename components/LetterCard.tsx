@@ -31,14 +31,14 @@ const styles = css`
     aspect-ratio: 1;
     max-width: fit-content;
     display: flex;
-    width: 4rem;
-    height: 4rem;
     cursor: pointer;
     user-select: none;
+    width: 100%;
+    height: 100%;
   }
   .name {
     font-weight: 700;
-    font-size: 2rem;
+    font-size: 1.5rem;
     margin: auto;
   }
   .tier,

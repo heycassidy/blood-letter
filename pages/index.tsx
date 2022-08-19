@@ -43,7 +43,9 @@ const Home: NextPage = () => {
           </>
         )}
 
-        <button onClick={restartGame}>Restart Game</button>
+        <div className="global-controls">
+          <button onClick={restartGame}>Restart Game</button>
+        </div>
       </Layout>
 
       <style jsx>{`
@@ -56,6 +58,11 @@ const Home: NextPage = () => {
         }
         .layout h3 {
           margin-bottom: 0;
+        }
+        .global-controls {
+          border-top: 2px solid #d3d3d3;
+          justify-self: stretch;
+          padding-top: 1rem;
         }
       `}</style>
     </div>

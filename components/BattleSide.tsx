@@ -56,6 +56,7 @@ const styles = css`
   }
   .info-list {
     display: flex;
+    flex-wrap: wrap;
     gap: 0.25rem;
   }
   .info-box {

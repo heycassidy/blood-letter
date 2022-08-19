@@ -14,3 +14,17 @@ a {
 * {
   box-sizing: border-box;
 }
+
+
+button {
+  border-radius: 0.25rem;
+  font-size: 0.8rem;
+  padding: 0.25rem 0.5rem;
+  border: 1px solid black;
+  cursor: pointer;
+  color: black;
+}
+button:hover {
+  background-color: #393939;
+  color: white;
+}

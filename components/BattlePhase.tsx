@@ -37,13 +37,14 @@ const styles = css`
   .matchup {
     row-gap: 1rem;
     column-gap: 2rem;
-    display: grid;
-    grid-template-columns: 1fr 1fr;
+    display: flex;
+    flex-wrap: wrap;
     justify-content: start;
     justify-items: start;
   }
   .info-list {
     display: flex;
+    flex-wrap: wrap;
     gap: 0.25rem;
   }
   .info-box {

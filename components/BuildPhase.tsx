@@ -43,9 +43,10 @@ const BuildPhase = () => {
 
       <LetterStore letters={store} amount={storeAmount} />
 
-      <div className="info-list">
+      <div className="info-list" style={{ justifySelf: 'stretch' }}>
         <button onClick={rollStore}>Roll Store</button>
         <button
+          style={{ marginLeft: 'auto' }}
           onClick={() => {
             updatePlayer(activePlayer.id, {
               completedTurn: true,
@@ -63,8 +64,6 @@ const BuildPhase = () => {
 
 const styles = css`
   .build-phase {
-    border: 1px solid black;
-    padding: 1rem;
     gap: 1rem;
     display: grid;
     justify-content: start;
@@ -72,6 +71,7 @@ const styles = css`
   }
   .info-list {
     display: flex;
+    flex-wrap: wrap;
     gap: 0.25rem;
   }
   .info-box {
