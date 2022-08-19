@@ -71,7 +71,7 @@ export const GameContextProvider = ({ children }: PropsWithChildren) => {
     },
   ]
 
-  const initialState: GameState = {
+  const initialGameState: GameState = {
     players: new Map([
       [initialPlayersData[0].id, initialPlayersData[0]],
       [initialPlayersData[1].id, initialPlayersData[1]],
@@ -79,18 +79,27 @@ export const GameContextProvider = ({ children }: PropsWithChildren) => {
     activePlayer: initialPlayersData[0],
     round: initialRound,
     phase: initialPhase,
+    battleWinner: undefined,
     gameOver: false,
     gameWinner: undefined,
-    battleWinner: undefined,
+    gameCount: 0,
 
     updatePlayer,
     setActivePlayer,
     togglePlayer,
     togglePhase,
     incrementRound,
+    restartGame,
   }
 
-  const [state, dispatch] = useReducer(reducer, initialState)
+  const [state, dispatch] = useReducer(reducer, initialGameState)
+
+  function restartGame(): void {
+    dispatch({
+      type: ActionKind.RestartGame,
+      payload: { initialGameState },
+    })
+  }
 
   function updatePlayer(id: string, player: Partial<Player>): void {
     dispatch({
@@ -149,18 +158,14 @@ export const GameContextProvider = ({ children }: PropsWithChildren) => {
   }, [state.activePlayer])
 
   useEffect(() => {
+    const players = [...state.players.values()]
+    const isDraw = players.every((p) => p.roundScore === players[0].roundScore)
+    const winner = players.reduce((p, c) =>
+      p.roundScore > c.roundScore ? p : c
+    )
+    const losers = players.filter((p) => p !== winner)
+
     if (state.phase === PhaseKind.Battle) {
-      const players = Array.from(state.players.values())
-
-      const isDraw = players.every(
-        (p) => p.roundScore === players[0].roundScore
-      )
-
-      const winner = players.reduce((p, c) =>
-        p.roundScore > c.roundScore ? p : c
-      )
-      const losers = players.filter((p) => p !== winner)
-
       dispatch({
         type: ActionKind.SetBattleResult,
         payload: {
@@ -170,16 +175,22 @@ export const GameContextProvider = ({ children }: PropsWithChildren) => {
         },
       })
     }
-  }, [state.phase])
 
-  useEffect(() => {
-    // console.log(state)
+    if (state.phase === PhaseKind.Build) {
+      if (losers.some((loser) => loser.health <= 0)) {
+        dispatch({
+          type: ActionKind.SetGameResult,
+          payload: { winner },
+        })
+      }
+    }
   }, [state.phase])
 
   return <GameContext.Provider value={state}>{children}</GameContext.Provider>
 }
 
 enum ActionKind {
+  RestartGame,
   UpdatePlayer,
   SetActivePlayer,
   ToggleActivePlayer,
@@ -187,6 +198,11 @@ enum ActionKind {
   SetPhase,
   SetBattleResult,
   IncrementRound,
+  SetGameResult,
+}
+interface RestartGameAction {
+  type: ActionKind.RestartGame
+  payload: { initialGameState: GameState }
 }
 interface UpdatePlayerAction {
   type: ActionKind.UpdatePlayer
@@ -216,7 +232,12 @@ interface IncrementRoundAction {
   type: ActionKind.IncrementRound
   payload: { gold: number }
 }
+interface SetGameResultAction {
+  type: ActionKind.SetGameResult
+  payload: { winner: Player }
+}
 type GameContextAction =
+  | RestartGameAction
   | UpdatePlayerAction
   | SetActivePlayerAction
   | ToggleActivePlayerAction
@@ -224,11 +245,19 @@ type GameContextAction =
   | SetPhaseAction
   | SetBattleResultAction
   | IncrementRoundAction
+  | SetGameResultAction
 
 const reducer = (state: GameState, action: GameContextAction): GameState => {
   const { type, payload } = action
 
   switch (type) {
+    case ActionKind.RestartGame: {
+      return {
+        ...payload.initialGameState,
+        gameCount: state.gameCount + 1,
+      }
+    }
+
     case ActionKind.SetActivePlayer: {
       const player = state.players.get(payload.id)
 
@@ -336,6 +365,14 @@ const reducer = (state: GameState, action: GameContextAction): GameState => {
         phase: PhaseKind.Build,
         players,
         activePlayer: [...players.values()][0],
+      }
+    }
+
+    case ActionKind.SetGameResult: {
+      return {
+        ...state,
+        gameOver: true,
+        gameWinner: payload.winner,
       }
     }
 

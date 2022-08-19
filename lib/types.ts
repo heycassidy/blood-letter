@@ -56,15 +56,17 @@ export interface GameState {
   activePlayer: Player
   round: number
   phase: PhaseKind
+  battleWinner: Player | undefined | false
   gameOver: boolean
   gameWinner: Player | undefined
-  battleWinner: Player | undefined | false
+  gameCount: number
 
   updatePlayer: (id: string, player: Partial<Player>) => void
   setActivePlayer: (id: string) => void
   togglePlayer: () => void
   togglePhase: () => void
   incrementRound: () => void
+  restartGame: () => void
 }
 
 export interface BuildPhaseState {
@@ -75,4 +77,5 @@ export interface BuildPhaseState {
   buyLetter: (letter: Letter) => void
   sellLetter: (letter: Letter) => void
   rollStore: () => void
+  reset: () => void
 }

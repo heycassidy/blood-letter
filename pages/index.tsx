@@ -8,7 +8,7 @@ import { BuildPhaseContextProvider } from '../context/BuildPhaseContext'
 import { PhaseKind } from '../lib/types'
 
 const Home: NextPage = () => {
-  const { phase } = useGameContext()
+  const { phase, gameOver, gameWinner, restartGame } = useGameContext()
 
   return (
     <div className="layout">
@@ -19,7 +19,15 @@ const Home: NextPage = () => {
       <h1 style={{ margin: 0, flexBasis: '100%' }}>Blood Letter</h1>
 
       <Layout>
-        {phase === PhaseKind.Build && (
+        {gameOver && gameWinner && (
+          <>
+            <h2 style={{ margin: 0, flexBasis: '100%' }}>
+              {gameWinner.name} wins!
+            </h2>
+          </>
+        )}
+
+        {!gameOver && phase === PhaseKind.Build && (
           <>
             <h3>Build Phase</h3>
             <BuildPhaseContextProvider>
@@ -28,12 +36,14 @@ const Home: NextPage = () => {
           </>
         )}
 
-        {phase === PhaseKind.Battle && (
+        {!gameOver && phase === PhaseKind.Battle && (
           <>
             <h3>Battle Phase</h3>
             <BattlePhase />
           </>
         )}
+
+        <button onClick={restartGame}>Restart Game</button>
       </Layout>
 
       <style jsx>{`

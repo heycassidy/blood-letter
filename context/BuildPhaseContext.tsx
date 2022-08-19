@@ -59,7 +59,7 @@ export const BuildPhaseContextProvider = ({ children }: Props) => {
     })
   )
 
-  const { round, activePlayer, updatePlayer } = useGameContext()
+  const { round, gameCount, activePlayer, updatePlayer } = useGameContext()
 
   const highestTier = storeTierFromRound(round)
   const storeAmount = storeCapacityFromRound(round)
@@ -76,9 +76,19 @@ export const BuildPhaseContextProvider = ({ children }: Props) => {
     buyLetter,
     sellLetter,
     rollStore,
+    reset,
   }
 
   const [state, dispatch] = useReducer(reducer, initialState)
+
+  useEffect(() => {
+    if (gameCount > 0) {
+      dispatch({
+        type: ActionKind.Reset,
+        payload: { initialState },
+      })
+    }
+  }, [gameCount])
 
   useEffect(() => {
     const stageScore = computeStageScore(state.stage)
@@ -125,6 +135,13 @@ export const BuildPhaseContextProvider = ({ children }: Props) => {
     }
   }
 
+  function reset(): void {
+    dispatch({
+      type: ActionKind.Reset,
+      payload: { initialState },
+    })
+  }
+
   function buyLetter(letter: Letter): void {
     dispatch({
       type: ActionKind.Buy,
@@ -163,11 +180,16 @@ export const BuildPhaseContextProvider = ({ children }: Props) => {
 }
 
 enum ActionKind {
+  Reset,
   Buy,
   Sell,
   RollStore,
   SortStage,
   RecallPlayer,
+}
+interface ResetAction {
+  type: ActionKind.Reset
+  payload: { initialState: BuildPhaseState }
 }
 interface BuyAction {
   type: ActionKind.Buy
@@ -191,6 +213,7 @@ interface RecallPlayerAction {
 }
 
 type BuildPhaseContextAction =
+  | ResetAction
   | BuyAction
   | SellAction
   | RollStoreAction
@@ -204,6 +227,10 @@ const reducer = (
   const { type, payload } = action
 
   switch (type) {
+    case ActionKind.Reset: {
+      return payload.initialState
+    }
+
     case ActionKind.Buy: {
       const { cost, maxLetters } = payload
 
