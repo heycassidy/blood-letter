@@ -17,7 +17,11 @@ import {
   DragEndEvent,
 } from '@dnd-kit/core'
 import { arrayMove } from '@dnd-kit/sortable'
-import { randomLetters, computeLetterValueFromTier } from '../lib/helpers'
+import {
+  randomLetters,
+  computeStageScore,
+  computeWordBonus,
+} from '../lib/helpers'
 
 const BuildPhaseContext = createContext<BuildPhaseState | undefined>(undefined)
 
@@ -77,13 +81,17 @@ export const BuildPhaseContextProvider = ({ children }: Props) => {
   const [state, dispatch] = useReducer(reducer, initialState)
 
   useEffect(() => {
+    const stageScore = computeStageScore(state.stage)
+    const wordBonus = computeWordBonus(state.stage)
+    const roundScore = stageScore + wordBonus
+
     updatePlayer(activePlayer.id, {
       store: state.store,
       stage: state.stage,
       gold: state.gold,
-      stageScore: state.stage
-        .map((letter) => computeLetterValueFromTier(letter.tier))
-        .reduce((sum, value) => sum + value, 0),
+      stageScore,
+      wordBonus,
+      roundScore,
     })
   }, [state.store, state.stage, state.gold])
 

@@ -6,6 +6,8 @@ export interface Player {
   stage: Letter[]
   store: Letter[]
   stageScore: number
+  wordBonus: number
+  roundScore: number
   completedTurn: boolean
   battlesWon: number
 }

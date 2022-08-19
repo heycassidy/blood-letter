@@ -50,6 +50,8 @@ export const GameContextProvider = ({ children }: PropsWithChildren) => {
       gold: initialGold,
       stage: [],
       stageScore: 0,
+      wordBonus: 0,
+      roundScore: 0,
       store: randomLetters(storeAmount, availableLetters),
       completedTurn: false,
       battlesWon: 0,
@@ -61,6 +63,8 @@ export const GameContextProvider = ({ children }: PropsWithChildren) => {
       gold: initialGold,
       stage: [],
       stageScore: 0,
+      wordBonus: 0,
+      roundScore: 0,
       store: randomLetters(storeAmount, availableLetters),
       completedTurn: false,
       battlesWon: 0,
@@ -149,11 +153,11 @@ export const GameContextProvider = ({ children }: PropsWithChildren) => {
       const players = Array.from(state.players.values())
 
       const isDraw = players.every(
-        (p) => p.stageScore === players[0].stageScore
+        (p) => p.roundScore === players[0].roundScore
       )
 
       const winner = players.reduce((p, c) =>
-        p.stageScore > c.stageScore ? p : c
+        p.roundScore > c.roundScore ? p : c
       )
       const losers = players.filter((p) => p !== winner)
 

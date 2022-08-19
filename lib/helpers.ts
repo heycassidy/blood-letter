@@ -1,3 +1,4 @@
+import { wordList } from '../lib/words'
 import type { Letter, LetterTierMap } from '../lib/types'
 import { nanoid } from 'nanoid'
 
@@ -26,4 +27,18 @@ export const getNextMod = (items: unknown[], currentItem: unknown): unknown => {
   const nextIndex = (currentIndex + 1) % items.length
 
   return items[nextIndex]
+}
+
+export const computeStageScore = (letters: Letter[]): number =>
+  letters
+    .map((letter) => computeLetterValueFromTier(letter.tier))
+    .reduce((sum, value) => sum + value, 0)
+
+export const computeWordBonus = (letters: Letter[]): number => {
+  const candidate = letters.reduce(
+    (word, letter) => `${word}${letter.name}`,
+    ''
+  )
+
+  return wordList.includes(candidate) ? candidate.length ** 2 : 0
 }

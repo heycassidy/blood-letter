@@ -13,17 +13,19 @@ const BattleSide = ({ player }: { player: Player }) => {
   return (
     <div className="battle-side">
       <div className="info-list">
+        <div className="info-box">{player.name}</div>
+        <div className="info-box">Letters: {player.stageScore}</div>
+        <div className="info-box">Word Bonus: {player.wordBonus}</div>
+        <div className="info-box">
+          <strong>Total: {player.roundScore}</strong>
+        </div>
         {battleWinner && battleWinner.id === player.id && (
           <div className="info-box">
             <strong>Winner</strong>
           </div>
         )}
-        <div className="info-box">{player.name}</div>
-        <div className="info-box">Score: {player.stageScore}</div>
         {battleWinner && battleWinner.id !== player.id && (
-          <div className="info-box">
-            Health Change: -{healthLossFromRound(round)}
-          </div>
+          <div className="info-box">Health: -{healthLossFromRound(round)}</div>
         )}
       </div>
 
