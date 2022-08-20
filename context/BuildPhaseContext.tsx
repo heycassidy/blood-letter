@@ -119,9 +119,10 @@ export const BuildPhaseContextProvider = ({ children }: Props) => {
       payload: {
         player: {
           ...activePlayer,
-          store: activePlayer.completedTurn
-            ? activePlayer.store
-            : getStoreLetters(alphabet, storeTier, storeAmount, nanoid),
+          store:
+            !activePlayer.completedTurn && gameCount > 0
+              ? getStoreLetters(alphabet, storeTier, storeAmount, nanoid)
+              : activePlayer.store,
         },
       },
     })
