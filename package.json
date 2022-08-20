@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "docs": "npx typedoc && open ./docs/index.html"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.0.5",
@@ -15,7 +16,8 @@
     "next": "12.2.3",
     "react": "18.2.0",
     "react-dom": "18.2.0",
-    "styled-jsx": "^5.0.2"
+    "styled-jsx": "^5.0.2",
+    "typedoc": "^0.23.10"
   },
   "devDependencies": {
     "@types/node": "18.6.1",
