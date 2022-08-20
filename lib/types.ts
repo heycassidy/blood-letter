@@ -1,13 +1,10 @@
 export interface GameConfigType {
   alphabet: Letter[]
-
   initialRound: number
   initialPhase: PhaseKind
-
   initialGold: number
   initialHealth: number
-
-  playerNames: string[]
+  numberOfPlayers: number
 
   letterBuyCost: number
   letterSellValue: number

@@ -42,8 +42,7 @@ export const GameConfig = createContext<GameConfigType>({
   initialPhase: PhaseKind.Build,
   initialGold: 10,
   initialHealth: 10,
-
-  playerNames: ['Player One', 'Player Two'],
+  numberOfPlayers: 2,
 
   letterBuyCost: 3,
   letterSellValue: 2,

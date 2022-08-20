@@ -34,7 +34,7 @@ export const GameContextProvider = ({ children }: PropsWithChildren) => {
     initialRound,
     initialGold,
     initialHealth,
-    playerNames,
+    numberOfPlayers,
     initialPhase,
     storeTierMap,
     storeCapacityMap,
@@ -61,7 +61,7 @@ export const GameContextProvider = ({ children }: PropsWithChildren) => {
 
   const initState = (): GameState => {
     const players = new Map(
-      playerNames.map((p) => {
+      getPlayerNames(numberOfPlayers).map((p) => {
         const player = generatePlayer(p)
         return [player.id, player]
       })
@@ -130,6 +130,11 @@ export const GameContextProvider = ({ children }: PropsWithChildren) => {
       type: ActionKind.IncrementRound,
       payload: { gold: initialGold },
     })
+  }
+
+  function getPlayerNames(numberOfPlayers: number) {
+    // TODO: Allow Players to choose their name
+    return [...Array(numberOfPlayers)].map((_, i) => `Player ${i + 1}`)
   }
 
   function getStoreLetters(
