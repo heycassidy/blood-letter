@@ -7,15 +7,19 @@ import LetterCard from './LetterCard'
 import { useGameContext } from '../context/GameContext'
 
 const BattleSide = ({ player }: { player: Player }) => {
-  const { stageCapacity, healthLossFromRound } = useContext(GameConfig)
-  const { round, battleWinner } = useGameContext()
+  const { stageCapacity } = useContext(GameConfig)
+  const { round, battleWinner, getHealthCost } = useGameContext()
 
   return (
     <div className="battle-side">
       <div className="info-list">
         <div className="info-box">{player.name}</div>
         <div className="info-box">Letters: {player.stageScore}</div>
-        <div className="info-box">Word Bonus: {player.wordBonus}</div>
+        {player.wordBonus > 0 ? (
+          <div className="info-box">Word Bonus: {player.wordBonus}</div>
+        ) : (
+          <div className="info-box">Not in word list</div>
+        )}
         <div className="info-box">
           <strong>Total: {player.roundScore}</strong>
         </div>
@@ -25,16 +29,13 @@ const BattleSide = ({ player }: { player: Player }) => {
           </div>
         )}
         {battleWinner && battleWinner.id !== player.id && (
-          <div className="info-box">Health: -{healthLossFromRound(round)}</div>
+          <div className="info-box">Health: -{getHealthCost(round)}</div>
         )}
       </div>
 
       <LetterList capacity={stageCapacity}>
         {player.stage.map((letter) => (
-          <LetterCard
-            letter={{ name: letter.name, tier: letter.tier, id: letter.id }}
-            key={letter.id}
-          />
+          <LetterCard letter={letter} key={letter.id} />
         ))}
       </LetterList>
 

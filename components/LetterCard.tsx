@@ -1,5 +1,4 @@
 import type { Letter } from '../lib/types'
-import { computeLetterValueFromTier } from '../lib/helpers'
 import css from 'styled-jsx/css'
 
 type Props = {
@@ -9,9 +8,7 @@ type Props = {
 
 const LetterCard: React.FC<Props> = (props) => {
   const { letter, onClick } = props
-  const { name, tier } = letter
-
-  const value = computeLetterValueFromTier(tier)
+  const { name, tier, value } = letter
 
   return (
     <div className="letter" onClick={onClick}>

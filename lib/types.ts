@@ -1,9 +1,34 @@
+export interface GameConfigType {
+  alphabet: Letter[]
+
+  initialRound: number
+  initialPhase: PhaseKind
+
+  initialGold: number
+  initialHealth: number
+
+  playerNames: string[]
+
+  letterBuyCost: number
+  letterSellValue: number
+  storeRefreshCost: number
+
+  stageCapacity: number
+
+  storeTierMap: { [key in number | 'max']: number }
+  storeCapacityMap: { [key in number | 'max']: number }
+  healthCostMap: { [key in number | 'max']: number }
+
+  wordBonusComputation: (letters: Letter[]) => number
+}
+
 export interface Player {
   id: string
   name: string
   health: number
   gold: number
   stage: Letter[]
+  stageWord: string
   store: Letter[]
   stageScore: number
   wordBonus: number
@@ -45,7 +70,12 @@ export type AlphabetCharacter =
   | 'y'
   | 'z'
 
-export type Letter = { name: AlphabetCharacter; tier: number; id: string }
+export type Letter = {
+  name: AlphabetCharacter
+  tier: number
+  value: number
+  id: string
+}
 
 export interface LetterTierMap {
   [index: string]: Letter[]
@@ -67,6 +97,17 @@ export interface GameState {
   togglePhase: () => void
   incrementRound: () => void
   restartGame: () => void
+
+  getStoreLetters: (
+    alphabet: Letter[],
+    tier: number,
+    amount: number,
+    idSupplier: () => string
+  ) => Letter[]
+
+  getStoreTier: (round: number) => number
+  getStoreCapacity: (round: number) => number
+  getHealthCost: (round: number) => number
 }
 
 export interface BuildPhaseState {
@@ -77,5 +118,4 @@ export interface BuildPhaseState {
   buyLetter: (letter: Letter) => void
   sellLetter: (letter: Letter) => void
   rollStore: () => void
-  reset: () => void
 }

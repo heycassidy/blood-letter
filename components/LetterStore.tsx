@@ -25,7 +25,7 @@ const LetterStore = ({ letters = [], amount }: Props) => {
       <LetterList capacity={amount}>
         {storeLetters.map((letter) => (
           <LetterCard
-            letter={{ name: letter.name, tier: letter.tier, id: letter.id }}
+            letter={letter}
             key={letter.id}
             onClick={() => {
               buyLetter(letter)

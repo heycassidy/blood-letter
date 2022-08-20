@@ -5,10 +5,16 @@ import {
   useReducer,
   useEffect,
 } from 'react'
-import { GameState, Player, PhaseKind } from '../lib/types'
+import { GameState, Player, PhaseKind, Letter } from '../lib/types'
 import { GameConfig } from './GameConfig'
 import { nanoid } from 'nanoid'
-import { getNextMod, randomLetters } from '../lib/helpers'
+import {
+  cyclicalNext,
+  randomItems,
+  assignIds,
+  getFromNumericMapWithMax,
+  itemIsInRange,
+} from '../lib/helpers'
 
 const GameContext = createContext<GameState | undefined>(undefined)
 
@@ -28,79 +34,72 @@ export const GameContextProvider = ({ children }: PropsWithChildren) => {
     initialRound,
     initialGold,
     initialHealth,
+    playerNames,
     initialPhase,
-    storeTierFromRound,
-    storeCapacityFromRound,
-    healthLossFromRound,
+    storeTierMap,
+    storeCapacityMap,
+    healthCostMap,
   } = useContext(GameConfig)
 
-  const availableLetters = alphabet.filter((letter) =>
-    [...Array(storeTierFromRound(initialRound))]
-      .map((_, i) => i + 1)
-      .includes(letter.tier)
-  )
+  const storeAmount = getStoreCapacity(initialRound)
+  const storeTier = getStoreTier(initialRound)
 
-  const storeAmount = storeCapacityFromRound(initialRound)
+  const generatePlayer = (name: string) => ({
+    name,
+    id: nanoid(),
+    health: initialHealth,
+    gold: initialGold,
+    stage: [],
+    stageWord: '',
+    stageScore: 0,
+    wordBonus: 0,
+    roundScore: 0,
+    store: getStoreLetters(alphabet, storeTier, storeAmount, nanoid),
+    completedTurn: false,
+    battlesWon: 0,
+  })
 
-  const initialPlayersData: Player[] = [
-    {
-      id: nanoid(7),
-      name: 'Player One',
-      health: initialHealth,
-      gold: initialGold,
-      stage: [],
-      stageScore: 0,
-      wordBonus: 0,
-      roundScore: 0,
-      store: randomLetters(storeAmount, availableLetters),
-      completedTurn: false,
-      battlesWon: 0,
-    },
-    {
-      id: nanoid(7),
-      name: 'Player Two',
-      health: initialHealth,
-      gold: initialGold,
-      stage: [],
-      stageScore: 0,
-      wordBonus: 0,
-      roundScore: 0,
-      store: randomLetters(storeAmount, availableLetters),
-      completedTurn: false,
-      battlesWon: 0,
-    },
-  ]
+  const initState = (): GameState => {
+    const players = new Map(
+      playerNames.map((p) => {
+        const player = generatePlayer(p)
+        return [player.id, player]
+      })
+    )
 
-  const initialGameState: GameState = {
-    players: new Map([
-      [initialPlayersData[0].id, initialPlayersData[0]],
-      [initialPlayersData[1].id, initialPlayersData[1]],
-    ]),
-    activePlayer: initialPlayersData[0],
-    round: initialRound,
-    phase: initialPhase,
-    battleWinner: undefined,
-    gameOver: false,
-    gameWinner: undefined,
-    gameCount: 0,
+    return {
+      players,
+      activePlayer: [...players.values()][0],
+      round: initialRound,
+      phase: initialPhase,
+      battleWinner: undefined,
+      gameOver: false,
+      gameWinner: undefined,
+      gameCount: 0,
 
-    updatePlayer,
-    setActivePlayer,
-    togglePlayer,
-    togglePhase,
-    incrementRound,
-    restartGame,
+      updatePlayer,
+      setActivePlayer,
+      togglePlayer,
+      togglePhase,
+      incrementRound,
+      restartGame,
+
+      getStoreLetters,
+
+      getStoreTier,
+      getStoreCapacity,
+      getHealthCost,
+    }
   }
 
-  const [state, dispatch] = useReducer(reducer, initialGameState)
+  const [state, dispatch] = useReducer(reducer, null, initState)
 
   function restartGame(): void {
     dispatch({
       type: ActionKind.RestartGame,
-      payload: { initialGameState },
+      payload: { state: initState() },
     })
   }
-
   function updatePlayer(id: string, player: Partial<Player>): void {
     dispatch({
       type: ActionKind.UpdatePlayer,
@@ -110,31 +109,49 @@ export const GameContextProvider = ({ children }: PropsWithChildren) => {
       },
     })
   }
-
   function setActivePlayer(id: string): void {
     dispatch({
       type: ActionKind.SetActivePlayer,
       payload: { id },
     })
   }
-
   function togglePlayer(): void {
     dispatch({
       type: ActionKind.ToggleActivePlayer,
     })
   }
-
   function togglePhase(): void {
     dispatch({
       type: ActionKind.TogglePhase,
     })
   }
-
   function incrementRound(): void {
     dispatch({
       type: ActionKind.IncrementRound,
       payload: { gold: initialGold },
     })
+  }
+
+  function getStoreLetters(
+    letters: Letter[],
+    tier: number,
+    amount: number,
+    idSupplier: () => string
+  ) {
+    const tierAndBelowLetters = letters.filter((letter) =>
+      itemIsInRange(letter.tier, 1, tier)
+    )
+
+    return assignIds(randomItems(tierAndBelowLetters, amount), idSupplier)
+  }
+  function getStoreTier(round: number) {
+    return getFromNumericMapWithMax(storeTierMap, round)
+  }
+  function getStoreCapacity(round: number) {
+    return getFromNumericMapWithMax(storeCapacityMap, round)
+  }
+  function getHealthCost(round: number) {
+    return getFromNumericMapWithMax(healthCostMap, round)
   }
 
   useEffect(() => {
@@ -171,7 +188,7 @@ export const GameContextProvider = ({ children }: PropsWithChildren) => {
         payload: {
           winner: isDraw ? false : winner,
           losers: isDraw ? [] : losers,
-          healthLoss: healthLossFromRound(state.round),
+          healthCost: getHealthCost(state.round),
         },
       })
     }
@@ -202,7 +219,7 @@ enum ActionKind {
 }
 interface RestartGameAction {
   type: ActionKind.RestartGame
-  payload: { initialGameState: GameState }
+  payload: { state: GameState }
 }
 interface UpdatePlayerAction {
   type: ActionKind.UpdatePlayer
@@ -226,7 +243,7 @@ interface SetPhaseAction {
 }
 interface SetBattleResultAction {
   type: ActionKind.SetBattleResult
-  payload: { winner: Player | false; losers: Player[]; healthLoss: number }
+  payload: { winner: Player | false; losers: Player[]; healthCost: number }
 }
 interface IncrementRoundAction {
   type: ActionKind.IncrementRound
@@ -253,7 +270,7 @@ const reducer = (state: GameState, action: GameContextAction): GameState => {
   switch (type) {
     case ActionKind.RestartGame: {
       return {
-        ...payload.initialGameState,
+        ...payload.state,
         gameCount: state.gameCount + 1,
       }
     }
@@ -274,7 +291,7 @@ const reducer = (state: GameState, action: GameContextAction): GameState => {
     case ActionKind.ToggleActivePlayer: {
       const { players, activePlayer } = state
 
-      const nextId = getNextMod(Array.from(players.keys()), activePlayer.id)
+      const nextId = cyclicalNext(Array.from(players.keys()), activePlayer.id)
 
       if (typeof nextId !== 'string') return state
 
@@ -289,7 +306,7 @@ const reducer = (state: GameState, action: GameContextAction): GameState => {
     }
 
     case ActionKind.TogglePhase: {
-      const nextPhase = getNextMod(
+      const nextPhase = cyclicalNext(
         Object.values(PhaseKind),
         state.phase
       ) as PhaseKind
@@ -308,7 +325,7 @@ const reducer = (state: GameState, action: GameContextAction): GameState => {
     }
 
     case ActionKind.SetBattleResult: {
-      const { winner, losers, healthLoss } = payload
+      const { winner, losers, healthCost } = payload
       const players = new Map(state.players) // must clone Map
 
       if (winner) {
@@ -318,7 +335,7 @@ const reducer = (state: GameState, action: GameContextAction): GameState => {
       losers.forEach((loser) => {
         players.set(loser.id, {
           ...loser,
-          health: loser.health - healthLoss,
+          health: loser.health - healthCost,
         })
       })
 

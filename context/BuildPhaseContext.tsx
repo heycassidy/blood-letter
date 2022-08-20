@@ -1,3 +1,4 @@
+import { nanoid } from 'nanoid'
 import {
   ReactNode,
   createContext,
@@ -6,6 +7,7 @@ import {
   useEffect,
 } from 'react'
 import type { BuildPhaseState, Letter, Player } from '../lib/types'
+import { wordList } from '../lib/words'
 import { GameConfig } from './GameConfig'
 import { useGameContext } from '../context/GameContext'
 import {
@@ -17,11 +19,7 @@ import {
   DragEndEvent,
 } from '@dnd-kit/core'
 import { arrayMove } from '@dnd-kit/sortable'
-import {
-  randomLetters,
-  computeStageScore,
-  computeWordBonus,
-} from '../lib/helpers'
+import { sumItemProperty, concatItemProperty } from '../lib/helpers'
 
 const BuildPhaseContext = createContext<BuildPhaseState | undefined>(undefined)
 
@@ -46,9 +44,35 @@ export const BuildPhaseContextProvider = ({ children }: Props) => {
     letterBuyCost,
     letterSellValue,
     storeRefreshCost,
-    storeTierFromRound,
-    storeCapacityFromRound,
+    wordBonusComputation,
   } = useContext(GameConfig)
+
+  const {
+    round,
+    gameCount,
+    activePlayer,
+    updatePlayer,
+    getStoreTier,
+    getStoreCapacity,
+    getStoreLetters,
+  } = useGameContext()
+
+  const storeAmount = getStoreCapacity(round)
+  const storeTier = getStoreTier(round)
+
+  const initState = (player: Player): BuildPhaseState => {
+    return {
+      stage: player.stage,
+      store: player.store,
+      gold: player.gold,
+
+      buyLetter,
+      sellLetter,
+      rollStore,
+    }
+  }
+
+  const [state, dispatch] = useReducer(reducer, activePlayer, initState)
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -59,40 +83,15 @@ export const BuildPhaseContextProvider = ({ children }: Props) => {
     })
   )
 
-  const { round, gameCount, activePlayer, updatePlayer } = useGameContext()
-
-  const highestTier = storeTierFromRound(round)
-  const storeAmount = storeCapacityFromRound(round)
-
-  const availableLetters = alphabet.filter((letter) =>
-    [...Array(highestTier)].map((_, i) => i + 1).includes(letter.tier)
-  )
-
-  const initialState: BuildPhaseState = {
-    stage: activePlayer.stage,
-    store: activePlayer.store,
-    gold: activePlayer.gold,
-
-    buyLetter,
-    sellLetter,
-    rollStore,
-    reset,
-  }
-
-  const [state, dispatch] = useReducer(reducer, initialState)
-
   useEffect(() => {
-    if (gameCount > 0) {
-      dispatch({
-        type: ActionKind.Reset,
-        payload: { initialState },
-      })
-    }
-  }, [gameCount])
+    const letters = state.stage
+    const word = concatItemProperty(letters, 'name')
 
-  useEffect(() => {
-    const stageScore = computeStageScore(state.stage)
-    const wordBonus = computeWordBonus(state.stage)
+    const stageScore = sumItemProperty(letters, 'value')
+
+    const wordBonus = wordList.includes(word)
+      ? wordBonusComputation(letters)
+      : 0
     const roundScore = stageScore + wordBonus
 
     updatePlayer(activePlayer.id, {
@@ -106,14 +105,23 @@ export const BuildPhaseContextProvider = ({ children }: Props) => {
   }, [state.store, state.stage, state.gold])
 
   useEffect(() => {
+    if (gameCount > 0) {
+      dispatch({
+        type: ActionKind.Reset,
+        payload: { state: initState(activePlayer) },
+      })
+    }
+  }, [gameCount])
+
+  useEffect(() => {
     dispatch({
       type: ActionKind.RecallPlayer,
       payload: {
         player: {
           ...activePlayer,
-          store: !activePlayer.completedTurn
-            ? randomLetters(storeAmount, availableLetters)
-            : activePlayer.store,
+          store: activePlayer.completedTurn
+            ? activePlayer.store
+            : getStoreLetters(alphabet, storeTier, storeAmount, nanoid),
         },
       },
     })
@@ -135,13 +143,6 @@ export const BuildPhaseContextProvider = ({ children }: Props) => {
     }
   }
 
-  function reset(): void {
-    dispatch({
-      type: ActionKind.Reset,
-      payload: { initialState },
-    })
-  }
-
   function buyLetter(letter: Letter): void {
     dispatch({
       type: ActionKind.Buy,
@@ -160,7 +161,7 @@ export const BuildPhaseContextProvider = ({ children }: Props) => {
     dispatch({
       type: ActionKind.RollStore,
       payload: {
-        letters: randomLetters(storeAmount, availableLetters),
+        letters: getStoreLetters(alphabet, storeTier, storeAmount, nanoid),
         cost: storeRefreshCost,
       },
     })
@@ -189,7 +190,7 @@ enum ActionKind {
 }
 interface ResetAction {
   type: ActionKind.Reset
-  payload: { initialState: BuildPhaseState }
+  payload: { state: BuildPhaseState }
 }
 interface BuyAction {
   type: ActionKind.Buy
@@ -228,7 +229,7 @@ const reducer = (
 
   switch (type) {
     case ActionKind.Reset: {
-      return payload.initialState
+      return payload.state
     }
 
     case ActionKind.Buy: {

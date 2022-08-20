@@ -32,7 +32,7 @@ const Stage = ({ letters = [], capacity }: Props) => {
             <SortableLetterCard
               key={letter.id}
               id={letter.id}
-              letter={{ name: letter.name, tier: letter.tier, id: letter.id }}
+              letter={letter}
               onClick={() => {
                 sellLetter(letter)
               }}

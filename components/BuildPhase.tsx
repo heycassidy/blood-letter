@@ -7,13 +7,13 @@ import { useGameContext } from '../context/GameContext'
 import { useBuildPhaseContext } from '../context/BuildPhaseContext'
 
 const BuildPhase = () => {
-  const { stageCapacity, storeTierFromRound, storeCapacityFromRound } =
-    useContext(GameConfig)
-  const { round, activePlayer, updatePlayer } = useGameContext()
+  const { stageCapacity } = useContext(GameConfig)
+  const { round, activePlayer, updatePlayer, getStoreTier, getStoreCapacity } =
+    useGameContext()
   const { stage, store, rollStore } = useBuildPhaseContext()
 
-  const highestTier = storeTierFromRound(round)
-  const storeAmount = storeCapacityFromRound(round)
+  const highestTier = getStoreTier(round)
+  const storeAmount = getStoreCapacity(round)
 
   const [showStage, setShowStage] = useState(false)
 
