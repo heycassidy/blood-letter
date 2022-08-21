@@ -4,6 +4,8 @@ export interface GameConfigType {
   initialPhase: PhaseKind
   initialGold: number
   initialHealth: number
+  healthToLose: number
+  battleVictoriesToWin: number
   numberOfPlayers: number
 
   letterBuyCost: number
@@ -31,7 +33,7 @@ export interface Player {
   wordBonus: number
   roundScore: number
   completedTurn: boolean
-  battlesWon: number
+  battleVictories: number
 }
 
 export enum PhaseKind {

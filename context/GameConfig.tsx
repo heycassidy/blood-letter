@@ -42,6 +42,8 @@ export const GameConfig = createContext<GameConfigType>({
   initialPhase: PhaseKind.Build,
   initialGold: 10,
   initialHealth: 10,
+  healthToLose: 0,
+  battleVictoriesToWin: 10,
   numberOfPlayers: 2,
 
   letterBuyCost: 3,

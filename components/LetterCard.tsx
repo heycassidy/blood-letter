@@ -6,7 +6,7 @@ type Props = {
   onClick?: () => void
 }
 
-const LetterCard: React.FC<Props> = (props) => {
+const LetterCard = (props: Props) => {
   const { letter, onClick } = props
   const { name, tier, value } = letter
 

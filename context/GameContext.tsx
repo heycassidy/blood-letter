@@ -39,6 +39,8 @@ export const GameContextProvider = ({ children }: PropsWithChildren) => {
     storeTierMap,
     storeCapacityMap,
     healthCostMap,
+    healthToLose,
+    battleVictoriesToWin,
   } = useContext(GameConfig)
 
   const storeAmount = getStoreCapacity(initialRound)
@@ -56,7 +58,7 @@ export const GameContextProvider = ({ children }: PropsWithChildren) => {
     roundScore: 0,
     store: getStoreLetters(alphabet, storeTier, storeAmount, nanoid),
     completedTurn: false,
-    battlesWon: 0,
+    battleVictories: 0,
   })
 
   const initState = (): GameState => {
@@ -199,7 +201,13 @@ export const GameContextProvider = ({ children }: PropsWithChildren) => {
     }
 
     if (state.phase === PhaseKind.Build) {
-      if (losers.some((loser) => loser.health <= 0)) {
+      if (
+        players.some(
+          (player) =>
+            player.health <= healthToLose ||
+            player.battleVictories >= battleVictoriesToWin
+        )
+      ) {
         dispatch({
           type: ActionKind.SetGameResult,
           payload: { winner },
@@ -334,7 +342,10 @@ const reducer = (state: GameState, action: GameContextAction): GameState => {
       const players = new Map(state.players) // must clone Map
 
       if (winner) {
-        players.set(winner.id, { ...winner, battlesWon: winner.battlesWon + 1 })
+        players.set(winner.id, {
+          ...winner,
+          battleVictories: winner.battleVictories + 1,
+        })
       }
 
       losers.forEach((loser) => {

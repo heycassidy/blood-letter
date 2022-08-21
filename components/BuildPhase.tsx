@@ -17,7 +17,7 @@ const BuildPhase = () => {
 
   const [showStage, setShowStage] = useState(false)
 
-  const { name: playerName, gold, health, battlesWon } = activePlayer
+  const { name: playerName, gold, health, battleVictories } = activePlayer
 
   useEffect(() => {
     setShowStage(true)
@@ -32,7 +32,7 @@ const BuildPhase = () => {
         <span className="info-box">Gold: {gold}</span>
         <span className="info-box">Health: {health}</span>
         <span className="info-box">Round: {round}</span>
-        <span className="info-box">Wins: {battlesWon}</span>
+        <span className="info-box">Wins: {battleVictories}</span>
       </div>
 
       {showStage && <Stage letters={stage} capacity={stageCapacity} />}
