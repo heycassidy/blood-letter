@@ -1,5 +1,5 @@
 import { useContext, useEffect, useState } from 'react'
-import { GameConfig } from '../context/GameConfig'
+import { GameConfigContext } from '../context/GameConfigContext'
 import css from 'styled-jsx/css'
 import LetterStore from './LetterStore'
 import Stage from './Stage'
@@ -7,7 +7,7 @@ import { useGameContext } from '../context/GameContext'
 import { useBuildPhaseContext } from '../context/BuildPhaseContext'
 
 const BuildPhase = () => {
-  const { stageCapacity } = useContext(GameConfig)
+  const { stageCapacity } = useContext(GameConfigContext)
   const { round, activePlayer, updatePlayer, getStoreTier, getStoreCapacity } =
     useGameContext()
   const { stage, store, rollStore } = useBuildPhaseContext()

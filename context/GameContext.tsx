@@ -6,7 +6,7 @@ import {
   useEffect,
 } from 'react'
 import { GameState, Player, PhaseKind, Letter } from '../lib/types'
-import { GameConfig } from './GameConfig'
+import { GameConfigContext } from './GameConfigContext'
 import { nanoid } from 'nanoid'
 import {
   cyclicalNext,
@@ -41,7 +41,7 @@ export const GameContextProvider = ({ children }: PropsWithChildren) => {
     healthCostMap,
     healthToLose,
     battleVictoriesToWin,
-  } = useContext(GameConfig)
+  } = useContext(GameConfigContext)
 
   const storeAmount = getStoreCapacity(initialRound)
   const storeTier = getStoreTier(initialRound)

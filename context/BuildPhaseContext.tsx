@@ -8,7 +8,7 @@ import {
 } from 'react'
 import type { BuildPhaseState, Letter, Player } from '../lib/types'
 import { wordList } from '../lib/words'
-import { GameConfig } from './GameConfig'
+import { GameConfigContext } from './GameConfigContext'
 import { useGameContext } from '../context/GameContext'
 import {
   DndContext,
@@ -45,7 +45,7 @@ export const BuildPhaseContextProvider = ({ children }: Props) => {
     letterSellValue,
     storeRefreshCost,
     wordBonusComputation,
-  } = useContext(GameConfig)
+  } = useContext(GameConfigContext)
 
   const {
     round,

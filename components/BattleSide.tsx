@@ -1,5 +1,5 @@
 import { useContext } from 'react'
-import { GameConfig } from '../context/GameConfig'
+import { GameConfigContext } from '../context/GameConfigContext'
 import type { Player } from '../lib/types'
 import css from 'styled-jsx/css'
 import LetterList from './LetterList'
@@ -7,7 +7,7 @@ import LetterCard from './LetterCard'
 import { useGameContext } from '../context/GameContext'
 
 const BattleSide = ({ player }: { player: Player }) => {
-  const { stageCapacity } = useContext(GameConfig)
+  const { stageCapacity } = useContext(GameConfigContext)
   const { round, battleWinner, getHealthCost } = useGameContext()
 
   return (

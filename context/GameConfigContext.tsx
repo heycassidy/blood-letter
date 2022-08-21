@@ -1,4 +1,4 @@
-import { Letter, PhaseKind, GameConfigType } from '../lib/types'
+import { Letter, PhaseKind, GameConfig } from '../lib/types'
 import { createContext } from 'react'
 import { nanoid } from 'nanoid'
 
@@ -36,7 +36,7 @@ const alphabet: Letter[] = [
   { name: 'z', tier: 6, value: 36, id: nanoid(10) },
 ]
 
-export const GameConfig = createContext<GameConfigType>({
+export const GameConfigContext = createContext<GameConfig>({
   alphabet,
   initialRound: 1,
   initialPhase: PhaseKind.Build,

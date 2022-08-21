@@ -1,4 +1,4 @@
-export interface GameConfigType {
+export interface GameConfig {
   alphabet: Letter[]
   initialRound: number
   initialPhase: PhaseKind
