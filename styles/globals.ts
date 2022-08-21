@@ -15,7 +15,7 @@ export const globalStyles = globalCss<Record<string, unknown>>(
         cursor: 'pointer',
         color: 'black',
         backgroundColor: '$neutral175',
-        '&:hover&:not(:focus)': {
+        '&:hover:not(:focus)': {
           backgroundColor: '$neutral700',
           color: 'white',
         },
