@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import type { Letter } from '../lib/types'
-import css from 'styled-jsx/css'
+import { css } from '../stitches.config'
 import LetterList from './LetterList'
 import LetterCard from './LetterCard'
 import { useBuildPhaseContext } from '../context/BuildPhaseContext'
@@ -19,7 +19,7 @@ const LetterStore = ({ letters = [], amount }: Props) => {
   }, [letters])
 
   return (
-    <div className="letter-store">
+    <div className={styles()}>
       <strong>Letter Store</strong>
 
       <LetterList capacity={amount}>
@@ -33,20 +33,16 @@ const LetterStore = ({ letters = [], amount }: Props) => {
           />
         ))}
       </LetterList>
-
-      <style jsx>{styles}</style>
     </div>
   )
 }
 
-const styles = css`
-  .letter-store {
-    border: 1px solid black;
-    background-color: #e7e7e7;
-    padding: 0.5rem;
-    display: grid;
-    gap: 0.5rem;
-  }
-`
+const styles = css({
+  border: '1px solid black',
+  backgroundColor: '$neutral175',
+  padding: '0.5rem',
+  display: 'grid',
+  gap: '0.5rem',
+})
 
 export default LetterStore

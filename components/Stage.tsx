@@ -1,6 +1,6 @@
 import { useLayoutEffect, useState } from 'react'
 import type { Letter } from '../lib/types'
-import css from 'styled-jsx/css'
+import { css } from '../stitches.config'
 import LetterList from './LetterList'
 import SortableLetterCard from './SortableLetterCard'
 import {
@@ -23,7 +23,7 @@ const Stage = ({ letters = [], capacity }: Props) => {
   }, [letters])
 
   return (
-    <div className="stage">
+    <div className={styles()}>
       <strong>Stage</strong>
 
       <SortableContext items={letters} strategy={horizontalListSortingStrategy}>
@@ -40,30 +40,16 @@ const Stage = ({ letters = [], capacity }: Props) => {
           ))}
         </LetterList>
       </SortableContext>
-
-      <style jsx>{styles}</style>
     </div>
   )
 }
 
-const styles = css`
-  .stage {
-    border: 1px solid black;
-    background-color: #e7e7e7;
-    padding: 0.5rem;
-    display: grid;
-    gap: 0.5rem;
-  }
-  .info-list {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.25rem;
-  }
-  .info-box {
-    line-height: 1;
-    padding: 0.125rem 0.5rem;
-    background: #d3d3d3;
-  }
-`
+const styles = css({
+  border: '1px solid black',
+  backgroundColor: '$neutral175',
+  padding: '0.5rem',
+  display: 'grid',
+  gap: '0.5rem',
+})
 
 export default Stage

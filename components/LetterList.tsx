@@ -1,5 +1,5 @@
 import { ReactNode } from 'react'
-import css from 'styled-jsx/css'
+import { css } from '../stitches.config'
 
 type Props = {
   children: ReactNode[]
@@ -7,9 +7,13 @@ type Props = {
 }
 
 const LetterList = ({ children = [], capacity = 1 }: Props) => {
+  const propAwareStyles = {
+    gridTemplateColumns: `repeat(${capacity}, 3rem)`,
+  }
+
   return (
     <>
-      <div className="letter-list">
+      <div className={styles(propAwareStyles)}>
         {children}
 
         {capacity > children.length &&
@@ -17,30 +21,21 @@ const LetterList = ({ children = [], capacity = 1 }: Props) => {
             <span className="empty-slot" key={`empty-slot-${i}`}></span>
           ))}
       </div>
-
-      <style jsx>{`
-        .letter-list {
-          grid-template-columns: repeat(${capacity}, 3rem);
-          grid-template-rows: 3rem;
-        }
-      `}</style>
-      <style jsx>{styles}</style>
     </>
   )
 }
 
-const styles = css`
-  .letter-list {
-    display: grid;
-    justify-content: start;
-    grid-auto-flow: column;
-    gap: 0.5rem;
-    box-sizing: content-box;
-  }
-  .empty-slot {
-    border: 1px solid white;
-    aspect-ratio: 1;
-  }
-`
+const styles = css({
+  display: 'grid',
+  gridTemplateRows: '3rem',
+  justifyContent: 'start',
+  gridAutoFlow: 'column',
+  gap: '0.5rem',
+  boxSizing: 'content-box',
+  '.empty-slot': {
+    border: '1px solid white',
+    aspectRatio: '1',
+  },
+})
 
 export default LetterList

@@ -2,7 +2,7 @@ import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import type { Letter } from '../lib/types'
 import LetterCard from './LetterCard'
-import css from 'styled-jsx/css'
+import { css } from '../stitches.config'
 
 type Props = {
   id: string
@@ -21,24 +21,19 @@ const SortableLetterCard = ({ id, letter, onClick }: Props) => {
 
   return (
     <div
-      className="sortable-letter-card"
+      className={styles()}
       ref={setNodeRef}
       style={style}
       {...attributes}
       {...listeners}
     >
       <LetterCard letter={letter} onClick={onClick} />
-      <style jsx>{styles}</style>
     </div>
   )
 }
 
-const styles = css`
-  .sortable-letter-card {
-    touch-action: none;
-    /* transform: translate(var(--translate-x), var(--translate-y));
-    transition: var(--transition, transform 0ms linear); */
-  }
-`
+const styles = css({
+  touchAction: 'none',
+})
 
 export default SortableLetterCard

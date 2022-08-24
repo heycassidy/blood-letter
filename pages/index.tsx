@@ -6,12 +6,13 @@ import BattlePhase from '../components/BattlePhase'
 import { useGameContext } from '../context/GameContext'
 import { BuildPhaseContextProvider } from '../context/BuildPhaseContext'
 import { PhaseKind } from '../lib/types'
+import { css } from '../stitches.config'
 
 const Home: NextPage = () => {
   const { phase, gameOver, gameWinner, restartGame } = useGameContext()
 
   return (
-    <div className="layout">
+    <div className={styles()}>
       <Head>
         <title>Blood Letter</title>
       </Head>
@@ -47,26 +48,24 @@ const Home: NextPage = () => {
           <button onClick={restartGame}>Restart Game</button>
         </div>
       </Layout>
-
-      <style jsx>{`
-        .layout {
-          padding: 1rem;
-          gap: 1rem;
-          display: grid;
-          justify-content: start;
-          justify-items: start;
-        }
-        .layout h3 {
-          margin-bottom: 0;
-        }
-        .global-controls {
-          border-top: 2px solid #d3d3d3;
-          justify-self: stretch;
-          padding-top: 1rem;
-        }
-      `}</style>
     </div>
   )
 }
+
+const styles = css({
+  padding: '1rem',
+  gap: '1rem',
+  display: 'grid',
+  justifyContent: 'start',
+  justifyItems: 'start',
+  '.layout h3': {
+    marginBottom: '0',
+  },
+  '.global-controls': {
+    borderTop: '2px solid $neutral275',
+    justifySelf: 'stretch',
+    paddingTop: '1rem',
+  },
+})
 
 export default Home

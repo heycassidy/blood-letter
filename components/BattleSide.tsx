@@ -1,70 +1,52 @@
 import { useContext } from 'react'
 import { GameConfigContext } from '../context/GameConfigContext'
 import type { Player } from '../lib/types'
-import css from 'styled-jsx/css'
+import { css, theme } from '../stitches.config'
 import LetterList from './LetterList'
 import LetterCard from './LetterCard'
 import { useGameContext } from '../context/GameContext'
+import InfoList from '../atoms/InfoList'
 
 const BattleSide = ({ player }: { player: Player }) => {
   const { stageCapacity } = useContext(GameConfigContext)
   const { round, battleWinner, getHealthCost } = useGameContext()
 
   return (
-    <div className="battle-side">
-      <div className="info-list">
-        <div className="info-box">{player.name}</div>
-        <div className="info-box">Letters: {player.stageScore}</div>
+    <div className={styles()}>
+      <InfoList>
+        <span>{player.name}</span>
+        <span>Letters: {player.stageScore}</span>
         {player.wordBonus > 0 ? (
-          <div className="info-box">Word Bonus: {player.wordBonus}</div>
+          <span>Word Bonus: {player.wordBonus}</span>
         ) : (
-          <div className="info-box">Not in word list</div>
+          <span>Not in word list</span>
         )}
-        <div className="info-box">
-          <strong>Total: {player.roundScore}</strong>
-        </div>
+        <strong>Total: {player.roundScore}</strong>
         {battleWinner && battleWinner.id === player.id && (
-          <div className="info-box">
-            <strong>Winner</strong>
-          </div>
+          <strong>Winner</strong>
         )}
         {battleWinner && battleWinner.id !== player.id && (
-          <div className="info-box">Health: -{getHealthCost(round)}</div>
+          <span>Health: -{getHealthCost(round)}</span>
         )}
-      </div>
+      </InfoList>
 
       <LetterList capacity={stageCapacity}>
         {player.stage.map((letter) => (
           <LetterCard letter={letter} key={letter.id} />
         ))}
       </LetterList>
-
-      <style jsx>{styles}</style>
     </div>
   )
 }
 
-const styles = css`
-  .battle-side {
-    gap: 0.5rem;
-    padding: 0.5rem;
-    display: grid;
-    justify-content: start;
-    justify-items: start;
-
-    border: 1px solid black;
-    background-color: #e7e7e7;
-  }
-  .info-list {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.25rem;
-  }
-  .info-box {
-    line-height: 1;
-    padding: 0.125rem 0.5rem;
-    background: #d3d3d3;
-  }
-`
+const styles = css({
+  gap: '0.5rem',
+  padding: '0.5rem',
+  display: 'grid',
+  justifyContent: 'start',
+  justifyItems: 'start',
+  border: '1px solid black',
+  backgroundColor: '$neutral175',
+})
 
 export default BattleSide

@@ -1,18 +1,17 @@
-import css from 'styled-jsx/css'
+import { css } from '../stitches.config'
 import { useGameContext } from '../context/GameContext'
 import BattleSide from './BattleSide'
+import InfoList from '../atoms/InfoList'
 
 const BattlePhase = () => {
   const { players, incrementRound, battleWinner } = useGameContext()
 
   return (
-    <div className="battle-view">
+    <div className={styles()}>
       {!battleWinner && (
-        <div className="info-list">
-          <div className="info-box">
-            <strong>Draw</strong>
-          </div>
-        </div>
+        <InfoList>
+          <strong>Draw</strong>
+        </InfoList>
       )}
 
       <div className="matchup">
@@ -22,36 +21,23 @@ const BattlePhase = () => {
       </div>
 
       <button onClick={incrementRound}>Next Round</button>
-      <style jsx>{styles}</style>
     </div>
   )
 }
 
-const styles = css`
-  .battle-view {
-    gap: 1rem;
-    display: grid;
-    justify-content: start;
-    justify-items: start;
-  }
-  .matchup {
-    row-gap: 1rem;
-    column-gap: 2rem;
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: start;
-    justify-items: start;
-  }
-  .info-list {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.25rem;
-  }
-  .info-box {
-    line-height: 1;
-    padding: 0.125rem 0.5rem;
-    background: #e3e3e3;
-  }
-`
+const styles = css({
+  gap: '1rem',
+  display: 'grid',
+  justifyContent: 'start',
+  justifyItems: 'start',
+  '.matchup': {
+    rowGap: '1rem',
+    columnGap: '2rem',
+    display: 'flex',
+    flexWrap: 'wrap',
+    justifyContent: 'start',
+    justifyItems: 'start',
+  },
+})
 
 export default BattlePhase
