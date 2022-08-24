@@ -1,13 +1,12 @@
 import { useLayoutEffect, useState } from 'react'
-import type { Letter } from '../lib/types'
+import { Letter } from '../lib/types'
 import { css } from '../stitches.config'
 import LetterList from './LetterList'
-import SortableLetterCard from './SortableLetterCard'
+import LetterCard from './LetterCard'
 import {
   SortableContext,
   horizontalListSortingStrategy,
 } from '@dnd-kit/sortable'
-import { useBuildPhaseContext } from '../context/BuildPhaseContext'
 
 type Props = {
   letters: Letter[]
@@ -15,7 +14,6 @@ type Props = {
 }
 
 const Stage = ({ letters = [], capacity }: Props) => {
-  const { sellLetter } = useBuildPhaseContext()
   const [stageLetters, setStageLetters] = useState<Letter[]>(letters)
 
   useLayoutEffect(() => {
@@ -29,14 +27,7 @@ const Stage = ({ letters = [], capacity }: Props) => {
       <SortableContext items={letters} strategy={horizontalListSortingStrategy}>
         <LetterList capacity={capacity}>
           {stageLetters.map((letter) => (
-            <SortableLetterCard
-              key={letter.id}
-              id={letter.id}
-              letter={letter}
-              onClick={() => {
-                sellLetter(letter)
-              }}
-            />
+            <LetterCard letter={letter} key={letter.id} sortable selectable />
           ))}
         </LetterList>
       </SortableContext>

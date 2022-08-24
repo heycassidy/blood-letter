@@ -1,9 +1,8 @@
 import { useEffect, useState } from 'react'
-import type { Letter } from '../lib/types'
+import { Letter } from '../lib/types'
 import { css } from '../stitches.config'
 import LetterList from './LetterList'
 import LetterCard from './LetterCard'
-import { useBuildPhaseContext } from '../context/BuildPhaseContext'
 
 type Props = {
   letters: Letter[]
@@ -11,7 +10,6 @@ type Props = {
 }
 
 const LetterStore = ({ letters = [], amount }: Props) => {
-  const { buyLetter } = useBuildPhaseContext()
   const [storeLetters, setStoreLetters] = useState<Letter[]>([])
 
   useEffect(() => {
@@ -24,13 +22,7 @@ const LetterStore = ({ letters = [], amount }: Props) => {
 
       <LetterList capacity={amount}>
         {storeLetters.map((letter) => (
-          <LetterCard
-            letter={letter}
-            key={letter.id}
-            onClick={() => {
-              buyLetter(letter)
-            }}
-          />
+          <LetterCard letter={letter} key={letter.id} selectable />
         ))}
       </LetterList>
     </div>

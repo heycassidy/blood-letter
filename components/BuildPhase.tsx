@@ -6,12 +6,14 @@ import Stage from './Stage'
 import InfoList from '../atoms/InfoList'
 import { useGameContext } from '../context/GameContext'
 import { useBuildPhaseContext } from '../context/BuildPhaseContext'
+import { LetterLocation } from '../lib/types'
 
 const BuildPhase = () => {
-  const { stageCapacity } = useContext(GameConfigContext)
+  const { stageCapacity, letterBuyCost } = useContext(GameConfigContext)
   const { round, activePlayer, updatePlayer, getStoreTier, getStoreCapacity } =
     useGameContext()
-  const { stage, store, rollStore } = useBuildPhaseContext()
+  const { stage, store, selectedLetter, rollStore, buyLetter, sellLetter } =
+    useBuildPhaseContext()
 
   const highestTier = getStoreTier(round)
   const storeAmount = getStoreCapacity(round)
@@ -44,6 +46,24 @@ const BuildPhase = () => {
 
       <div className="button-row">
         <button onClick={rollStore}>Roll Store</button>
+
+        {selectedLetter && (
+          <>
+            {selectedLetter.location === LetterLocation.Store &&
+              gold >= letterBuyCost && (
+                <button onClick={() => buyLetter(selectedLetter)}>
+                  Buy Letter
+                </button>
+              )}
+
+            {selectedLetter.location === LetterLocation.Stage && (
+              <button onClick={() => sellLetter(selectedLetter)}>
+                Sell Letter
+              </button>
+            )}
+          </>
+        )}
+
         <button
           style={{ marginLeft: 'auto' }}
           onClick={() => {

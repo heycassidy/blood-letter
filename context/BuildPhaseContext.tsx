@@ -6,7 +6,7 @@ import {
   useReducer,
   useEffect,
 } from 'react'
-import type { BuildPhaseState, Letter, Player } from '../lib/types'
+import { BuildPhaseState, Letter, Player, LetterLocation } from '../lib/types'
 import { wordList } from '../lib/words'
 import { GameConfigContext } from './GameConfigContext'
 import { useGameContext } from '../context/GameContext'
@@ -65,9 +65,11 @@ export const BuildPhaseContextProvider = ({ children }: Props) => {
       stage: player.stage,
       store: player.store,
       gold: player.gold,
+      selectedLetter: null,
 
       buyLetter,
       sellLetter,
+      selectLetter,
       rollStore,
     }
   }
@@ -119,10 +121,9 @@ export const BuildPhaseContextProvider = ({ children }: Props) => {
       payload: {
         player: {
           ...activePlayer,
-          store:
-            !activePlayer.completedTurn && gameCount > 0
-              ? getStoreLetters(alphabet, storeTier, storeAmount, nanoid)
-              : activePlayer.store,
+          store: !activePlayer.completedTurn
+            ? getStoreLetters(alphabet, storeTier, storeAmount, nanoid)
+            : activePlayer.store,
         },
       },
     })
@@ -158,6 +159,13 @@ export const BuildPhaseContextProvider = ({ children }: Props) => {
     })
   }
 
+  function selectLetter(letter: Letter): void {
+    dispatch({
+      type: ActionKind.SelectLetter,
+      payload: { letter },
+    })
+  }
+
   function rollStore(): void {
     dispatch({
       type: ActionKind.RollStore,
@@ -185,6 +193,7 @@ enum ActionKind {
   Reset,
   Buy,
   Sell,
+  SelectLetter,
   RollStore,
   SortStage,
   RecallPlayer,
@@ -200,6 +209,10 @@ interface BuyAction {
 interface SellAction {
   type: ActionKind.Sell
   payload: { letter: Letter; refund: number }
+}
+interface SelectLetterAction {
+  type: ActionKind.SelectLetter
+  payload: { letter: Letter }
 }
 interface RollStoreAction {
   type: ActionKind.RollStore
@@ -218,6 +231,7 @@ type BuildPhaseContextAction =
   | ResetAction
   | BuyAction
   | SellAction
+  | SelectLetterAction
   | RollStoreAction
   | SortStageAction
   | RecallPlayerAction
@@ -241,18 +255,30 @@ const reducer = (
 
       return {
         ...state,
+        selectedLetter: null,
         gold: state.gold - cost,
         store: state.store.filter((letter) => letter.id !== payload.letter.id),
-        stage: [...state.stage, payload.letter],
+        stage: [
+          ...state.stage,
+          { ...payload.letter, location: LetterLocation.Stage },
+        ],
       }
     }
 
     case ActionKind.Sell: {
       return {
         ...state,
+        selectedLetter: null,
         gold: state.gold + payload.refund,
         stage: state.stage.filter((letter) => letter.id !== payload.letter.id),
         store: state.store,
+      }
+    }
+
+    case ActionKind.SelectLetter: {
+      return {
+        ...state,
+        selectedLetter: payload.letter,
       }
     }
 

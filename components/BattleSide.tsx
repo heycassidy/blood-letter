@@ -1,7 +1,7 @@
 import { useContext } from 'react'
 import { GameConfigContext } from '../context/GameConfigContext'
 import type { Player } from '../lib/types'
-import { css, theme } from '../stitches.config'
+import { css } from '../stitches.config'
 import LetterList from './LetterList'
 import LetterCard from './LetterCard'
 import { useGameContext } from '../context/GameContext'

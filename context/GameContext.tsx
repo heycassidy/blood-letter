@@ -5,7 +5,13 @@ import {
   useReducer,
   useEffect,
 } from 'react'
-import { GameState, Player, PhaseKind, Letter } from '../lib/types'
+import {
+  GameState,
+  Player,
+  PhaseKind,
+  Letter,
+  LetterLocation,
+} from '../lib/types'
 import { GameConfigContext } from './GameConfigContext'
 import { nanoid } from 'nanoid'
 import {
@@ -130,7 +136,9 @@ export const GameContextProvider = ({ children }: PropsWithChildren) => {
   function incrementRound(): void {
     dispatch({
       type: ActionKind.IncrementRound,
-      payload: { gold: initialGold },
+      payload: {
+        gold: initialGold,
+      },
     })
   }
 
@@ -149,7 +157,9 @@ export const GameContextProvider = ({ children }: PropsWithChildren) => {
       itemIsInRange(letter.tier, 1, tier)
     )
 
-    return assignIds(randomItems(tierAndBelowLetters, amount), idSupplier)
+    return assignIds(randomItems(tierAndBelowLetters, amount), idSupplier).map(
+      (letter) => ({ ...letter, location: LetterLocation.Store })
+    )
   }
   function getStoreTier(round: number) {
     return getFromNumericMapWithMax(storeTierMap, round)

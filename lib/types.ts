@@ -74,6 +74,7 @@ export type Letter = {
   tier: number
   value: number
   id: string
+  location?: LetterLocation
 }
 
 export interface LetterTierMap {
@@ -109,12 +110,20 @@ export interface GameState {
   getHealthCost: (round: number) => number
 }
 
+export enum LetterLocation {
+  Store,
+  Stage,
+  Battle,
+}
+
 export interface BuildPhaseState {
   stage: Letter[]
   store: Letter[]
   gold: number
+  selectedLetter: Letter | null
 
   buyLetter: (letter: Letter) => void
   sellLetter: (letter: Letter) => void
+  selectLetter: (letter: Letter) => void
   rollStore: () => void
 }

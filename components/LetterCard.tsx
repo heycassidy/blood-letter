@@ -1,17 +1,30 @@
-import type { Letter } from '../lib/types'
+import { Letter } from '../lib/types'
 import { css } from '../stitches.config'
+import useSortableLetterCard from '../hooks/useSortableLetterCard'
+import useSelectableLetterCard from '../hooks/useSelectableLetterCard'
 
-type Props = {
+interface Props {
   letter: Letter
+  selectable?: boolean
+  sortable?: boolean
   onClick?: () => void
 }
 
 const LetterCard = (props: Props) => {
-  const { letter, onClick } = props
+  const { letter, selectable, sortable } = props
   const { name, tier, value } = letter
 
+  const [sortableProps, sortableStyles] = sortable
+    ? useSortableLetterCard(letter.id)
+    : []
+  const [selectableProps, selectableStyles] = selectable
+    ? useSelectableLetterCard(letter)
+    : []
+
+  const styles = css(baseStyles, sortableStyles, selectableStyles)
+
   return (
-    <div className={styles()} onClick={onClick}>
+    <div {...sortableProps} {...selectableProps} className={styles()}>
       <div className="tier">{tier}</div>
       <div className="name">{name.toUpperCase()}</div>
       <div className="value">{value}</div>
@@ -19,14 +32,13 @@ const LetterCard = (props: Props) => {
   )
 }
 
-const styles = css({
+const baseStyles = {
   border: '1px solid $neutral875',
   backgroundColor: 'white',
   position: 'relative',
   aspectRatio: '1',
   maxWidth: 'fit-content',
   display: 'flex',
-  cursor: 'pointer',
   userSelect: 'none',
   width: '100%',
   height: '100%',
@@ -49,6 +61,6 @@ const styles = css({
   '.value': {
     bottom: 0,
   },
-})
+}
 
 export default LetterCard
