@@ -1,12 +1,13 @@
 import { useLayoutEffect, useState } from 'react'
-import { Letter } from '../lib/types'
+import { Letter, DroppableKind } from '../lib/types'
 import { css } from '../stitches.config'
 import LetterList from './LetterList'
-import LetterCard from './LetterCard'
 import {
   SortableContext,
   horizontalListSortingStrategy,
 } from '@dnd-kit/sortable'
+import { useDroppable } from '@dnd-kit/core'
+import { SortableLetterCard } from './SortableLetterCard'
 
 type Props = {
   letters: Letter[]
@@ -14,6 +15,10 @@ type Props = {
 }
 
 const Stage = ({ letters = [], capacity }: Props) => {
+  const { setNodeRef } = useDroppable({
+    id: DroppableKind.Stage,
+  })
+
   const [stageLetters, setStageLetters] = useState<Letter[]>(letters)
 
   useLayoutEffect(() => {
@@ -24,10 +29,18 @@ const Stage = ({ letters = [], capacity }: Props) => {
     <div className={styles()}>
       <strong>Stage</strong>
 
-      <SortableContext items={letters} strategy={horizontalListSortingStrategy}>
-        <LetterList capacity={capacity}>
+      <SortableContext
+        items={stageLetters}
+        strategy={horizontalListSortingStrategy}
+      >
+        <LetterList capacity={capacity} ref={setNodeRef}>
           {stageLetters.map((letter) => (
-            <LetterCard letter={letter} key={letter.id} sortable selectable />
+            <SortableLetterCard
+              id={letter.id}
+              key={letter.id}
+              letter={letter}
+              selectable
+            />
           ))}
         </LetterList>
       </SortableContext>

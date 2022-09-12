@@ -1,8 +1,9 @@
-import { useEffect, useState } from 'react'
-import { Letter } from '../lib/types'
+import { useLayoutEffect, useState } from 'react'
+import { DroppableKind, Letter } from '../lib/types'
 import { css } from '../stitches.config'
 import LetterList from './LetterList'
-import LetterCard from './LetterCard'
+import { DraggableLetterCard } from './DraggableLetterCard'
+import { useDroppable } from '@dnd-kit/core'
 
 type Props = {
   letters: Letter[]
@@ -10,9 +11,13 @@ type Props = {
 }
 
 const LetterStore = ({ letters = [], amount }: Props) => {
+  const { setNodeRef } = useDroppable({
+    id: DroppableKind.Store,
+  })
+
   const [storeLetters, setStoreLetters] = useState<Letter[]>([])
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     setStoreLetters(letters)
   }, [letters])
 
@@ -20,9 +25,14 @@ const LetterStore = ({ letters = [], amount }: Props) => {
     <div className={styles()}>
       <strong>Letter Store</strong>
 
-      <LetterList capacity={amount}>
+      <LetterList capacity={amount} ref={setNodeRef}>
         {storeLetters.map((letter) => (
-          <LetterCard letter={letter} key={letter.id} selectable />
+          <DraggableLetterCard
+            id={letter.id}
+            key={letter.id}
+            letter={letter}
+            selectable
+          />
         ))}
       </LetterList>
     </div>

@@ -10,7 +10,8 @@ import {
   Player,
   PhaseKind,
   Letter,
-  LetterLocation,
+  LetterOrigin,
+  UUID,
 } from '../lib/types'
 import { GameConfigContext } from './GameConfigContext'
 import { nanoid } from 'nanoid'
@@ -54,7 +55,7 @@ export const GameContextProvider = ({ children }: PropsWithChildren) => {
 
   const generatePlayer = (name: string) => ({
     name,
-    id: nanoid(),
+    id: nanoid() as UUID,
     health: initialHealth,
     gold: initialGold,
     stage: [],
@@ -108,7 +109,7 @@ export const GameContextProvider = ({ children }: PropsWithChildren) => {
       payload: { state: initState() },
     })
   }
-  function updatePlayer(id: string, player: Partial<Player>): void {
+  function updatePlayer(id: UUID, player: Partial<Player>): void {
     dispatch({
       type: ActionKind.UpdatePlayer,
       payload: {
@@ -117,7 +118,7 @@ export const GameContextProvider = ({ children }: PropsWithChildren) => {
       },
     })
   }
-  function setActivePlayer(id: string): void {
+  function setActivePlayer(id: UUID): void {
     dispatch({
       type: ActionKind.SetActivePlayer,
       payload: { id },
@@ -151,14 +152,14 @@ export const GameContextProvider = ({ children }: PropsWithChildren) => {
     letters: Letter[],
     tier: number,
     amount: number,
-    idSupplier: () => string
+    idSupplier: () => UUID
   ) {
     const tierAndBelowLetters = letters.filter((letter) =>
       itemIsInRange(letter.tier, 1, tier)
     )
 
     return assignIds(randomItems(tierAndBelowLetters, amount), idSupplier).map(
-      (letter) => ({ ...letter, location: LetterLocation.Store })
+      (letter) => ({ ...letter, origin: LetterOrigin.Store })
     )
   }
   function getStoreTier(round: number) {
@@ -246,11 +247,11 @@ interface RestartGameAction {
 }
 interface UpdatePlayerAction {
   type: ActionKind.UpdatePlayer
-  payload: { id: string; player: Partial<Player> }
+  payload: { id: UUID; player: Partial<Player> }
 }
 interface SetActivePlayerAction {
   type: ActionKind.SetActivePlayer
-  payload: { id: string }
+  payload: { id: UUID }
 }
 interface ToggleActivePlayerAction {
   type: ActionKind.ToggleActivePlayer

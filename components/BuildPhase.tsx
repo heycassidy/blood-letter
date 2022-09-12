@@ -6,10 +6,11 @@ import Stage from './Stage'
 import InfoList from '../atoms/InfoList'
 import { useGameContext } from '../context/GameContext'
 import { useBuildPhaseContext } from '../context/BuildPhaseContext'
-import { LetterLocation } from '../lib/types'
+import { LetterOrigin } from '../lib/types'
 
 const BuildPhase = () => {
-  const { stageCapacity, letterBuyCost } = useContext(GameConfigContext)
+  const { stageCapacity, letterBuyCost, letterSellValue, storeRefreshCost } =
+    useContext(GameConfigContext)
   const { round, activePlayer, updatePlayer, getStoreTier, getStoreCapacity } =
     useGameContext()
   const { stage, store, selectedLetter, rollStore, buyLetter, sellLetter } =
@@ -45,20 +46,20 @@ const BuildPhase = () => {
       <LetterStore letters={store} amount={storeAmount} />
 
       <div className="button-row">
-        <button onClick={rollStore}>Roll Store</button>
+        <button onClick={rollStore}>Roll Store ({storeRefreshCost})</button>
 
         {selectedLetter && (
           <>
-            {selectedLetter.location === LetterLocation.Store &&
+            {selectedLetter.origin === LetterOrigin.Store &&
               gold >= letterBuyCost && (
                 <button onClick={() => buyLetter(selectedLetter)}>
-                  Buy Letter
+                  Buy Letter ({letterBuyCost})
                 </button>
               )}
 
-            {selectedLetter.location === LetterLocation.Stage && (
+            {selectedLetter.origin === LetterOrigin.Stage && (
               <button onClick={() => sellLetter(selectedLetter)}>
-                Sell Letter
+                Sell Letter ({letterSellValue})
               </button>
             )}
           </>

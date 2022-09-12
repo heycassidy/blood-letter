@@ -1,36 +1,38 @@
-import { Letter } from '../lib/types'
-import { css } from '../stitches.config'
-import useSortableLetterCard from '../hooks/useSortableLetterCard'
+import { forwardRef, ComponentPropsWithRef } from 'react'
 import useSelectableLetterCard from '../hooks/useSelectableLetterCard'
+import { LetterCardProps } from '../lib/types'
+import { css } from '../stitches.config'
 
-interface Props {
-  letter: Letter
-  selectable?: boolean
-  sortable?: boolean
-  onClick?: () => void
-}
+type Ref = HTMLDivElement
 
-const LetterCard = (props: Props) => {
-  const { letter, selectable, sortable } = props
+const LetterCard = forwardRef<
+  Ref,
+  LetterCardProps & ComponentPropsWithRef<'div'>
+>((props, ref) => {
+  const { letter, dragging, selectable, ...rest } = props
+
+  const [selectableProps, selectableStyles] = useSelectableLetterCard(
+    letter,
+    selectable
+  )
+
   const { name, tier, value } = letter
 
-  const [sortableProps, sortableStyles] = sortable
-    ? useSortableLetterCard(letter.id)
-    : []
-  const [selectableProps, selectableStyles] = selectable
-    ? useSelectableLetterCard(letter)
-    : []
+  const dynamicStyles = {
+    opacity: dragging ? 0.5 : undefined,
+  }
 
-  const styles = css(baseStyles, sortableStyles, selectableStyles)
+  const styles = css(baseStyles, dynamicStyles, selectableStyles)
 
   return (
-    <div {...sortableProps} {...selectableProps} className={styles()}>
+    <div ref={ref} className={styles()} {...selectableProps} {...rest}>
       <div className="tier">{tier}</div>
       <div className="name">{name.toUpperCase()}</div>
       <div className="value">{value}</div>
     </div>
   )
-}
+})
+LetterCard.displayName = 'LetterCard'
 
 const baseStyles = {
   border: '1px solid $neutral875',

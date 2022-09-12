@@ -5,21 +5,40 @@ import {
   useContext,
   useReducer,
   useEffect,
+  useState,
+  useRef,
+  useCallback,
 } from 'react'
-import { BuildPhaseState, Letter, Player, LetterLocation } from '../lib/types'
+import { createPortal } from 'react-dom'
+import {
+  BuildPhaseState,
+  Letter,
+  Player,
+  LetterOrigin,
+  DroppableKind,
+  UUID,
+} from '../lib/types'
 import { wordList } from '../lib/words'
 import { GameConfigContext } from './GameConfigContext'
 import { useGameContext } from '../context/GameContext'
 import {
   DndContext,
+  DragOverlay,
   closestCenter,
   PointerSensor,
   useSensor,
   useSensors,
   DragEndEvent,
+  DragCancelEvent,
+  DragStartEvent,
+  DragOverEvent,
+  rectIntersection,
+  CollisionDetection,
 } from '@dnd-kit/core'
 import { arrayMove } from '@dnd-kit/sortable'
 import { sumItemProperty, concatItemProperty } from '../lib/helpers'
+import LetterCard from '../components/LetterCard'
+import { CancelDropArguments } from '@dnd-kit/core/dist/components/DndContext/DndContext'
 
 const BuildPhaseContext = createContext<BuildPhaseState | undefined>(undefined)
 
@@ -38,6 +57,14 @@ interface Props {
 }
 
 export const BuildPhaseContextProvider = ({ children }: Props) => {
+  const documentBodyRef = useRef<HTMLElement>()
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => {
+    documentBodyRef.current = document.body
+    setMounted(true)
+  }, [])
+
   const {
     alphabet,
     stageCapacity,
@@ -66,6 +93,7 @@ export const BuildPhaseContextProvider = ({ children }: Props) => {
       store: player.store,
       gold: player.gold,
       selectedLetter: null,
+      draggingLetter: null,
 
       buyLetter,
       sellLetter,
@@ -75,6 +103,7 @@ export const BuildPhaseContextProvider = ({ children }: Props) => {
   }
 
   const [state, dispatch] = useReducer(reducer, activePlayer, initState)
+  const [clonedState, setClonedState] = useState<BuildPhaseState | null>(null)
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -129,20 +158,154 @@ export const BuildPhaseContextProvider = ({ children }: Props) => {
     })
   }, [activePlayer.id])
 
-  function handleDragEnd(event: DragEndEvent) {
-    const { active, over } = event
+  const collisionDetectionStrategy: CollisionDetection = useCallback(
+    (args) => {
+      const { active, droppableContainers } = args
 
-    if (over !== null && active.id !== over.id) {
-      const oldIndex = state.stage.findIndex(
-        (letter) => letter.id === active.id
-      )
-      const newIndex = state.stage.findIndex((letter) => letter.id === over.id)
+      const { stage } = state
+      const stageIds = stage.map(({ id }) => id)
+      const clonedStageIds = clonedState?.stage.map(({ id }) => id)
 
+      if (clonedStageIds && clonedStageIds.includes(active.id)) {
+        return closestCenter({
+          ...args,
+          droppableContainers: droppableContainers.filter((container) =>
+            stageIds.includes(container.id)
+          ),
+        })
+      } else {
+        return rectIntersection(args)
+      }
+    },
+    [state.draggingLetter, state.stage.map(({ id }) => id).join('')]
+  )
+
+  function handleDragStart({ active }: DragStartEvent) {
+    const draggingLetter: Letter | undefined = active.data.current?.letter
+
+    if (draggingLetter === undefined) {
+      return false
+    }
+
+    setClonedState(state)
+
+    dispatch({
+      type: ActionKind.SetDraggingLetter,
+      payload: draggingLetter,
+    })
+  }
+
+  function handleDragOver({ active, over }: DragOverEvent) {
+    const overId = over?.id
+    const letterId = active?.id
+
+    const letter = active?.data?.current?.letter
+    const letterOrigin = letter?.origin
+
+    const stageIds = state.stage.map(({ id }) => id)
+
+    if (letterId === undefined) {
+      return
+    }
+
+    if (
+      letterOrigin === LetterOrigin.Store &&
+      state.stage.length >= stageCapacity
+    ) {
+      return
+    }
+
+    if (!overId || overId === DroppableKind.Store) {
       dispatch({
-        type: ActionKind.SortStage,
-        payload: { letters: arrayMove(state.stage, oldIndex, newIndex) },
+        type: ActionKind.RemoveLetterFromStage,
+        payload: { letterId },
+      })
+      return
+    }
+
+    if (
+      letterOrigin === LetterOrigin.Store &&
+      overId !== letterId &&
+      !stageIds.includes(letterId) &&
+      (overId === DroppableKind.Stage || stageIds.includes(overId))
+    ) {
+      dispatch({
+        type: ActionKind.DragLetterToStage,
+        payload: { overId, letterId },
+      })
+      return
+    }
+  }
+
+  function handleDragCancel({}: DragCancelEvent) {
+    if (clonedState) {
+      dispatch({
+        type: ActionKind.Reset,
+        payload: { state: clonedState },
       })
     }
+    setClonedState(null)
+    dispatch({
+      type: ActionKind.SetDraggingLetter,
+      payload: null,
+    })
+  }
+
+  function handleDragEnd({ active, over }: DragEndEvent) {
+    dispatch({
+      type: ActionKind.SetDraggingLetter,
+      payload: null,
+    })
+
+    const overId = over?.id
+    const letterId = active?.id
+    const letter = active?.data?.current?.letter
+    const letterOrigin = letter?.origin
+    const stageIds = state.stage.map(({ id }) => id)
+
+    if (
+      letterOrigin === LetterOrigin.Store &&
+      (state.stage.length >= stageCapacity || state.gold < letterBuyCost)
+    ) {
+      return
+    }
+
+    if (
+      overId &&
+      letterOrigin === LetterOrigin.Store &&
+      (overId === DroppableKind.Stage || stageIds.includes(overId))
+    ) {
+      dispatch({
+        type: ActionKind.SpendGold,
+        payload: { amount: letterBuyCost },
+      })
+    }
+
+    if (overId && letterOrigin === LetterOrigin.Stage) {
+      dispatch({
+        type: ActionKind.DragToSortStage,
+        payload: { overId, letterId },
+      })
+    }
+
+    dispatch({
+      type: ActionKind.SetLetterOrigins,
+    })
+  }
+
+  function cancelDrop({ active }: CancelDropArguments) {
+    const letter = active?.data?.current?.letter
+    const letterOrigin = letter?.origin
+
+    if (
+      letterOrigin === LetterOrigin.Store &&
+      (state.stage.length > stageCapacity || state.gold < letterBuyCost)
+    ) {
+      console.log('cancelled')
+      return true
+    }
+
+    return false
   }
 
   function buyLetter(letter: Letter): void {
@@ -159,7 +322,7 @@ export const BuildPhaseContextProvider = ({ children }: Props) => {
     })
   }
 
-  function selectLetter(letter: Letter): void {
+  function selectLetter(letter: Letter | null): void {
     dispatch({
       type: ActionKind.SelectLetter,
       payload: { letter },
@@ -180,10 +343,25 @@ export const BuildPhaseContextProvider = ({ children }: Props) => {
     <BuildPhaseContext.Provider value={state}>
       <DndContext
         sensors={sensors}
-        collisionDetection={closestCenter}
+        collisionDetection={collisionDetectionStrategy}
+        cancelDrop={cancelDrop}
+        onDragStart={handleDragStart}
+        onDragOver={handleDragOver}
+        onDragCancel={handleDragCancel}
         onDragEnd={handleDragEnd}
       >
         {children}
+
+        {mounted
+          ? createPortal(
+              <DragOverlay>
+                {state.draggingLetter ? (
+                  <LetterCard letter={state.draggingLetter} />
+                ) : null}
+              </DragOverlay>,
+              document.body
+            )
+          : null}
       </DndContext>
     </BuildPhaseContext.Provider>
   )
@@ -193,9 +371,14 @@ enum ActionKind {
   Reset,
   Buy,
   Sell,
+  SpendGold,
   SelectLetter,
+  SetDraggingLetter,
+  DragLetterToStage,
+  DragToSortStage,
+  SetLetterOrigins,
+  RemoveLetterFromStage,
   RollStore,
-  SortStage,
   RecallPlayer,
 }
 interface ResetAction {
@@ -204,23 +387,43 @@ interface ResetAction {
 }
 interface BuyAction {
   type: ActionKind.Buy
-  payload: { letter: Letter; cost: number; maxLetters: number }
+  payload: { letter: Letter; index?: number; cost: number; maxLetters: number }
 }
 interface SellAction {
   type: ActionKind.Sell
   payload: { letter: Letter; refund: number }
 }
+interface SpendGold {
+  type: ActionKind.SpendGold
+  payload: { amount: number }
+}
 interface SelectLetterAction {
   type: ActionKind.SelectLetter
-  payload: { letter: Letter }
+  payload: { letter: Letter | null }
+}
+interface SetDraggingLetterAction {
+  type: ActionKind.SetDraggingLetter
+  payload: Letter | null
+}
+interface DragLetterToStage {
+  type: ActionKind.DragLetterToStage
+  payload: { overId: UUID; letterId: UUID }
+}
+interface RemoveLetterFromStage {
+  type: ActionKind.RemoveLetterFromStage
+  payload: { letterId: UUID }
+}
+interface DragToSortStageAction {
+  type: ActionKind.DragToSortStage
+  payload: { overId: UUID; letterId: UUID }
+}
+interface SetLetterOrigins {
+  type: ActionKind.SetLetterOrigins
+  payload?: undefined
 }
 interface RollStoreAction {
   type: ActionKind.RollStore
   payload: { letters: Letter[]; cost: number }
-}
-interface SortStageAction {
-  type: ActionKind.SortStage
-  payload: { letters: Letter[] }
 }
 interface RecallPlayerAction {
   type: ActionKind.RecallPlayer
@@ -231,9 +434,14 @@ type BuildPhaseContextAction =
   | ResetAction
   | BuyAction
   | SellAction
+  | SpendGold
   | SelectLetterAction
+  | SetDraggingLetterAction
+  | DragLetterToStage
+  | RemoveLetterFromStage
   | RollStoreAction
-  | SortStageAction
+  | DragToSortStageAction
+  | SetLetterOrigins
   | RecallPlayerAction
 
 const reducer = (
@@ -248,20 +456,26 @@ const reducer = (
     }
 
     case ActionKind.Buy: {
-      const { cost, maxLetters } = payload
+      const { cost, maxLetters, index } = payload
 
       if (state.stage.length >= maxLetters) return state
       if (state.gold < cost) return state
+
+      const insertAt = index ?? state.stage.length
+
+      const newStage = [...state.stage]
+
+      newStage.splice(insertAt, 0, {
+        ...payload.letter,
+        origin: LetterOrigin.Stage,
+      })
 
       return {
         ...state,
         selectedLetter: null,
         gold: state.gold - cost,
         store: state.store.filter((letter) => letter.id !== payload.letter.id),
-        stage: [
-          ...state.stage,
-          { ...payload.letter, location: LetterLocation.Stage },
-        ],
+        stage: newStage,
       }
     }
 
@@ -275,10 +489,108 @@ const reducer = (
       }
     }
 
+    case ActionKind.SpendGold: {
+      return {
+        ...state,
+        gold: state.gold - payload.amount,
+      }
+    }
+
     case ActionKind.SelectLetter: {
       return {
         ...state,
         selectedLetter: payload.letter,
+      }
+    }
+
+    case ActionKind.SetDraggingLetter: {
+      return {
+        ...state,
+        draggingLetter: payload,
+      }
+    }
+
+    case ActionKind.DragLetterToStage: {
+      const { overId, letterId } = payload
+
+      const stageLetters = state.stage
+      const storeLetters = state.store
+      const letter = [...storeLetters, ...stageLetters].find(
+        ({ id }) => id === letterId
+      )
+
+      if (letter === undefined) return state
+
+      const stageIds = stageLetters.map(({ id }) => id)
+      let newIndex: number
+
+      if (overId === DroppableKind.Stage) {
+        newIndex = stageIds.length
+      } else {
+        newIndex = stageIds.indexOf(overId)
+      }
+
+      return {
+        ...state,
+        store: state.store.filter(({ id }) => letterId !== id),
+        stage: [
+          ...stageLetters.slice(0, newIndex),
+          letter,
+          ...stageLetters.slice(newIndex, stageLetters.length),
+        ],
+      }
+    }
+
+    case ActionKind.DragToSortStage: {
+      const { overId, letterId } = payload
+
+      const stageLetters = state.stage
+      const stageIds = stageLetters.map(({ id }) => id)
+
+      const oldIndex = stageIds.indexOf(letterId)
+      const newIndex = stageIds.indexOf(overId)
+
+      return {
+        ...state,
+        stage: arrayMove(stageLetters, oldIndex, newIndex),
+      }
+    }
+
+    case ActionKind.RemoveLetterFromStage: {
+      const { letterId } = payload
+
+      const stageLetters = state.stage
+      const storeLetters = state.store
+      const letter = stageLetters.find(({ id }) => id === letterId)
+
+      if (letter === undefined) return state
+
+      const storeIds = stageLetters.map(({ id }) => id)
+
+      const newIndex = storeIds.length + 1
+
+      return {
+        ...state,
+        stage: state.stage.filter(({ id }) => letterId !== id),
+        store: [
+          ...storeLetters.slice(0, newIndex),
+          letter,
+          ...storeLetters.slice(newIndex, storeLetters.length),
+        ],
+      }
+    }
+
+    case ActionKind.SetLetterOrigins: {
+      return {
+        ...state,
+        stage: state.stage.map((letter) => ({
+          ...letter,
+          origin: LetterOrigin.Stage,
+        })),
+        store: state.store.map((letter) => ({
+          ...letter,
+          origin: LetterOrigin.Store,
+        })),
       }
     }
 
@@ -289,13 +601,6 @@ const reducer = (
         ...state,
         gold: state.gold - payload.cost,
         store: payload.letters,
-      }
-    }
-
-    case ActionKind.SortStage: {
-      return {
-        ...state,
-        stage: payload.letters,
       }
     }
 

@@ -2,14 +2,16 @@ import { useState, useEffect } from 'react'
 import { useBuildPhaseContext } from '../context/BuildPhaseContext'
 import { Letter } from '../lib/types'
 
-const useSelectableLetterCard = (letter: Letter) => {
+const useSelectableLetterCard = (letter: Letter, enabled?: boolean) => {
+  if (!enabled) {
+    return [{}, {}]
+  }
+
   const { selectedLetter, selectLetter } = useBuildPhaseContext()
   const [selected, setSelected] = useState(false)
 
   useEffect(() => {
-    if (selectedLetter) {
-      setSelected(selectedLetter.id === letter.id)
-    }
+    setSelected(selectedLetter?.id === letter.id)
   }, [selectedLetter])
 
   const styles = {
@@ -18,7 +20,7 @@ const useSelectableLetterCard = (letter: Letter) => {
 
   const props = {
     onClick: () => {
-      selectLetter(letter)
+      selectLetter(selected ? null : letter)
     },
   }
 

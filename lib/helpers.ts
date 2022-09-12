@@ -1,3 +1,5 @@
+import { UUID } from './types'
+
 export const itemIsInRange = (item: number, start = 0, stop = 10): boolean =>
   integerRange(start, stop).includes(item)
 
@@ -7,10 +9,10 @@ export const integerRange = (start = 0, stop = 10): number[] =>
 export const randomItems = <T>(items: T[], amount: number): T[] =>
   [...Array(amount)].map(() => items[Math.floor(Math.random() * items.length)])
 
-export const assignIds = <T>(items: T[], id: string | (() => string)): T[] =>
+export const assignIds = <T>(items: T[], id: UUID | (() => UUID)): T[] =>
   items.map((item) => ({
     ...item,
-    id: typeof id === 'string' ? id : id(),
+    id: typeof id === 'string' || typeof id === 'number' ? id : id(),
   }))
 
 export const cyclicalNext = <Item>(items: Item[], currentItem: Item): Item => {

@@ -21,8 +21,10 @@ export interface GameConfig {
   wordBonusComputation: (letters: Letter[]) => number
 }
 
+export type UUID = string | number
+
 export interface Player {
-  id: string
+  id: UUID
   name: string
   health: number
   gold: number
@@ -73,8 +75,14 @@ export type Letter = {
   name: AlphabetCharacter
   tier: number
   value: number
-  id: string
-  location?: LetterLocation
+  id: UUID
+  origin?: LetterOrigin
+}
+
+export interface LetterCardProps {
+  letter: Letter
+  dragging?: boolean
+  selectable?: boolean
 }
 
 export interface LetterTierMap {
@@ -82,7 +90,7 @@ export interface LetterTierMap {
 }
 
 export interface GameState {
-  players: Map<string, Player>
+  players: Map<UUID, Player>
   activePlayer: Player
   round: number
   phase: PhaseKind
@@ -91,8 +99,8 @@ export interface GameState {
   gameWinner: Player | undefined
   gameCount: number
 
-  updatePlayer: (id: string, player: Partial<Player>) => void
-  setActivePlayer: (id: string) => void
+  updatePlayer: (id: UUID, player: Partial<Player>) => void
+  setActivePlayer: (id: UUID) => void
   togglePlayer: () => void
   togglePhase: () => void
   incrementRound: () => void
@@ -102,7 +110,7 @@ export interface GameState {
     alphabet: Letter[],
     tier: number,
     amount: number,
-    idSupplier: () => string
+    idSupplier: () => UUID
   ) => Letter[]
 
   getStoreTier: (round: number) => number
@@ -110,10 +118,15 @@ export interface GameState {
   getHealthCost: (round: number) => number
 }
 
-export enum LetterLocation {
+export enum LetterOrigin {
   Store,
   Stage,
   Battle,
+}
+
+export enum DroppableKind {
+  Store = 'droppable-store',
+  Stage = 'droppable-stage',
 }
 
 export interface BuildPhaseState {
@@ -121,9 +134,10 @@ export interface BuildPhaseState {
   store: Letter[]
   gold: number
   selectedLetter: Letter | null
+  draggingLetter: Letter | null
 
   buyLetter: (letter: Letter) => void
   sellLetter: (letter: Letter) => void
-  selectLetter: (letter: Letter) => void
+  selectLetter: (letter: Letter | null) => void
   rollStore: () => void
 }
