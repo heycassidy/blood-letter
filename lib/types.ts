@@ -76,7 +76,7 @@ export type Letter = {
   tier: number
   value: number
   id: UUID
-  origin?: LetterOrigin
+  origin?: LetterOriginKind
 }
 
 export interface LetterCardProps {
@@ -118,7 +118,7 @@ export interface GameState {
   getHealthCost: (round: number) => number
 }
 
-export enum LetterOrigin {
+export enum LetterOriginKind {
   Store,
   Stage,
   Battle,

@@ -14,7 +14,7 @@ import {
   BuildPhaseState,
   Letter,
   Player,
-  LetterOrigin,
+  LetterOriginKind,
   DroppableKind,
   UUID,
 } from '../lib/types'
@@ -34,6 +34,8 @@ import {
   DragOverEvent,
   rectIntersection,
   CollisionDetection,
+  closestCorners,
+  pointerWithin,
 } from '@dnd-kit/core'
 import { arrayMove } from '@dnd-kit/sortable'
 import { sumItemProperty, concatItemProperty } from '../lib/helpers'
@@ -162,22 +164,44 @@ export const BuildPhaseContextProvider = ({ children }: Props) => {
     (args) => {
       const { active, droppableContainers } = args
 
-      const { stage } = state
-      const stageIds = stage.map(({ id }) => id)
-      const clonedStageIds = clonedState?.stage.map(({ id }) => id)
+      const letterId = active?.id
+      const letter = active?.data?.current?.letter
+      const letterOrigin = letter?.origin
 
-      if (clonedStageIds && clonedStageIds.includes(active.id)) {
-        return closestCenter({
-          ...args,
-          droppableContainers: droppableContainers.filter((container) =>
-            stageIds.includes(container.id)
-          ),
-        })
-      } else {
-        return rectIntersection(args)
+      const stageIds = state.stage.map(({ id }) => id)
+
+      const stageCollisions = pointerWithin({
+        ...args,
+        droppableContainers: droppableContainers.filter(
+          ({ id }) => id === DroppableKind.Stage
+        ),
+      })
+
+      const letterCollisions = closestCenter({
+        ...args,
+        droppableContainers: droppableContainers.filter(({ id }) =>
+          stageIds.includes(id)
+        ),
+      })
+
+      if (
+        letterOrigin === LetterOriginKind.Stage &&
+        stageIds.includes(letterId)
+      ) {
+        return letterCollisions
       }
+
+      if (
+        letterOrigin === LetterOriginKind.Store &&
+        stageCollisions.length > 0 &&
+        stageIds.filter((id) => letterId !== id).length > 0
+      ) {
+        return letterCollisions
+      }
+
+      return rectIntersection(args)
     },
-    [state.draggingLetter, state.stage.map(({ id }) => id).join('')]
+    [state.stage, state.draggingLetter]
   )
 
   function handleDragStart({ active }: DragStartEvent) {
@@ -209,7 +233,7 @@ export const BuildPhaseContextProvider = ({ children }: Props) => {
     }
 
     if (
-      letterOrigin === LetterOrigin.Store &&
+      letterOrigin === LetterOriginKind.Store &&
       state.stage.length >= stageCapacity
     ) {
       return
@@ -224,7 +248,7 @@ export const BuildPhaseContextProvider = ({ children }: Props) => {
     }
 
     if (
-      letterOrigin === LetterOrigin.Store &&
+      letterOrigin === LetterOriginKind.Store &&
       overId !== letterId &&
       !stageIds.includes(letterId) &&
       (overId === DroppableKind.Stage || stageIds.includes(overId))
@@ -264,7 +288,7 @@ export const BuildPhaseContextProvider = ({ children }: Props) => {
     const stageIds = state.stage.map(({ id }) => id)
 
     if (
-      letterOrigin === LetterOrigin.Store &&
+      letterOrigin === LetterOriginKind.Store &&
       (state.stage.length >= stageCapacity || state.gold < letterBuyCost)
     ) {
       return
@@ -272,7 +296,7 @@ export const BuildPhaseContextProvider = ({ children }: Props) => {
 
     if (
       overId &&
-      letterOrigin === LetterOrigin.Store &&
+      letterOrigin === LetterOriginKind.Store &&
       (overId === DroppableKind.Stage || stageIds.includes(overId))
     ) {
       dispatch({
@@ -281,7 +305,10 @@ export const BuildPhaseContextProvider = ({ children }: Props) => {
       })
     }
 
-    if (overId && letterOrigin === LetterOrigin.Stage) {
+    if (
+      overId &&
+      (overId === DroppableKind.Stage || stageIds.includes(overId))
+    ) {
       dispatch({
         type: ActionKind.DragToSortStage,
         payload: { overId, letterId },
@@ -298,7 +325,7 @@ export const BuildPhaseContextProvider = ({ children }: Props) => {
     const letterOrigin = letter?.origin
 
     if (
-      letterOrigin === LetterOrigin.Store &&
+      letterOrigin === LetterOriginKind.Store &&
       (state.stage.length > stageCapacity || state.gold < letterBuyCost)
     ) {
       console.log('cancelled')
@@ -467,7 +494,7 @@ const reducer = (
 
       newStage.splice(insertAt, 0, {
         ...payload.letter,
-        origin: LetterOrigin.Stage,
+        origin: LetterOriginKind.Stage,
       })
 
       return {
@@ -585,11 +612,11 @@ const reducer = (
         ...state,
         stage: state.stage.map((letter) => ({
           ...letter,
-          origin: LetterOrigin.Stage,
+          origin: LetterOriginKind.Stage,
         })),
         store: state.store.map((letter) => ({
           ...letter,
-          origin: LetterOrigin.Store,
+          origin: LetterOriginKind.Store,
         })),
       }
     }

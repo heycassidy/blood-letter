@@ -10,7 +10,7 @@ import {
   Player,
   PhaseKind,
   Letter,
-  LetterOrigin,
+  LetterOriginKind,
   UUID,
 } from '../lib/types'
 import { GameConfigContext } from './GameConfigContext'
@@ -159,7 +159,7 @@ export const GameContextProvider = ({ children }: PropsWithChildren) => {
     )
 
     return assignIds(randomItems(tierAndBelowLetters, amount), idSupplier).map(
-      (letter) => ({ ...letter, origin: LetterOrigin.Store })
+      (letter) => ({ ...letter, origin: LetterOriginKind.Store })
     )
   }
   function getStoreTier(round: number) {

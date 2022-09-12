@@ -6,7 +6,7 @@ import Stage from './Stage'
 import InfoList from '../atoms/InfoList'
 import { useGameContext } from '../context/GameContext'
 import { useBuildPhaseContext } from '../context/BuildPhaseContext'
-import { LetterOrigin } from '../lib/types'
+import { LetterOriginKind } from '../lib/types'
 
 const BuildPhase = () => {
   const { stageCapacity, letterBuyCost, letterSellValue, storeRefreshCost } =
@@ -50,14 +50,14 @@ const BuildPhase = () => {
 
         {selectedLetter && (
           <>
-            {selectedLetter.origin === LetterOrigin.Store &&
+            {selectedLetter.origin === LetterOriginKind.Store &&
               gold >= letterBuyCost && (
                 <button onClick={() => buyLetter(selectedLetter)}>
                   Buy Letter ({letterBuyCost})
                 </button>
               )}
 
-            {selectedLetter.origin === LetterOrigin.Stage && (
+            {selectedLetter.origin === LetterOriginKind.Stage && (
               <button onClick={() => sellLetter(selectedLetter)}>
                 Sell Letter ({letterSellValue})
               </button>
