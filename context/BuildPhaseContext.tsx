@@ -227,15 +227,15 @@ export const BuildPhaseContextProvider = ({ children }: Props) => {
     const letter = active?.data?.current?.letter
     const letterOrigin = letter?.origin
 
-    const rackIds = state.rack.map(({ id }) => id)
-
     if (letterId === undefined) {
       return
     }
 
+    const rackIds = state.rack.map(({ id }) => id)
+
     if (
       letterOrigin === LetterOriginKind.Store &&
-      state.rack.length >= rackCapacity
+      rackIds.length >= rackCapacity
     ) {
       return
     }
@@ -289,13 +289,6 @@ export const BuildPhaseContextProvider = ({ children }: Props) => {
     const rackIds = state.rack.map(({ id }) => id)
 
     if (
-      letterOrigin === LetterOriginKind.Store &&
-      (state.rack.length >= rackCapacity || state.gold < letterBuyCost)
-    ) {
-      return
-    }
-
-    if (
       overId &&
       letterOrigin === LetterOriginKind.Store &&
       (overId === DroppableKind.Rack || rackIds.includes(overId))
@@ -322,9 +315,12 @@ export const BuildPhaseContextProvider = ({ children }: Props) => {
     const letter = active?.data?.current?.letter
     const letterOrigin = letter?.origin
 
+    if (!clonedState) return true
+
     if (
       letterOrigin === LetterOriginKind.Store &&
-      (state.rack.length > rackCapacity || state.gold < letterBuyCost)
+      (clonedState.rack.length >= rackCapacity ||
+        clonedState.gold < letterBuyCost)
     ) {
       console.log('cancelled')
       return true
