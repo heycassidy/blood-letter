@@ -76,6 +76,7 @@ export type Letter = {
   tier: number
   value: number
   id: UUID
+  frozen: boolean
   origin?: LetterOriginKind
 }
 
@@ -83,6 +84,7 @@ export interface LetterCardProps {
   letter: Letter
   dragging?: boolean
   selectable?: boolean
+  freezable?: boolean
 }
 
 export interface LetterTierMap {
@@ -138,6 +140,7 @@ export interface BuildPhaseState {
 
   buyLetter: (letter: Letter) => void
   sellLetter: (letter: Letter) => void
+  freezeLetter: (letter: Letter) => void
   selectLetter: (letter: Letter | null) => void
   rollStore: () => void
 }

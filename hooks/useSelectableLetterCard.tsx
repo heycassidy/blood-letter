@@ -14,8 +14,12 @@ const useSelectableLetterCard = (letter: Letter, enabled?: boolean) => {
     setSelected(selectedLetter?.id === letter.id)
   }, [selectedLetter])
 
-  const styles = {
-    border: selected ? '2px solid red' : undefined,
+  let styles = {}
+
+  if (selected) {
+    styles = {
+      borderWidth: '3px',
+    }
   }
 
   const props = {

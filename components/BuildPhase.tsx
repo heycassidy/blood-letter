@@ -13,8 +13,15 @@ const BuildPhase = () => {
     useContext(GameConfigContext)
   const { round, activePlayer, updatePlayer, getStoreTier, getStoreCapacity } =
     useGameContext()
-  const { stage, store, selectedLetter, rollStore, buyLetter, sellLetter } =
-    useBuildPhaseContext()
+  const {
+    stage,
+    store,
+    selectedLetter,
+    rollStore,
+    buyLetter,
+    sellLetter,
+    freezeLetter,
+  } = useBuildPhaseContext()
 
   const highestTier = getStoreTier(round)
   const storeAmount = getStoreCapacity(round)
@@ -56,6 +63,12 @@ const BuildPhase = () => {
                   Buy Letter ({letterBuyCost})
                 </button>
               )}
+
+            {selectedLetter.origin === LetterOriginKind.Store && (
+              <button onClick={() => freezeLetter(selectedLetter)}>
+                {selectedLetter.frozen ? 'Unfreeze' : 'Freeze'}
+              </button>
+            )}
 
             {selectedLetter.origin === LetterOriginKind.Stage && (
               <button onClick={() => sellLetter(selectedLetter)}>

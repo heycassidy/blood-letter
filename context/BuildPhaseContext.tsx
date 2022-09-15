@@ -34,7 +34,6 @@ import {
   DragOverEvent,
   rectIntersection,
   CollisionDetection,
-  closestCorners,
   pointerWithin,
 } from '@dnd-kit/core'
 import { arrayMove } from '@dnd-kit/sortable'
@@ -99,6 +98,7 @@ export const BuildPhaseContextProvider = ({ children }: Props) => {
 
       buyLetter,
       sellLetter,
+      freezeLetter,
       selectLetter,
       rollStore,
     }
@@ -150,12 +150,13 @@ export const BuildPhaseContextProvider = ({ children }: Props) => {
     dispatch({
       type: ActionKind.RecallPlayer,
       payload: {
-        player: {
-          ...activePlayer,
-          store: !activePlayer.completedTurn
-            ? getStoreLetters(alphabet, storeTier, storeAmount, nanoid)
-            : activePlayer.store,
-        },
+        newRandomLetters: getStoreLetters(
+          alphabet,
+          storeTier,
+          storeAmount,
+          nanoid
+        ),
+        player: activePlayer,
       },
     })
   }, [activePlayer.id])
@@ -349,6 +350,13 @@ export const BuildPhaseContextProvider = ({ children }: Props) => {
     })
   }
 
+  function freezeLetter(letter: Letter): void {
+    dispatch({
+      type: ActionKind.ToggleFreeze,
+      payload: { letter },
+    })
+  }
+
   function selectLetter(letter: Letter | null): void {
     dispatch({
       type: ActionKind.SelectLetter,
@@ -360,7 +368,12 @@ export const BuildPhaseContextProvider = ({ children }: Props) => {
     dispatch({
       type: ActionKind.RollStore,
       payload: {
-        letters: getStoreLetters(alphabet, storeTier, storeAmount, nanoid),
+        newRandomLetters: getStoreLetters(
+          alphabet,
+          storeTier,
+          storeAmount,
+          nanoid
+        ),
         cost: storeRefreshCost,
       },
     })
@@ -398,6 +411,7 @@ enum ActionKind {
   Reset,
   Buy,
   Sell,
+  ToggleFreeze,
   SpendGold,
   SelectLetter,
   SetDraggingLetter,
@@ -419,6 +433,10 @@ interface BuyAction {
 interface SellAction {
   type: ActionKind.Sell
   payload: { letter: Letter; refund: number }
+}
+interface ToggleFreezeAction {
+  type: ActionKind.ToggleFreeze
+  payload: { letter: Letter }
 }
 interface SpendGold {
   type: ActionKind.SpendGold
@@ -450,17 +468,18 @@ interface SetLetterOrigins {
 }
 interface RollStoreAction {
   type: ActionKind.RollStore
-  payload: { letters: Letter[]; cost: number }
+  payload: { newRandomLetters: Letter[]; cost: number }
 }
 interface RecallPlayerAction {
   type: ActionKind.RecallPlayer
-  payload: { player: Player }
+  payload: { player: Player; newRandomLetters: Letter[] }
 }
 
 type BuildPhaseContextAction =
   | ResetAction
   | BuyAction
   | SellAction
+  | ToggleFreezeAction
   | SpendGold
   | SelectLetterAction
   | SetDraggingLetterAction
@@ -513,6 +532,18 @@ const reducer = (
         gold: state.gold + payload.refund,
         stage: state.stage.filter((letter) => letter.id !== payload.letter.id),
         store: state.store,
+      }
+    }
+
+    case ActionKind.ToggleFreeze: {
+      return {
+        ...state,
+        store: state.store.map((letter) =>
+          letter.id === payload.letter.id
+            ? { ...letter, frozen: !letter.frozen }
+            : letter
+        ),
+        selectedLetter: null,
       }
     }
 
@@ -627,7 +658,9 @@ const reducer = (
       return {
         ...state,
         gold: state.gold - payload.cost,
-        store: payload.letters,
+        store: payload.newRandomLetters.map((letter, index) => {
+          return state.store[index]?.frozen ? state.store[index] : letter
+        }),
       }
     }
 
@@ -636,7 +669,9 @@ const reducer = (
 
       return {
         ...state,
-        store,
+        store: payload.newRandomLetters.map((letter, index) => {
+          return store[index]?.frozen ? state.store[index] : letter
+        }),
         stage,
         gold,
       }

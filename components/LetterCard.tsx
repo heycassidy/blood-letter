@@ -1,5 +1,6 @@
 import { forwardRef, ComponentPropsWithRef } from 'react'
 import useSelectableLetterCard from '../hooks/useSelectableLetterCard'
+import useFreezableLetterCard from '../hooks/useFreezableLetterCard'
 import { LetterCardProps } from '../lib/types'
 import { css } from '../stitches.config'
 
@@ -9,12 +10,14 @@ const LetterCard = forwardRef<
   Ref,
   LetterCardProps & ComponentPropsWithRef<'div'>
 >((props, ref) => {
-  const { letter, dragging, selectable, ...rest } = props
+  const { letter, dragging, selectable, freezable, ...rest } = props
 
   const [selectableProps, selectableStyles] = useSelectableLetterCard(
     letter,
     selectable
   )
+
+  const [freezableStyles] = useFreezableLetterCard(letter, freezable)
 
   const { name, tier, value } = letter
 
@@ -22,13 +25,18 @@ const LetterCard = forwardRef<
     opacity: dragging ? 0.5 : undefined,
   }
 
-  const styles = css(baseStyles, dynamicStyles, selectableStyles)
+  const styles = css(
+    baseStyles,
+    dynamicStyles,
+    selectableStyles,
+    freezableStyles
+  )
 
   return (
     <div ref={ref} className={styles()} {...selectableProps} {...rest}>
-      <div className="tier">{tier}</div>
-      <div className="name">{name.toUpperCase()}</div>
       <div className="value">{value}</div>
+      <div className="name">{name.toUpperCase()}</div>
+      {/* <div className="tier">{tier}</div> */}
     </div>
   )
 })
@@ -58,10 +66,10 @@ const baseStyles = {
     fontSize: '0.8rem',
   },
   '.tier': {
-    top: 0,
+    bottom: 0,
   },
   '.value': {
-    bottom: 0,
+    top: 0,
   },
 }
 

@@ -32,6 +32,7 @@ const LetterStore = ({ letters = [], amount }: Props) => {
             key={letter.id}
             letter={letter}
             selectable
+            freezable
           />
         ))}
       </LetterList>
