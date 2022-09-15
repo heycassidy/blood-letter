@@ -23,8 +23,6 @@ const LetterStore = ({ letters = [], amount }: Props) => {
 
   return (
     <div className={styles()}>
-      <strong>Letter Store</strong>
-
       <LetterList capacity={amount} ref={setNodeRef}>
         {storeLetters.map((letter) => (
           <DraggableLetterCard

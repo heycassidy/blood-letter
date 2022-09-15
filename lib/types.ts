@@ -12,7 +12,7 @@ export interface GameConfig {
   letterSellValue: number
   storeRefreshCost: number
 
-  stageCapacity: number
+  rackCapacity: number
 
   storeTierMap: { [key in number | 'max']: number }
   storeCapacityMap: { [key in number | 'max']: number }
@@ -28,10 +28,10 @@ export interface Player {
   name: string
   health: number
   gold: number
-  stage: Letter[]
-  stageWord: string
+  rack: Letter[]
+  rackWord: string
   store: Letter[]
-  stageScore: number
+  rackScore: number
   wordBonus: number
   roundScore: number
   completedTurn: boolean
@@ -122,17 +122,17 @@ export interface GameState {
 
 export enum LetterOriginKind {
   Store,
-  Stage,
+  Rack,
   Battle,
 }
 
 export enum DroppableKind {
   Store = 'droppable-store',
-  Stage = 'droppable-stage',
+  Rack = 'droppable-rack',
 }
 
 export interface BuildPhaseState {
-  stage: Letter[]
+  rack: Letter[]
   store: Letter[]
   gold: number
   selectedLetter: Letter | null

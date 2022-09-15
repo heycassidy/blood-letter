@@ -50,7 +50,7 @@ export const GameConfigContext = createContext<GameConfig>({
   letterSellValue: 2,
   storeRefreshCost: 1,
 
-  stageCapacity: 6,
+  rackCapacity: 6,
 
   wordBonusComputation: (letters) => letters.length ** 2,
 

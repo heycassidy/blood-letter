@@ -2,19 +2,19 @@ import { useContext, useEffect, useState } from 'react'
 import { GameConfigContext } from '../context/GameConfigContext'
 import { css } from '../stitches.config'
 import LetterStore from './LetterStore'
-import Stage from './Stage'
+import Rack from './Rack'
 import InfoList from '../atoms/InfoList'
 import { useGameContext } from '../context/GameContext'
 import { useBuildPhaseContext } from '../context/BuildPhaseContext'
 import { LetterOriginKind } from '../lib/types'
 
 const BuildPhase = () => {
-  const { stageCapacity, letterBuyCost, letterSellValue, storeRefreshCost } =
+  const { rackCapacity, letterBuyCost, letterSellValue, storeRefreshCost } =
     useContext(GameConfigContext)
   const { round, activePlayer, updatePlayer, getStoreTier, getStoreCapacity } =
     useGameContext()
   const {
-    stage,
+    rack,
     store,
     selectedLetter,
     rollStore,
@@ -26,12 +26,12 @@ const BuildPhase = () => {
   const highestTier = getStoreTier(round)
   const storeAmount = getStoreCapacity(round)
 
-  const [showStage, setShowStage] = useState(false)
+  const [showRack, setShowRack] = useState(false)
 
   const { name: playerName, gold, health, battleVictories } = activePlayer
 
   useEffect(() => {
-    setShowStage(true)
+    setShowRack(true)
   }, [])
 
   return (
@@ -44,7 +44,7 @@ const BuildPhase = () => {
         <span>Wins: {battleVictories}</span>
       </InfoList>
 
-      {showStage && <Stage letters={stage} capacity={stageCapacity} />}
+      {showRack && <Rack letters={rack} capacity={rackCapacity} />}
 
       <InfoList>
         <span>Tier: {highestTier}</span>
@@ -70,7 +70,7 @@ const BuildPhase = () => {
               </button>
             )}
 
-            {selectedLetter.origin === LetterOriginKind.Stage && (
+            {selectedLetter.origin === LetterOriginKind.Rack && (
               <button onClick={() => sellLetter(selectedLetter)}>
                 Sell Letter ({letterSellValue})
               </button>

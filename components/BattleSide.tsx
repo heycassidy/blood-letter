@@ -8,14 +8,14 @@ import { useGameContext } from '../context/GameContext'
 import InfoList from '../atoms/InfoList'
 
 const BattleSide = ({ player }: { player: Player }) => {
-  const { stageCapacity } = useContext(GameConfigContext)
+  const { rackCapacity } = useContext(GameConfigContext)
   const { round, battleWinner, getHealthCost } = useGameContext()
 
   return (
     <div className={styles()}>
       <InfoList>
         <span>{player.name}</span>
-        <span>Letters: {player.stageScore}</span>
+        <span>Letters: {player.rackScore}</span>
         {player.wordBonus > 0 ? (
           <span>Word Bonus: {player.wordBonus}</span>
         ) : (
@@ -30,8 +30,8 @@ const BattleSide = ({ player }: { player: Player }) => {
         )}
       </InfoList>
 
-      <LetterList capacity={stageCapacity}>
-        {player.stage.map((letter) => (
+      <LetterList capacity={rackCapacity}>
+        {player.rack.map((letter) => (
           <LetterCard letter={letter} key={letter.id} />
         ))}
       </LetterList>

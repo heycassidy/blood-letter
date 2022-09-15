@@ -14,27 +14,25 @@ type Props = {
   capacity: number
 }
 
-const Stage = ({ letters = [], capacity }: Props) => {
+const Rack = ({ letters = [], capacity }: Props) => {
   const { setNodeRef } = useDroppable({
-    id: DroppableKind.Stage,
+    id: DroppableKind.Rack,
   })
 
-  const [stageLetters, setStageLetters] = useState<Letter[]>(letters)
+  const [rackLetters, setRackLetters] = useState<Letter[]>(letters)
 
   useLayoutEffect(() => {
-    setStageLetters(letters)
+    setRackLetters(letters)
   }, [letters])
 
   return (
     <div className={styles()}>
-      <strong>Stage</strong>
-
       <SortableContext
-        items={stageLetters}
+        items={rackLetters}
         strategy={horizontalListSortingStrategy}
       >
         <LetterList capacity={capacity} ref={setNodeRef}>
-          {stageLetters.map((letter) => (
+          {rackLetters.map((letter) => (
             <SortableLetterCard
               id={letter.id}
               key={letter.id}
@@ -56,4 +54,4 @@ const styles = css({
   gap: '0.5rem',
 })
 
-export default Stage
+export default Rack
