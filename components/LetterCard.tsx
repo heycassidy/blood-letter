@@ -46,12 +46,10 @@ const baseStyles = {
   border: '1px solid $neutral875',
   backgroundColor: 'white',
   position: 'relative',
-  aspectRatio: '1',
-  maxWidth: 'fit-content',
   display: 'flex',
   userSelect: 'none',
-  width: '100%',
-  height: '100%',
+  width: '3rem',
+  height: '3rem',
 
   '.name': {
     fontWeight: '700',
