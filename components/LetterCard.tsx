@@ -50,6 +50,7 @@ const baseStyles = {
   userSelect: 'none',
   width: '3rem',
   height: '3rem',
+  zIndex: 1,
 
   '.name': {
     fontWeight: '700',

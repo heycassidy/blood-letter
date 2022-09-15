@@ -15,32 +15,39 @@ const LetterList = forwardRef<Ref, Props>((props, ref) => {
     gridTemplateColumns: `repeat(${capacity}, 3rem)`,
   }
 
-  const styles = css(baseStyles, propAwareStyles)
+  const listStyles = css(gridCSS, propAwareStyles, { position: 'relative' })
+  const backgroundStyles = css(gridCSS, propAwareStyles, {
+    position: 'absolute',
+  })
+  const slotStyles = css(slotCSS)
 
   return (
-    <div ref={ref} className={styles()}>
+    <div ref={ref} className={listStyles()}>
       {children}
 
-      {capacity > children.length &&
-        [...Array(capacity - children.length)].map((_, i) => (
-          <span className="empty-slot" key={`empty-slot-${i}`}></span>
+      <div className={backgroundStyles()}>
+        {[...Array(capacity)].map((_, i) => (
+          <span className={slotStyles()} key={`empty-slot-${i}`}></span>
         ))}
+      </div>
     </div>
   )
 })
 LetterList.displayName = 'LetterList'
 
-const baseStyles = {
+const gridCSS = {
   display: 'grid',
   gridTemplateRows: '3rem',
   justifyContent: 'start',
   gridAutoFlow: 'column',
   gap: '0.5rem',
   boxSizing: 'content-box',
-  '.empty-slot': {
-    border: '1px solid white',
-    aspectRatio: '1 / 1',
-  },
+}
+
+const slotCSS = {
+  backgroundColor: '$neutral275',
+  width: '3rem',
+  height: '3rem',
 }
 
 export default LetterList
