@@ -587,6 +587,7 @@ const reducer = (
 
       return {
         ...state,
+        selectedLetter: null,
         store: state.store.filter(({ id }) => letterId !== id),
         rack: [
           ...rackLetters.slice(0, newIndex),
