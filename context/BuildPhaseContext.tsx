@@ -35,6 +35,7 @@ import {
   rectIntersection,
   CollisionDetection,
   pointerWithin,
+  KeyboardSensor,
 } from '@dnd-kit/core'
 import { arrayMove } from '@dnd-kit/sortable'
 import { sumItemProperty, concatItemProperty } from '../lib/helpers'
@@ -110,10 +111,10 @@ export const BuildPhaseContextProvider = ({ children }: Props) => {
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: {
-        delay: 100,
-        tolerance: 20,
+        distance: 10,
       },
-    })
+    }),
+    useSensor(KeyboardSensor)
   )
 
   useEffect(() => {
