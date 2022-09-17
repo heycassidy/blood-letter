@@ -1,39 +1,39 @@
-import { Letter, PhaseKind, GameConfig, UUID } from '../lib/types'
+import { PhaseKind, GameConfig, GameModeKind } from '../lib/types'
+import Letter from '../lib/Letter'
 import { createContext } from 'react'
-import { nanoid } from 'nanoid'
 
 const alphabet: Letter[] = [
-  { name: 'e', tier: 1, value: 1, frozen: false, id: nanoid(10) as UUID },
-  { name: 't', tier: 1, value: 1, frozen: false, id: nanoid(10) as UUID },
-  { name: 'a', tier: 1, value: 1, frozen: false, id: nanoid(10) as UUID },
-  { name: 'i', tier: 1, value: 1, frozen: false, id: nanoid(10) as UUID },
-  { name: 'o', tier: 1, value: 1, frozen: false, id: nanoid(10) as UUID },
-  { name: 'n', tier: 1, value: 1, frozen: false, id: nanoid(10) as UUID },
+  new Letter({ name: 'e', tier: 1, value: 1 }),
+  new Letter({ name: 't', tier: 1, value: 1 }),
+  new Letter({ name: 'a', tier: 1, value: 1 }),
+  new Letter({ name: 'i', tier: 1, value: 1 }),
+  new Letter({ name: 'o', tier: 1, value: 1 }),
+  new Letter({ name: 'n', tier: 1, value: 1 }),
 
-  { name: 's', tier: 2, value: 4, frozen: false, id: nanoid(10) as UUID },
-  { name: 'h', tier: 2, value: 4, frozen: false, id: nanoid(10) as UUID },
-  { name: 'r', tier: 2, value: 4, frozen: false, id: nanoid(10) as UUID },
-  { name: 'd', tier: 2, value: 4, frozen: false, id: nanoid(10) as UUID },
+  new Letter({ name: 's', tier: 2, value: 4 }),
+  new Letter({ name: 'h', tier: 2, value: 4 }),
+  new Letter({ name: 'r', tier: 2, value: 4 }),
+  new Letter({ name: 'd', tier: 2, value: 4 }),
 
-  { name: 'l', tier: 3, value: 9, frozen: false, id: nanoid(10) as UUID },
-  { name: 'c', tier: 3, value: 9, frozen: false, id: nanoid(10) as UUID },
-  { name: 'u', tier: 3, value: 9, frozen: false, id: nanoid(10) as UUID },
-  { name: 'm', tier: 3, value: 9, frozen: false, id: nanoid(10) as UUID },
+  new Letter({ name: 'l', tier: 3, value: 9 }),
+  new Letter({ name: 'c', tier: 3, value: 9 }),
+  new Letter({ name: 'u', tier: 3, value: 9 }),
+  new Letter({ name: 'm', tier: 3, value: 9 }),
 
-  { name: 'w', tier: 4, value: 16, frozen: false, id: nanoid(10) as UUID },
-  { name: 'f', tier: 4, value: 16, frozen: false, id: nanoid(10) as UUID },
-  { name: 'g', tier: 4, value: 16, frozen: false, id: nanoid(10) as UUID },
-  { name: 'y', tier: 4, value: 16, frozen: false, id: nanoid(10) as UUID },
+  new Letter({ name: 'w', tier: 4, value: 16 }),
+  new Letter({ name: 'f', tier: 4, value: 16 }),
+  new Letter({ name: 'g', tier: 4, value: 16 }),
+  new Letter({ name: 'y', tier: 4, value: 16 }),
 
-  { name: 'p', tier: 5, value: 25, frozen: false, id: nanoid(10) as UUID },
-  { name: 'b', tier: 5, value: 25, frozen: false, id: nanoid(10) as UUID },
-  { name: 'v', tier: 5, value: 25, frozen: false, id: nanoid(10) as UUID },
-  { name: 'k', tier: 5, value: 25, frozen: false, id: nanoid(10) as UUID },
+  new Letter({ name: 'p', tier: 5, value: 25 }),
+  new Letter({ name: 'b', tier: 5, value: 25 }),
+  new Letter({ name: 'v', tier: 5, value: 25 }),
+  new Letter({ name: 'k', tier: 5, value: 25 }),
 
-  { name: 'j', tier: 6, value: 36, frozen: false, id: nanoid(10) as UUID },
-  { name: 'x', tier: 6, value: 36, frozen: false, id: nanoid(10) as UUID },
-  { name: 'q', tier: 6, value: 36, frozen: false, id: nanoid(10) as UUID },
-  { name: 'z', tier: 6, value: 36, frozen: false, id: nanoid(10) as UUID },
+  new Letter({ name: 'j', tier: 6, value: 36 }),
+  new Letter({ name: 'x', tier: 6, value: 36 }),
+  new Letter({ name: 'q', tier: 6, value: 36 }),
+  new Letter({ name: 'z', tier: 6, value: 36 }),
 ]
 
 export const GameConfigContext = createContext<GameConfig>({

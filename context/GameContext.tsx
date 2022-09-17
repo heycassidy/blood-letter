@@ -9,16 +9,15 @@ import {
   GameState,
   Player,
   PhaseKind,
-  Letter,
   LetterOriginKind,
   UUID,
 } from '../lib/types'
+import Letter from '../lib/Letter'
 import { GameConfigContext } from './GameConfigContext'
 import { nanoid } from 'nanoid'
 import {
   cyclicalNext,
   randomItems,
-  assignIds,
   getFromNumericMapWithMax,
   itemIsInRange,
 } from '../lib/helpers'
@@ -63,7 +62,7 @@ export const GameContextProvider = ({ children }: PropsWithChildren) => {
     rackScore: 0,
     wordBonus: 0,
     roundScore: 0,
-    store: getStoreLetters(alphabet, storeTier, storeAmount, nanoid),
+    store: getStoreLetters(alphabet, storeTier, storeAmount),
     completedTurn: false,
     battleVictories: 0,
   })
@@ -148,19 +147,15 @@ export const GameContextProvider = ({ children }: PropsWithChildren) => {
     return [...Array(numberOfPlayers)].map((_, i) => `Player ${i + 1}`)
   }
 
-  function getStoreLetters(
-    letters: Letter[],
-    tier: number,
-    amount: number,
-    idSupplier: () => UUID
-  ) {
+  function getStoreLetters(letters: Letter[], tier: number, amount: number) {
     const tierAndBelowLetters = letters.filter((letter) =>
       itemIsInRange(letter.tier, 1, tier)
     )
 
-    return assignIds(randomItems(tierAndBelowLetters, amount), idSupplier).map(
-      (letter) => ({ ...letter, origin: LetterOriginKind.Store })
-    )
+    return randomItems(tierAndBelowLetters, amount).map((letter) => {
+      const { name, tier, value } = letter
+      return new Letter({ name, tier, value, origin: LetterOriginKind.Store })
+    })
   }
   function getStoreTier(round: number) {
     return getFromNumericMapWithMax(storeTierMap, round)

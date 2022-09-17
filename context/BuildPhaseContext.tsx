@@ -1,4 +1,3 @@
-import { nanoid } from 'nanoid'
 import {
   ReactNode,
   createContext,
@@ -12,12 +11,12 @@ import {
 import { createPortal } from 'react-dom'
 import {
   BuildPhaseState,
-  Letter,
   Player,
   LetterOriginKind,
   DroppableKind,
   UUID,
 } from '../lib/types'
+import Letter from '../lib/Letter'
 import { wordList } from '../lib/words'
 import { GameConfigContext } from './GameConfigContext'
 import { useGameContext } from '../context/GameContext'
@@ -119,9 +118,15 @@ export const BuildPhaseContextProvider = ({ children }: Props) => {
 
   useEffect(() => {
     const letters = state.rack
-    const word = concatItemProperty(letters, 'name')
+    const word = concatItemProperty(
+      letters.map((letter) => ({ ...letter })),
+      'name'
+    )
 
-    const rackScore = sumItemProperty(letters, 'value')
+    const rackScore = sumItemProperty(
+      letters.map((letter) => ({ ...letter })),
+      'value'
+    )
 
     const wordBonus = wordList.includes(word)
       ? wordBonusComputation(letters)
@@ -151,12 +156,7 @@ export const BuildPhaseContextProvider = ({ children }: Props) => {
     dispatch({
       type: ActionKind.RecallPlayer,
       payload: {
-        newRandomLetters: getStoreLetters(
-          alphabet,
-          storeTier,
-          storeAmount,
-          nanoid
-        ),
+        newRandomLetters: getStoreLetters(alphabet, storeTier, storeAmount),
         player: activePlayer,
       },
     })
@@ -362,12 +362,7 @@ export const BuildPhaseContextProvider = ({ children }: Props) => {
     dispatch({
       type: ActionKind.RollStore,
       payload: {
-        newRandomLetters: getStoreLetters(
-          alphabet,
-          storeTier,
-          storeAmount,
-          nanoid
-        ),
+        newRandomLetters: getStoreLetters(alphabet, storeTier, storeAmount),
         cost: storeRefreshCost,
       },
     })
@@ -496,7 +491,7 @@ const reducer = (
     }
 
     case ActionKind.Buy: {
-      const { cost, maxLetters, index } = payload
+      const { cost, maxLetters, index, letter } = payload
 
       if (state.rack.length >= maxLetters) return state
       if (state.gold < cost) return state
@@ -505,10 +500,14 @@ const reducer = (
 
       const newRack = [...state.rack]
 
-      newRack.splice(insertAt, 0, {
-        ...payload.letter,
-        origin: LetterOriginKind.Rack,
-      })
+      newRack.splice(
+        insertAt,
+        0,
+        new Letter({
+          ...letter,
+          origin: LetterOriginKind.Rack,
+        })
+      )
 
       return {
         ...state,
@@ -534,7 +533,7 @@ const reducer = (
         ...state,
         store: state.store.map((letter) =>
           letter.id === payload.letter.id
-            ? { ...letter, frozen: !letter.frozen }
+            ? new Letter({ ...letter, frozen: !letter.frozen })
             : letter
         ),
         selectedLetter: null,
@@ -636,14 +635,20 @@ const reducer = (
     case ActionKind.SetLetterOrigins: {
       return {
         ...state,
-        rack: state.rack.map((letter) => ({
-          ...letter,
-          origin: LetterOriginKind.Rack,
-        })),
-        store: state.store.map((letter) => ({
-          ...letter,
-          origin: LetterOriginKind.Store,
-        })),
+        rack: state.rack.map(
+          (letter) =>
+            new Letter({
+              ...letter,
+              origin: LetterOriginKind.Rack,
+            })
+        ),
+        store: state.store.map(
+          (letter) =>
+            new Letter({
+              ...letter,
+              origin: LetterOriginKind.Store,
+            })
+        ),
       }
     }
 

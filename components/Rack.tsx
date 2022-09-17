@@ -1,5 +1,6 @@
 import { useLayoutEffect, useState } from 'react'
-import { Letter, DroppableKind } from '../lib/types'
+import { DroppableKind } from '../lib/types'
+import Letter from '../lib/Letter'
 import { css } from '../stitches.config'
 import LetterList from './LetterList'
 import {

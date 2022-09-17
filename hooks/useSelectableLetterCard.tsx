@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useBuildPhaseContext } from '../context/BuildPhaseContext'
-import { Letter } from '../lib/types'
+import Letter from '../lib/Letter'
 
 const useSelectableLetterCard = (letter: Letter, enabled?: boolean) => {
   if (!enabled) {

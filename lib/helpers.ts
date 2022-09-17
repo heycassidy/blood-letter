@@ -37,7 +37,7 @@ export const sumItemProperty = (
   )
 
 export const concatItemProperty = (
-  items: { [key in symbol]: number }[],
+  items: { [key in symbol]: string }[],
   field: string
 ): string =>
   items.reduce(

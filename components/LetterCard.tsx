@@ -19,7 +19,7 @@ const LetterCard = forwardRef<
 
   const [freezableStyles] = useFreezableLetterCard(letter, freezable)
 
-  const { name, tier, value } = letter
+  const { name, value } = letter
 
   const dynamicStyles = {
     opacity: dragging ? 0.5 : undefined,
@@ -36,7 +36,6 @@ const LetterCard = forwardRef<
     <div ref={ref} className={styles()} {...selectableProps} {...rest}>
       <div className="value">{value}</div>
       <div className="name">{name.toUpperCase()}</div>
-      {/* <div className="tier">{tier}</div> */}
     </div>
   )
 })

@@ -1,3 +1,5 @@
+import Letter from '../lib/Letter'
+
 export interface GameConfig {
   alphabet: Letter[]
   initialRound: number
@@ -71,12 +73,11 @@ export type AlphabetCharacter =
   | 'y'
   | 'z'
 
-export type Letter = {
+export interface LetterOptions {
   name: AlphabetCharacter
   tier: number
   value: number
-  id: UUID
-  frozen: boolean
+  frozen?: boolean
   origin?: LetterOriginKind
 }
 
@@ -111,8 +112,7 @@ export interface GameState {
   getStoreLetters: (
     alphabet: Letter[],
     tier: number,
-    amount: number,
-    idSupplier: () => UUID
+    amount: number
   ) => Letter[]
 
   getStoreTier: (round: number) => number

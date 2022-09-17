@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Letter } from '../lib/types'
+import Letter from '../lib/Letter'
 
 const useFreezableLetterCard = (letter: Letter, enabled?: boolean) => {
   if (!enabled) {
@@ -9,7 +9,7 @@ const useFreezableLetterCard = (letter: Letter, enabled?: boolean) => {
   const [frozen, setFrozen] = useState(false)
 
   useEffect(() => {
-    setFrozen(letter.frozen)
+    setFrozen(!!letter.frozen)
   }, [letter])
 
   let styles = {}
