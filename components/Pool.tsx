@@ -11,21 +11,21 @@ type Props = {
   amount: number
 }
 
-const LetterStore = ({ letters = [], amount }: Props) => {
+const Pool = ({ letters = [], amount }: Props) => {
   const { setNodeRef } = useDroppable({
-    id: DroppableKind.Store,
+    id: DroppableKind.Pool,
   })
 
-  const [storeLetters, setStoreLetters] = useState<Letter[]>([])
+  const [poolLetters, setPoolLetters] = useState<Letter[]>([])
 
   useLayoutEffect(() => {
-    setStoreLetters(letters)
+    setPoolLetters(letters)
   }, [letters])
 
   return (
     <div className={styles()}>
       <LetterList capacity={amount} ref={setNodeRef}>
-        {storeLetters.map((letter) => (
+        {poolLetters.map((letter) => (
           <DraggableLetterCard
             id={letter.id}
             key={letter.id}
@@ -47,4 +47,4 @@ const styles = css({
   gap: '0.5rem',
 })
 
-export default LetterStore
+export default Pool

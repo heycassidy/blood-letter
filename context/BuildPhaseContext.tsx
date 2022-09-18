@@ -71,7 +71,7 @@ export const BuildPhaseContextProvider = ({ children }: Props) => {
     rackCapacity,
     letterBuyCost,
     letterSellValue,
-    storeRefreshCost,
+    poolRefreshCost,
     wordBonusComputation,
   } = useContext(GameConfigContext)
 
@@ -80,18 +80,18 @@ export const BuildPhaseContextProvider = ({ children }: Props) => {
     gameCount,
     activePlayer,
     updatePlayer,
-    getStoreTier,
-    getStoreCapacity,
-    getStoreLetters,
+    getPoolTier,
+    getPoolCapacity,
+    getPoolLetters,
   } = useGameContext()
 
-  const storeAmount = getStoreCapacity(round)
-  const storeTier = getStoreTier(round)
+  const poolAmount = getPoolCapacity(round)
+  const poolTier = getPoolTier(round)
 
   const initState = (player: Player): BuildPhaseState => {
     return {
       rack: player.rack,
-      store: player.store,
+      pool: player.pool,
       gold: player.gold,
       selectedLetter: null,
       draggingLetter: null,
@@ -100,7 +100,7 @@ export const BuildPhaseContextProvider = ({ children }: Props) => {
       sellLetter,
       freezeLetter,
       selectLetter,
-      rollStore,
+      refreshPool,
     }
   }
 
@@ -134,14 +134,14 @@ export const BuildPhaseContextProvider = ({ children }: Props) => {
     const roundScore = rackScore + wordBonus
 
     updatePlayer(activePlayer.id, {
-      store: state.store,
+      pool: state.pool,
       rack: state.rack,
       gold: state.gold,
       rackScore,
       wordBonus,
       roundScore,
     })
-  }, [state.store, state.rack, state.gold])
+  }, [state.pool, state.rack, state.gold])
 
   useEffect(() => {
     if (gameCount > 0) {
@@ -156,7 +156,7 @@ export const BuildPhaseContextProvider = ({ children }: Props) => {
     dispatch({
       type: ActionKind.RecallPlayer,
       payload: {
-        newRandomLetters: getStoreLetters(alphabet, storeTier, storeAmount),
+        newRandomLetters: getPoolLetters(alphabet, poolTier, poolAmount),
         player: activePlayer,
       },
     })
@@ -194,7 +194,7 @@ export const BuildPhaseContextProvider = ({ children }: Props) => {
       }
 
       if (
-        letterOrigin === LetterOriginKind.Store &&
+        letterOrigin === LetterOriginKind.Pool &&
         rackCollisions.length > 0 &&
         rackIds.filter((id) => letterId !== id).length > 0
       ) {
@@ -235,13 +235,13 @@ export const BuildPhaseContextProvider = ({ children }: Props) => {
     const rackIds = state.rack.map(({ id }) => id)
 
     if (
-      letterOrigin === LetterOriginKind.Store &&
+      letterOrigin === LetterOriginKind.Pool &&
       rackIds.length >= rackCapacity
     ) {
       return
     }
 
-    if (!overId || overId === DroppableKind.Store) {
+    if (!overId || overId === DroppableKind.Pool) {
       dispatch({
         type: ActionKind.RemoveLetterFromRack,
         payload: { letterId },
@@ -250,7 +250,7 @@ export const BuildPhaseContextProvider = ({ children }: Props) => {
     }
 
     if (
-      letterOrigin === LetterOriginKind.Store &&
+      letterOrigin === LetterOriginKind.Pool &&
       overId !== letterId &&
       !rackIds.includes(letterId) &&
       (overId === DroppableKind.Rack || rackIds.includes(overId))
@@ -291,7 +291,7 @@ export const BuildPhaseContextProvider = ({ children }: Props) => {
 
     if (
       overId &&
-      letterOrigin === LetterOriginKind.Store &&
+      letterOrigin === LetterOriginKind.Pool &&
       (overId === DroppableKind.Rack || rackIds.includes(overId))
     ) {
       dispatch({
@@ -319,7 +319,7 @@ export const BuildPhaseContextProvider = ({ children }: Props) => {
     if (!clonedState) return true
 
     if (
-      letterOrigin === LetterOriginKind.Store &&
+      letterOrigin === LetterOriginKind.Pool &&
       (clonedState.rack.length >= rackCapacity ||
         clonedState.gold < letterBuyCost)
     ) {
@@ -358,12 +358,12 @@ export const BuildPhaseContextProvider = ({ children }: Props) => {
     })
   }
 
-  function rollStore(): void {
+  function refreshPool(): void {
     dispatch({
-      type: ActionKind.RollStore,
+      type: ActionKind.RefreshPool,
       payload: {
-        newRandomLetters: getStoreLetters(alphabet, storeTier, storeAmount),
-        cost: storeRefreshCost,
+        newRandomLetters: getPoolLetters(alphabet, poolTier, poolAmount),
+        cost: poolRefreshCost,
       },
     })
   }
@@ -408,7 +408,7 @@ enum ActionKind {
   DragToSortRack,
   SetLetterOrigins,
   RemoveLetterFromRack,
-  RollStore,
+  RefreshPool,
   RecallPlayer,
 }
 interface ResetAction {
@@ -455,8 +455,8 @@ interface SetLetterOrigins {
   type: ActionKind.SetLetterOrigins
   payload?: undefined
 }
-interface RollStoreAction {
-  type: ActionKind.RollStore
+interface RefreshPoolAction {
+  type: ActionKind.RefreshPool
   payload: { newRandomLetters: Letter[]; cost: number }
 }
 interface RecallPlayerAction {
@@ -474,7 +474,7 @@ type BuildPhaseContextAction =
   | SetDraggingLetterAction
   | DragLetterToRack
   | RemoveLetterFromRack
-  | RollStoreAction
+  | RefreshPoolAction
   | DragToSortRackAction
   | SetLetterOrigins
   | RecallPlayerAction
@@ -513,7 +513,7 @@ const reducer = (
         ...state,
         selectedLetter: null,
         gold: state.gold - cost,
-        store: state.store.filter((letter) => letter.id !== payload.letter.id),
+        pool: state.pool.filter((letter) => letter.id !== payload.letter.id),
         rack: newRack,
       }
     }
@@ -524,14 +524,14 @@ const reducer = (
         selectedLetter: null,
         gold: state.gold + payload.refund,
         rack: state.rack.filter((letter) => letter.id !== payload.letter.id),
-        store: state.store,
+        pool: state.pool,
       }
     }
 
     case ActionKind.ToggleFreeze: {
       return {
         ...state,
-        store: state.store.map((letter) =>
+        pool: state.pool.map((letter) =>
           letter.id === payload.letter.id
             ? new Letter({ ...letter, frozen: !letter.frozen })
             : letter
@@ -565,8 +565,8 @@ const reducer = (
       const { overId, letterId } = payload
 
       const rackLetters = state.rack
-      const storeLetters = state.store
-      const letter = [...storeLetters, ...rackLetters].find(
+      const poolLetters = state.pool
+      const letter = [...poolLetters, ...rackLetters].find(
         ({ id }) => id === letterId
       )
 
@@ -584,7 +584,7 @@ const reducer = (
       return {
         ...state,
         selectedLetter: null,
-        store: state.store.filter(({ id }) => letterId !== id),
+        pool: state.pool.filter(({ id }) => letterId !== id),
         rack: [
           ...rackLetters.slice(0, newIndex),
           letter,
@@ -612,22 +612,22 @@ const reducer = (
       const { letterId } = payload
 
       const rackLetters = state.rack
-      const storeLetters = state.store
+      const poolLetters = state.pool
       const letter = rackLetters.find(({ id }) => id === letterId)
 
       if (letter === undefined) return state
 
-      const storeIds = rackLetters.map(({ id }) => id)
+      const poolIds = rackLetters.map(({ id }) => id)
 
-      const newIndex = storeIds.length + 1
+      const newIndex = poolIds.length + 1
 
       return {
         ...state,
         rack: state.rack.filter(({ id }) => letterId !== id),
-        store: [
-          ...storeLetters.slice(0, newIndex),
+        pool: [
+          ...poolLetters.slice(0, newIndex),
           letter,
-          ...storeLetters.slice(newIndex, storeLetters.length),
+          ...poolLetters.slice(newIndex, poolLetters.length),
         ],
       }
     }
@@ -642,35 +642,35 @@ const reducer = (
               origin: LetterOriginKind.Rack,
             })
         ),
-        store: state.store.map(
+        pool: state.pool.map(
           (letter) =>
             new Letter({
               ...letter,
-              origin: LetterOriginKind.Store,
+              origin: LetterOriginKind.Pool,
             })
         ),
       }
     }
 
-    case ActionKind.RollStore: {
+    case ActionKind.RefreshPool: {
       if (state.gold < payload.cost) return state
 
       return {
         ...state,
         gold: state.gold - payload.cost,
-        store: payload.newRandomLetters.map((letter, index) => {
-          return state.store[index]?.frozen ? state.store[index] : letter
+        pool: payload.newRandomLetters.map((letter, index) => {
+          return state.pool[index]?.frozen ? state.pool[index] : letter
         }),
       }
     }
 
     case ActionKind.RecallPlayer: {
-      const { store, rack, gold } = payload.player
+      const { pool, rack, gold } = payload.player
 
       return {
         ...state,
-        store: payload.newRandomLetters.map((letter, index) => {
-          return store[index]?.frozen ? state.store[index] : letter
+        pool: payload.newRandomLetters.map((letter, index) => {
+          return pool[index]?.frozen ? state.pool[index] : letter
         }),
         rack,
         gold,

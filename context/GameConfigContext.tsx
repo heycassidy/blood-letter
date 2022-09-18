@@ -48,13 +48,13 @@ export const GameConfigContext = createContext<GameConfig>({
 
   letterBuyCost: 3,
   letterSellValue: 2,
-  storeRefreshCost: 1,
+  poolRefreshCost: 1,
 
   rackCapacity: 6,
 
   wordBonusComputation: (letters) => letters.length ** 2,
 
-  storeTierMap: {
+  poolTierMap: {
     1: 1,
     2: 1,
     3: 2,
@@ -67,7 +67,7 @@ export const GameConfigContext = createContext<GameConfig>({
     10: 5,
     max: 6,
   },
-  storeCapacityMap: {
+  poolCapacityMap: {
     1: 3,
     2: 3,
     3: 4,

@@ -12,12 +12,12 @@ export interface GameConfig {
 
   letterBuyCost: number
   letterSellValue: number
-  storeRefreshCost: number
+  poolRefreshCost: number
 
   rackCapacity: number
 
-  storeTierMap: { [key in number | 'max']: number }
-  storeCapacityMap: { [key in number | 'max']: number }
+  poolTierMap: { [key in number | 'max']: number }
+  poolCapacityMap: { [key in number | 'max']: number }
   healthCostMap: { [key in number | 'max']: number }
 
   wordBonusComputation: (letters: Letter[]) => number
@@ -32,7 +32,7 @@ export interface Player {
   gold: number
   rack: Letter[]
   rackWord: string
-  store: Letter[]
+  pool: Letter[]
   rackScore: number
   wordBonus: number
   roundScore: number
@@ -109,31 +109,27 @@ export interface GameState {
   incrementRound: () => void
   restartGame: () => void
 
-  getStoreLetters: (
-    alphabet: Letter[],
-    tier: number,
-    amount: number
-  ) => Letter[]
+  getPoolLetters: (alphabet: Letter[], tier: number, amount: number) => Letter[]
 
-  getStoreTier: (round: number) => number
-  getStoreCapacity: (round: number) => number
+  getPoolTier: (round: number) => number
+  getPoolCapacity: (round: number) => number
   getHealthCost: (round: number) => number
 }
 
 export enum LetterOriginKind {
-  Store,
-  Rack,
-  Battle,
+  Pool = 'POOL',
+  Rack = 'RACK',
+  Battle = 'BATTLE',
 }
 
 export enum DroppableKind {
-  Store = 'droppable-store',
-  Rack = 'droppable-rack',
+  Pool = 'POOL',
+  Rack = 'RACK',
 }
 
 export interface BuildPhaseState {
   rack: Letter[]
-  store: Letter[]
+  pool: Letter[]
   gold: number
   selectedLetter: Letter | null
   draggingLetter: Letter | null
@@ -142,5 +138,5 @@ export interface BuildPhaseState {
   sellLetter: (letter: Letter) => void
   freezeLetter: (letter: Letter) => void
   selectLetter: (letter: Letter | null) => void
-  rollStore: () => void
+  refreshPool: () => void
 }

@@ -42,15 +42,15 @@ export const GameContextProvider = ({ children }: PropsWithChildren) => {
     initialHealth,
     numberOfPlayers,
     initialPhase,
-    storeTierMap,
-    storeCapacityMap,
+    poolTierMap,
+    poolCapacityMap,
     healthCostMap,
     healthToLose,
     battleVictoriesToWin,
   } = useContext(GameConfigContext)
 
-  const storeAmount = getStoreCapacity(initialRound)
-  const storeTier = getStoreTier(initialRound)
+  const poolAmount = getPoolCapacity(initialRound)
+  const poolTier = getPoolTier(initialRound)
 
   const generatePlayer = (name: string) => ({
     name,
@@ -62,7 +62,7 @@ export const GameContextProvider = ({ children }: PropsWithChildren) => {
     rackScore: 0,
     wordBonus: 0,
     roundScore: 0,
-    store: getStoreLetters(alphabet, storeTier, storeAmount),
+    pool: getPoolLetters(alphabet, poolTier, poolAmount),
     completedTurn: false,
     battleVictories: 0,
   })
@@ -92,10 +92,10 @@ export const GameContextProvider = ({ children }: PropsWithChildren) => {
       incrementRound,
       restartGame,
 
-      getStoreLetters,
+      getPoolLetters,
 
-      getStoreTier,
-      getStoreCapacity,
+      getPoolTier,
+      getPoolCapacity,
       getHealthCost,
     }
   }
@@ -147,21 +147,21 @@ export const GameContextProvider = ({ children }: PropsWithChildren) => {
     return [...Array(numberOfPlayers)].map((_, i) => `Player ${i + 1}`)
   }
 
-  function getStoreLetters(letters: Letter[], tier: number, amount: number) {
+  function getPoolLetters(letters: Letter[], tier: number, amount: number) {
     const tierAndBelowLetters = letters.filter((letter) =>
       itemIsInRange(letter.tier, 1, tier)
     )
 
     return randomItems(tierAndBelowLetters, amount).map((letter) => {
       const { name, tier, value } = letter
-      return new Letter({ name, tier, value, origin: LetterOriginKind.Store })
+      return new Letter({ name, tier, value, origin: LetterOriginKind.Pool })
     })
   }
-  function getStoreTier(round: number) {
-    return getFromNumericMapWithMax(storeTierMap, round)
+  function getPoolTier(round: number) {
+    return getFromNumericMapWithMax(poolTierMap, round)
   }
-  function getStoreCapacity(round: number) {
-    return getFromNumericMapWithMax(storeCapacityMap, round)
+  function getPoolCapacity(round: number) {
+    return getFromNumericMapWithMax(poolCapacityMap, round)
   }
   function getHealthCost(round: number) {
     return getFromNumericMapWithMax(healthCostMap, round)

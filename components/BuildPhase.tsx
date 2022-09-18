@@ -1,7 +1,7 @@
 import { useContext, useEffect, useState } from 'react'
 import { GameConfigContext } from '../context/GameConfigContext'
 import { css } from '../stitches.config'
-import LetterStore from './LetterStore'
+import Pool from './Pool'
 import Rack from './Rack'
 import InfoList from '../atoms/InfoList'
 import { useGameContext } from '../context/GameContext'
@@ -9,22 +9,22 @@ import { useBuildPhaseContext } from '../context/BuildPhaseContext'
 import { LetterOriginKind } from '../lib/types'
 
 const BuildPhase = () => {
-  const { rackCapacity, letterBuyCost, letterSellValue, storeRefreshCost } =
+  const { rackCapacity, letterBuyCost, letterSellValue, poolRefreshCost } =
     useContext(GameConfigContext)
-  const { round, activePlayer, updatePlayer, getStoreTier, getStoreCapacity } =
+  const { round, activePlayer, updatePlayer, getPoolTier, getPoolCapacity } =
     useGameContext()
   const {
     rack,
-    store,
+    pool,
     selectedLetter,
-    rollStore,
+    refreshPool,
     buyLetter,
     sellLetter,
     freezeLetter,
   } = useBuildPhaseContext()
 
-  const highestTier = getStoreTier(round)
-  const storeAmount = getStoreCapacity(round)
+  const highestPoolTier = getPoolTier(round)
+  const poolAmount = getPoolCapacity(round)
 
   const [showRack, setShowRack] = useState(false)
 
@@ -47,24 +47,24 @@ const BuildPhase = () => {
       {showRack && <Rack letters={rack} capacity={rackCapacity} />}
 
       <InfoList>
-        <span>Tier: {highestTier}</span>
+        <span>Tier: {highestPoolTier}</span>
       </InfoList>
 
-      <LetterStore letters={store} amount={storeAmount} />
+      <Pool letters={pool} amount={poolAmount} />
 
       <div className="button-row">
-        <button onClick={rollStore}>Roll Store ({storeRefreshCost})</button>
+        <button onClick={refreshPool}>Refresh pool ({poolRefreshCost})</button>
 
         {selectedLetter && (
           <>
-            {selectedLetter.origin === LetterOriginKind.Store &&
+            {selectedLetter.origin === LetterOriginKind.Pool &&
               gold >= letterBuyCost && (
                 <button onClick={() => buyLetter(selectedLetter)}>
                   Buy Letter ({letterBuyCost})
                 </button>
               )}
 
-            {selectedLetter.origin === LetterOriginKind.Store && (
+            {selectedLetter.origin === LetterOriginKind.Pool && (
               <button onClick={() => freezeLetter(selectedLetter)}>
                 {selectedLetter.frozen ? 'Unfreeze' : 'Freeze'}
               </button>
