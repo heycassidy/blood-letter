@@ -12,10 +12,11 @@ class Letter implements LetterOptions {
   readonly name: AlphabetCharacter
   readonly tier: number
   readonly value: number
+
   frozen?: boolean = false
   origin?: LetterOriginKind
 
-  constructor(options: Readonly<LetterOptions>) {
+  constructor(options: LetterOptions) {
     this.name = options.name
     this.tier = options.tier
     this.value = options.value

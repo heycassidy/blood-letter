@@ -26,4 +26,17 @@ export const colors = {
   blue750: '#143f6c',
   blue825: '#0f2d4e',
   blue900: '#0b1c32',
+
+  red50: '#fbeeec',
+  red125: '#fbd1cc',
+  red200: '#fcb1ab',
+  red275: '#fd8d87',
+  red350: '#fc6a69',
+  red425: '#fc3248',
+  red525: '#e01339',
+  red600: '#bd0e2e',
+  red675: '#940822',
+  red750: '#7b061b',
+  red825: '#590812',
+  red900: '#3b0706',
 }

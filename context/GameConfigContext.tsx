@@ -1,5 +1,6 @@
 import { PhaseKind, GameConfig, GameModeKind } from '../lib/types'
 import Letter from '../lib/Letter'
+import Blot from '../lib/Blot'
 import { createContext } from 'react'
 
 const alphabet: Letter[] = [
@@ -36,8 +37,21 @@ const alphabet: Letter[] = [
   new Letter({ name: 'z', tier: 6, value: 36 }),
 ]
 
+const allBlots: Blot[] = [
+  new Blot({
+    name: 'Double Trouble',
+    description: 'Double the value of a letter',
+    tier: 1,
+    effect: () => {
+      console.log(this)
+    },
+  }),
+]
+
 export const GameConfigContext = createContext<GameConfig>({
   alphabet,
+  allBlots,
+  gameMode: GameModeKind.PassToPlay, // Doesn't do anything yet
   initialRound: 1,
   initialPhase: PhaseKind.Build,
   initialGold: 10,
@@ -79,6 +93,32 @@ export const GameConfigContext = createContext<GameConfig>({
     9: 6,
     10: 6,
     max: 6,
+  },
+  wellTierMap: {
+    1: 1,
+    2: 1,
+    3: 2,
+    4: 2,
+    5: 3,
+    6: 3,
+    7: 4,
+    8: 4,
+    9: 5,
+    10: 5,
+    max: 6,
+  },
+  wellCapacityMap: {
+    1: 3,
+    2: 3,
+    3: 3,
+    4: 3,
+    5: 4,
+    6: 4,
+    7: 4,
+    8: 4,
+    9: 5,
+    10: 5,
+    max: 5,
   },
   healthCostMap: {
     1: 1,

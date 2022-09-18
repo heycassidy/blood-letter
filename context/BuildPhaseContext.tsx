@@ -76,22 +76,21 @@ export const BuildPhaseContextProvider = ({ children }: Props) => {
   } = useContext(GameConfigContext)
 
   const {
-    round,
     gameCount,
     activePlayer,
     updatePlayer,
-    getPoolTier,
-    getPoolCapacity,
     getPoolLetters,
+    poolTier,
+    poolCapacity,
+    wellTier,
+    wellCapacity,
   } = useGameContext()
-
-  const poolAmount = getPoolCapacity(round)
-  const poolTier = getPoolTier(round)
 
   const initState = (player: Player): BuildPhaseState => {
     return {
       rack: player.rack,
       pool: player.pool,
+      well: player.well,
       gold: player.gold,
       selectedLetter: null,
       draggingLetter: null,
@@ -156,7 +155,7 @@ export const BuildPhaseContextProvider = ({ children }: Props) => {
     dispatch({
       type: ActionKind.RecallPlayer,
       payload: {
-        newRandomLetters: getPoolLetters(alphabet, poolTier, poolAmount),
+        newRandomLetters: getPoolLetters(alphabet, poolTier, poolCapacity),
         player: activePlayer,
       },
     })
@@ -362,7 +361,7 @@ export const BuildPhaseContextProvider = ({ children }: Props) => {
     dispatch({
       type: ActionKind.RefreshPool,
       payload: {
-        newRandomLetters: getPoolLetters(alphabet, poolTier, poolAmount),
+        newRandomLetters: getPoolLetters(alphabet, poolTier, poolCapacity),
         cost: poolRefreshCost,
       },
     })

@@ -10,9 +10,11 @@ import {
   Player,
   PhaseKind,
   LetterOriginKind,
+  BlotOriginKind,
   UUID,
 } from '../lib/types'
 import Letter from '../lib/Letter'
+import Blot from '../lib/Blot'
 import { GameConfigContext } from './GameConfigContext'
 import { nanoid } from 'nanoid'
 import {
@@ -37,6 +39,7 @@ export const useGameContext = () => {
 export const GameContextProvider = ({ children }: PropsWithChildren) => {
   const {
     alphabet,
+    allBlots,
     initialRound,
     initialGold,
     initialHealth,
@@ -44,15 +47,14 @@ export const GameContextProvider = ({ children }: PropsWithChildren) => {
     initialPhase,
     poolTierMap,
     poolCapacityMap,
+    wellTierMap,
+    wellCapacityMap,
     healthCostMap,
     healthToLose,
     battleVictoriesToWin,
   } = useContext(GameConfigContext)
 
-  const poolAmount = getPoolCapacity(initialRound)
-  const poolTier = getPoolTier(initialRound)
-
-  const generatePlayer = (name: string) => ({
+  const generatePlayer = (name: string, round: number) => ({
     name,
     id: nanoid() as UUID,
     health: initialHealth,
@@ -62,7 +64,8 @@ export const GameContextProvider = ({ children }: PropsWithChildren) => {
     rackScore: 0,
     wordBonus: 0,
     roundScore: 0,
-    pool: getPoolLetters(alphabet, poolTier, poolAmount),
+    pool: getPoolLetters(alphabet, getPoolTier(round), getPoolCapacity(round)),
+    well: getWellBlots(allBlots, getWellTier(round), getWellCapacity(round)),
     completedTurn: false,
     battleVictories: 0,
   })
@@ -70,7 +73,7 @@ export const GameContextProvider = ({ children }: PropsWithChildren) => {
   const initState = (): GameState => {
     const players = new Map(
       getPlayerNames(numberOfPlayers).map((p) => {
-        const player = generatePlayer(p)
+        const player = generatePlayer(p, initialRound)
         return [player.id, player]
       })
     )
@@ -92,11 +95,14 @@ export const GameContextProvider = ({ children }: PropsWithChildren) => {
       incrementRound,
       restartGame,
 
-      getPoolLetters,
+      poolTier: getPoolTier(initialRound),
+      poolCapacity: getPoolCapacity(initialRound),
+      wellTier: getWellTier(initialRound),
+      wellCapacity: getWellCapacity(initialRound),
+      healthCost: getHealthCost(initialRound),
 
-      getPoolTier,
-      getPoolCapacity,
-      getHealthCost,
+      getPoolLetters,
+      getWellBlots,
     }
   }
 
@@ -157,11 +163,33 @@ export const GameContextProvider = ({ children }: PropsWithChildren) => {
       return new Letter({ name, tier, value, origin: LetterOriginKind.Pool })
     })
   }
+  function getWellBlots(blots: Blot[], tier: number, amount: number) {
+    const tierAndBelowLetters = blots.filter((blot) =>
+      itemIsInRange(blot.tier, 1, tier)
+    )
+
+    return randomItems(tierAndBelowLetters, amount).map((blot) => {
+      const { name, description, tier, effect } = blot
+      return new Blot({
+        name,
+        description,
+        tier,
+        effect,
+        origin: BlotOriginKind.Well,
+      })
+    })
+  }
   function getPoolTier(round: number) {
     return getFromNumericMapWithMax(poolTierMap, round)
   }
   function getPoolCapacity(round: number) {
     return getFromNumericMapWithMax(poolCapacityMap, round)
+  }
+  function getWellTier(round: number) {
+    return getFromNumericMapWithMax(wellTierMap, round)
+  }
+  function getWellCapacity(round: number) {
+    return getFromNumericMapWithMax(wellCapacityMap, round)
   }
   function getHealthCost(round: number) {
     return getFromNumericMapWithMax(healthCostMap, round)

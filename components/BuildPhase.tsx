@@ -2,6 +2,7 @@ import { useContext, useEffect, useState } from 'react'
 import { GameConfigContext } from '../context/GameConfigContext'
 import { css } from '../stitches.config'
 import Pool from './Pool'
+import Well from './Well'
 import Rack from './Rack'
 import InfoList from '../atoms/InfoList'
 import { useGameContext } from '../context/GameContext'
@@ -11,20 +12,25 @@ import { LetterOriginKind } from '../lib/types'
 const BuildPhase = () => {
   const { rackCapacity, letterBuyCost, letterSellValue, poolRefreshCost } =
     useContext(GameConfigContext)
-  const { round, activePlayer, updatePlayer, getPoolTier, getPoolCapacity } =
-    useGameContext()
+  const {
+    round,
+    activePlayer,
+    updatePlayer,
+    poolTier,
+    poolCapacity,
+    wellTier,
+    wellCapacity,
+  } = useGameContext()
   const {
     rack,
     pool,
+    well,
     selectedLetter,
     refreshPool,
     buyLetter,
     sellLetter,
     freezeLetter,
   } = useBuildPhaseContext()
-
-  const highestPoolTier = getPoolTier(round)
-  const poolAmount = getPoolCapacity(round)
 
   const [showRack, setShowRack] = useState(false)
 
@@ -43,15 +49,12 @@ const BuildPhase = () => {
         <span>Round: {round}</span>
         <span>Wins: {battleVictories}</span>
       </InfoList>
-
       {showRack && <Rack letters={rack} capacity={rackCapacity} />}
-
       <InfoList>
-        <span>Tier: {highestPoolTier}</span>
+        <span>Tier: {poolTier}</span>
       </InfoList>
-
-      <Pool letters={pool} amount={poolAmount} />
-
+      <Pool letters={pool} amount={poolCapacity} />
+      <Well blots={well} amount={3} /> {/* TODO: dynamic amount */}
       <div className="button-row">
         <button onClick={refreshPool}>Refresh pool ({poolRefreshCost})</button>
 

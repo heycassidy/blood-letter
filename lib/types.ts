@@ -1,7 +1,10 @@
 import Letter from '../lib/Letter'
+import Blot from './Blot'
 
 export interface GameConfig {
   alphabet: Letter[]
+  allBlots: Blot[]
+  gameMode: GameModeKind
   initialRound: number
   initialPhase: PhaseKind
   initialGold: number
@@ -18,6 +21,8 @@ export interface GameConfig {
 
   poolTierMap: { [key in number | 'max']: number }
   poolCapacityMap: { [key in number | 'max']: number }
+  wellTierMap: { [key in number | 'max']: number }
+  wellCapacityMap: { [key in number | 'max']: number }
   healthCostMap: { [key in number | 'max']: number }
 
   wordBonusComputation: (letters: Letter[]) => number
@@ -33,6 +38,7 @@ export interface Player {
   rack: Letter[]
   rackWord: string
   pool: Letter[]
+  well: Blot[]
   rackScore: number
   wordBonus: number
   roundScore: number
@@ -43,6 +49,12 @@ export interface Player {
 export enum PhaseKind {
   Build = 'BUILD',
   Battle = 'BATTLE',
+}
+
+export enum GameModeKind {
+  PassToPlay = 'PASS_TO_PLAY',
+  Arena = 'ARENA',
+  Versus = 'VERSUS',
 }
 
 export type AlphabetCharacter =
@@ -81,8 +93,24 @@ export interface LetterOptions {
   origin?: LetterOriginKind
 }
 
+export interface BlotOptions {
+  name: string
+  tier: number
+  description: string
+  origin?: BlotOriginKind
+  attachedTo?: Letter
+  effect: () => void
+}
+
 export interface LetterCardProps {
   letter: Letter
+  dragging?: boolean
+  selectable?: boolean
+  freezable?: boolean
+}
+
+export interface BlotCardProps {
+  blot: Blot
   dragging?: boolean
   selectable?: boolean
   freezable?: boolean
@@ -102,6 +130,12 @@ export interface GameState {
   gameWinner: Player | undefined
   gameCount: number
 
+  poolTier: number
+  poolCapacity: number
+  wellTier: number
+  wellCapacity: number
+  healthCost: number
+
   updatePlayer: (id: UUID, player: Partial<Player>) => void
   setActivePlayer: (id: UUID) => void
   togglePlayer: () => void
@@ -110,16 +144,18 @@ export interface GameState {
   restartGame: () => void
 
   getPoolLetters: (alphabet: Letter[], tier: number, amount: number) => Letter[]
-
-  getPoolTier: (round: number) => number
-  getPoolCapacity: (round: number) => number
-  getHealthCost: (round: number) => number
+  getWellBlots: (allBlots: Blot[], tier: number, amount: number) => Blot[]
 }
 
 export enum LetterOriginKind {
   Pool = 'POOL',
   Rack = 'RACK',
   Battle = 'BATTLE',
+}
+
+export enum BlotOriginKind {
+  Well = 'WELL',
+  Letter = 'LETTER',
 }
 
 export enum DroppableKind {
@@ -130,6 +166,7 @@ export enum DroppableKind {
 export interface BuildPhaseState {
   rack: Letter[]
   pool: Letter[]
+  well: Blot[]
   gold: number
   selectedLetter: Letter | null
   draggingLetter: Letter | null
