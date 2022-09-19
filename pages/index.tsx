@@ -7,6 +7,7 @@ import { useGameContext } from '../context/GameContext'
 import { BuildPhaseContextProvider } from '../context/BuildPhaseContext'
 import { PhaseKind } from '../lib/types'
 import { css } from '../stitches.config'
+import { DragAndDropContextProvider } from '../context/DragAndDropContext'
 
 const Home: NextPage = () => {
   const { phase, gameOver, gameWinner, restartGame } = useGameContext()
@@ -32,7 +33,9 @@ const Home: NextPage = () => {
           <>
             <h3>Build Phase</h3>
             <BuildPhaseContextProvider>
-              <BuildPhase />
+              <DragAndDropContextProvider>
+                <BuildPhase />
+              </DragAndDropContextProvider>
             </BuildPhaseContextProvider>
           </>
         )}

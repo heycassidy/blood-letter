@@ -4,11 +4,7 @@ import {
   useContext,
   useReducer,
   useEffect,
-  useState,
-  useRef,
-  useCallback,
 } from 'react'
-import { createPortal } from 'react-dom'
 import {
   BuildPhaseState,
   Player,
@@ -20,26 +16,8 @@ import Letter from '../lib/Letter'
 import { wordList } from '../lib/words'
 import { GameConfigContext } from './GameConfigContext'
 import { useGameContext } from '../context/GameContext'
-import {
-  DndContext,
-  DragOverlay,
-  closestCenter,
-  PointerSensor,
-  useSensor,
-  useSensors,
-  DragEndEvent,
-  DragCancelEvent,
-  DragStartEvent,
-  DragOverEvent,
-  rectIntersection,
-  CollisionDetection,
-  pointerWithin,
-  KeyboardSensor,
-} from '@dnd-kit/core'
 import { arrayMove } from '@dnd-kit/sortable'
 import { sumItemProperty, concatItemProperty } from '../lib/helpers'
-import LetterCard from '../components/LetterCard'
-import { CancelDropArguments } from '@dnd-kit/core/dist/components/DndContext/DndContext'
 
 const BuildPhaseContext = createContext<BuildPhaseState | undefined>(undefined)
 
@@ -58,14 +36,6 @@ interface Props {
 }
 
 export const BuildPhaseContextProvider = ({ children }: Props) => {
-  const documentBodyRef = useRef<HTMLElement>()
-  const [mounted, setMounted] = useState(false)
-
-  useEffect(() => {
-    documentBodyRef.current = document.body
-    setMounted(true)
-  }, [])
-
   const {
     alphabet,
     rackCapacity,
@@ -82,8 +52,6 @@ export const BuildPhaseContextProvider = ({ children }: Props) => {
     getPoolLetters,
     poolTier,
     poolCapacity,
-    wellTier,
-    wellCapacity,
   } = useGameContext()
 
   const initState = (player: Player): BuildPhaseState => {
@@ -93,27 +61,23 @@ export const BuildPhaseContextProvider = ({ children }: Props) => {
       well: player.well,
       gold: player.gold,
       selectedLetter: null,
-      draggingLetter: null,
 
       buyLetter,
       sellLetter,
       freezeLetter,
       selectLetter,
       refreshPool,
+
+      addLetterToRack,
+      removeLetterFromRack,
+      moveLetterInRack,
+      spendGold,
+      setLetterOrigins,
+      shallowMergeState,
     }
   }
 
   const [state, dispatch] = useReducer(reducer, activePlayer, initState)
-  const [clonedState, setClonedState] = useState<BuildPhaseState | null>(null)
-
-  const sensors = useSensors(
-    useSensor(PointerSensor, {
-      activationConstraint: {
-        distance: 10,
-      },
-    }),
-    useSensor(KeyboardSensor)
-  )
 
   useEffect(() => {
     const letters = state.rack
@@ -161,173 +125,11 @@ export const BuildPhaseContextProvider = ({ children }: Props) => {
     })
   }, [activePlayer.id])
 
-  const collisionDetectionStrategy: CollisionDetection = useCallback(
-    (args) => {
-      const { active, droppableContainers } = args
-
-      const letterId = active?.id
-      const letter = active?.data?.current?.letter
-      const letterOrigin = letter?.origin
-
-      const rackIds = state.rack.map(({ id }) => id)
-
-      const rackCollisions = pointerWithin({
-        ...args,
-        droppableContainers: droppableContainers.filter(
-          ({ id }) => id === DroppableKind.Rack
-        ),
-      })
-
-      const letterCollisions = closestCenter({
-        ...args,
-        droppableContainers: droppableContainers.filter(({ id }) =>
-          rackIds.includes(id)
-        ),
-      })
-
-      if (
-        letterOrigin === LetterOriginKind.Rack &&
-        rackIds.includes(letterId)
-      ) {
-        return letterCollisions
-      }
-
-      if (
-        letterOrigin === LetterOriginKind.Pool &&
-        rackCollisions.length > 0 &&
-        rackIds.filter((id) => letterId !== id).length > 0
-      ) {
-        return letterCollisions
-      }
-
-      return rectIntersection(args)
-    },
-    [state.rack, state.draggingLetter]
+  return (
+    <BuildPhaseContext.Provider value={state}>
+      {children}
+    </BuildPhaseContext.Provider>
   )
-
-  function handleDragStart({ active }: DragStartEvent) {
-    const draggingLetter: Letter | undefined = active.data.current?.letter
-
-    if (draggingLetter === undefined) {
-      return false
-    }
-
-    setClonedState(state)
-
-    dispatch({
-      type: ActionKind.SetDraggingLetter,
-      payload: draggingLetter,
-    })
-  }
-
-  function handleDragOver({ active, over }: DragOverEvent) {
-    const overId = over?.id
-    const letterId = active?.id
-
-    const letter = active?.data?.current?.letter
-    const letterOrigin = letter?.origin
-
-    if (letterId === undefined) {
-      return
-    }
-
-    const rackIds = state.rack.map(({ id }) => id)
-
-    if (
-      letterOrigin === LetterOriginKind.Pool &&
-      rackIds.length >= rackCapacity
-    ) {
-      return
-    }
-
-    if (!overId || overId === DroppableKind.Pool) {
-      dispatch({
-        type: ActionKind.RemoveLetterFromRack,
-        payload: { letterId },
-      })
-      return
-    }
-
-    if (
-      letterOrigin === LetterOriginKind.Pool &&
-      overId !== letterId &&
-      !rackIds.includes(letterId) &&
-      (overId === DroppableKind.Rack || rackIds.includes(overId))
-    ) {
-      dispatch({
-        type: ActionKind.DragLetterToRack,
-        payload: { overId, letterId },
-      })
-      return
-    }
-  }
-
-  function handleDragCancel({}: DragCancelEvent) {
-    if (clonedState) {
-      dispatch({
-        type: ActionKind.Reset,
-        payload: { state: clonedState },
-      })
-    }
-    setClonedState(null)
-    dispatch({
-      type: ActionKind.SetDraggingLetter,
-      payload: null,
-    })
-  }
-
-  function handleDragEnd({ active, over }: DragEndEvent) {
-    dispatch({
-      type: ActionKind.SetDraggingLetter,
-      payload: null,
-    })
-
-    const overId = over?.id
-    const letterId = active?.id
-    const letter = active?.data?.current?.letter
-    const letterOrigin = letter?.origin
-    const rackIds = state.rack.map(({ id }) => id)
-
-    if (
-      overId &&
-      letterOrigin === LetterOriginKind.Pool &&
-      (overId === DroppableKind.Rack || rackIds.includes(overId))
-    ) {
-      dispatch({
-        type: ActionKind.SpendGold,
-        payload: { amount: letterBuyCost },
-      })
-    }
-
-    if (overId && (overId === DroppableKind.Rack || rackIds.includes(overId))) {
-      dispatch({
-        type: ActionKind.DragToSortRack,
-        payload: { overId, letterId },
-      })
-    }
-
-    dispatch({
-      type: ActionKind.SetLetterOrigins,
-    })
-  }
-
-  function cancelDrop({ active }: CancelDropArguments) {
-    const letter = active?.data?.current?.letter
-    const letterOrigin = letter?.origin
-
-    if (!clonedState) return true
-
-    if (
-      letterOrigin === LetterOriginKind.Pool &&
-      (clonedState.rack.length >= rackCapacity ||
-        clonedState.gold < letterBuyCost)
-    ) {
-      console.log('cancelled')
-      return true
-    }
-
-    return false
-  }
 
   function buyLetter(letter: Letter): void {
     dispatch({
@@ -335,28 +137,24 @@ export const BuildPhaseContextProvider = ({ children }: Props) => {
       payload: { letter, cost: letterBuyCost, maxLetters: rackCapacity },
     })
   }
-
   function sellLetter(letter: Letter): void {
     dispatch({
       type: ActionKind.Sell,
       payload: { letter, refund: letterSellValue },
     })
   }
-
   function freezeLetter(letter: Letter): void {
     dispatch({
       type: ActionKind.ToggleFreeze,
       payload: { letter },
     })
   }
-
   function selectLetter(letter: Letter | null): void {
     dispatch({
       type: ActionKind.SelectLetter,
       payload: { letter },
     })
   }
-
   function refreshPool(): void {
     dispatch({
       type: ActionKind.RefreshPool,
@@ -366,45 +164,53 @@ export const BuildPhaseContextProvider = ({ children }: Props) => {
       },
     })
   }
-
-  return (
-    <BuildPhaseContext.Provider value={state}>
-      <DndContext
-        sensors={sensors}
-        collisionDetection={collisionDetectionStrategy}
-        cancelDrop={cancelDrop}
-        onDragStart={handleDragStart}
-        onDragOver={handleDragOver}
-        onDragCancel={handleDragCancel}
-        onDragEnd={handleDragEnd}
-      >
-        {children}
-
-        {mounted
-          ? createPortal(
-              <DragOverlay>
-                {state.draggingLetter ? (
-                  <LetterCard letter={state.draggingLetter} />
-                ) : null}
-              </DragOverlay>,
-              document.body
-            )
-          : null}
-      </DndContext>
-    </BuildPhaseContext.Provider>
-  )
+  function addLetterToRack(letterId: UUID, overId: UUID): void {
+    dispatch({
+      type: ActionKind.AddLetterToRack,
+      payload: { letterId, overId },
+    })
+  }
+  function removeLetterFromRack(letterId: UUID): void {
+    dispatch({
+      type: ActionKind.RemoveLetterFromRack,
+      payload: { letterId },
+    })
+  }
+  function moveLetterInRack(letterId: UUID, overId: UUID): void {
+    dispatch({
+      type: ActionKind.MoveLetterInRack,
+      payload: { letterId, overId },
+    })
+  }
+  function spendGold(amount: number): void {
+    dispatch({
+      type: ActionKind.SpendGold,
+      payload: { amount },
+    })
+  }
+  function setLetterOrigins(): void {
+    dispatch({
+      type: ActionKind.SetLetterOrigins,
+    })
+  }
+  function shallowMergeState(partialState: Partial<BuildPhaseState>): void {
+    dispatch({
+      type: ActionKind.ShallowMergeState,
+      payload: { partialState },
+    })
+  }
 }
 
 enum ActionKind {
   Reset,
+  ShallowMergeState,
   Buy,
   Sell,
   ToggleFreeze,
   SpendGold,
   SelectLetter,
-  SetDraggingLetter,
-  DragLetterToRack,
-  DragToSortRack,
+  AddLetterToRack,
+  MoveLetterInRack,
   SetLetterOrigins,
   RemoveLetterFromRack,
   RefreshPool,
@@ -413,6 +219,10 @@ enum ActionKind {
 interface ResetAction {
   type: ActionKind.Reset
   payload: { state: BuildPhaseState }
+}
+interface ShallowMergeStateAction {
+  type: ActionKind.ShallowMergeState
+  payload: { partialState: Partial<BuildPhaseState> }
 }
 interface BuyAction {
   type: ActionKind.Buy
@@ -426,7 +236,7 @@ interface ToggleFreezeAction {
   type: ActionKind.ToggleFreeze
   payload: { letter: Letter }
 }
-interface SpendGold {
+interface SpendGoldAction {
   type: ActionKind.SpendGold
   payload: { amount: number }
 }
@@ -434,23 +244,19 @@ interface SelectLetterAction {
   type: ActionKind.SelectLetter
   payload: { letter: Letter | null }
 }
-interface SetDraggingLetterAction {
-  type: ActionKind.SetDraggingLetter
-  payload: Letter | null
-}
-interface DragLetterToRack {
-  type: ActionKind.DragLetterToRack
+interface AddLetterToRackAction {
+  type: ActionKind.AddLetterToRack
   payload: { overId: UUID; letterId: UUID }
 }
-interface RemoveLetterFromRack {
+interface RemoveLetterFromRackAction {
   type: ActionKind.RemoveLetterFromRack
   payload: { letterId: UUID }
 }
-interface DragToSortRackAction {
-  type: ActionKind.DragToSortRack
+interface MoveLetterInRackAction {
+  type: ActionKind.MoveLetterInRack
   payload: { overId: UUID; letterId: UUID }
 }
-interface SetLetterOrigins {
+interface SetLetterOriginsAction {
   type: ActionKind.SetLetterOrigins
   payload?: undefined
 }
@@ -465,17 +271,17 @@ interface RecallPlayerAction {
 
 type BuildPhaseContextAction =
   | ResetAction
+  | ShallowMergeStateAction
   | BuyAction
   | SellAction
   | ToggleFreezeAction
-  | SpendGold
+  | SpendGoldAction
   | SelectLetterAction
-  | SetDraggingLetterAction
-  | DragLetterToRack
-  | RemoveLetterFromRack
+  | AddLetterToRackAction
+  | RemoveLetterFromRackAction
   | RefreshPoolAction
-  | DragToSortRackAction
-  | SetLetterOrigins
+  | MoveLetterInRackAction
+  | SetLetterOriginsAction
   | RecallPlayerAction
 
 const reducer = (
@@ -487,6 +293,13 @@ const reducer = (
   switch (type) {
     case ActionKind.Reset: {
       return payload.state
+    }
+
+    case ActionKind.ShallowMergeState: {
+      return {
+        ...state,
+        ...payload.partialState,
+      }
     }
 
     case ActionKind.Buy: {
@@ -553,14 +366,7 @@ const reducer = (
       }
     }
 
-    case ActionKind.SetDraggingLetter: {
-      return {
-        ...state,
-        draggingLetter: payload,
-      }
-    }
-
-    case ActionKind.DragLetterToRack: {
+    case ActionKind.AddLetterToRack: {
       const { overId, letterId } = payload
 
       const rackLetters = state.rack
@@ -592,7 +398,7 @@ const reducer = (
       }
     }
 
-    case ActionKind.DragToSortRack: {
+    case ActionKind.MoveLetterInRack: {
       const { overId, letterId } = payload
 
       const rackLetters = state.rack

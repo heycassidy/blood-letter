@@ -169,11 +169,21 @@ export interface BuildPhaseState {
   well: Blot[]
   gold: number
   selectedLetter: Letter | null
-  draggingLetter: Letter | null
 
   buyLetter: (letter: Letter) => void
   sellLetter: (letter: Letter) => void
   freezeLetter: (letter: Letter) => void
   selectLetter: (letter: Letter | null) => void
   refreshPool: () => void
+
+  addLetterToRack: (letterId: UUID, overId: UUID) => void
+  removeLetterFromRack: (letterId: UUID) => void
+  moveLetterInRack: (letterId: UUID, overId: UUID) => void
+  spendGold: (amount: number) => void
+  setLetterOrigins: () => void
+  shallowMergeState: (partialState: Partial<BuildPhaseState>) => void
+}
+
+export interface DragAndDropState {
+  draggingLetter: Letter | null
 }
