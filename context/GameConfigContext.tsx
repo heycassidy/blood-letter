@@ -62,6 +62,7 @@ export const GameConfigContext = createContext<GameConfig>({
 
   letterBuyCost: 3,
   letterSellValue: 2,
+  blotBuyCost: 3,
   poolRefreshCost: 1,
 
   rackCapacity: 6,

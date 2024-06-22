@@ -10,7 +10,7 @@ const useFreezableLetterCard = (letter: Letter, enabled?: boolean) => {
 
   useEffect(() => {
     setFrozen(!!letter.frozen)
-  }, [letter])
+  }, [letter.frozen])
 
   let styles = {}
 

@@ -7,7 +7,7 @@ import Rack from './Rack'
 import InfoList from '../atoms/InfoList'
 import { useGameContext } from '../context/GameContext'
 import { useBuildPhaseContext } from '../context/BuildPhaseContext'
-import { LetterOriginKind } from '../lib/types'
+import { ItemOriginKind } from '../lib/types'
 
 const BuildPhase = () => {
   const { rackCapacity, letterBuyCost, letterSellValue, poolRefreshCost } =
@@ -60,20 +60,20 @@ const BuildPhase = () => {
 
         {selectedLetter && (
           <>
-            {selectedLetter.origin === LetterOriginKind.Pool &&
+            {selectedLetter.origin === ItemOriginKind.Pool &&
               gold >= letterBuyCost && (
                 <button onClick={() => buyLetter(selectedLetter)}>
                   Buy Letter ({letterBuyCost})
                 </button>
               )}
 
-            {selectedLetter.origin === LetterOriginKind.Pool && (
+            {selectedLetter.origin === ItemOriginKind.Pool && (
               <button onClick={() => freezeLetter(selectedLetter)}>
                 {selectedLetter.frozen ? 'Unfreeze' : 'Freeze'}
               </button>
             )}
 
-            {selectedLetter.origin === LetterOriginKind.Rack && (
+            {selectedLetter.origin === ItemOriginKind.Rack && (
               <button onClick={() => sellLetter(selectedLetter)}>
                 Sell Letter ({letterSellValue})
               </button>

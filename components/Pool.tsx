@@ -14,6 +14,9 @@ type Props = {
 const Pool = ({ letters = [], amount }: Props) => {
   const { setNodeRef } = useDroppable({
     id: DroppableKind.Pool,
+    data: {
+      droppableKind: DroppableKind.Pool,
+    },
   })
 
   const [poolLetters, setPoolLetters] = useState<Letter[]>([])

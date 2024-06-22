@@ -1,8 +1,10 @@
-import { forwardRef, ComponentPropsWithRef } from 'react'
+import { forwardRef, ComponentPropsWithRef, useEffect } from 'react'
+import BlotCard from '../components/BlotCard'
 import useSelectableLetterCard from '../hooks/useSelectableLetterCard'
 import useFreezableLetterCard from '../hooks/useFreezableLetterCard'
 import { LetterCardProps } from '../lib/types'
 import { css } from '../stitches.config'
+import Blot from '../lib/Blot'
 
 type Ref = HTMLDivElement
 
@@ -19,7 +21,7 @@ const LetterCard = forwardRef<
 
   const [freezableStyles] = useFreezableLetterCard(letter, freezable)
 
-  const { name, value } = letter
+  const { name, value, blot } = letter
 
   const dynamicStyles = {
     opacity: dragging ? 0.5 : undefined,
@@ -36,6 +38,8 @@ const LetterCard = forwardRef<
     <div ref={ref} className={styles()} {...selectableProps} {...rest}>
       <div className="value">{value}</div>
       <div className="name">{name.toUpperCase()}</div>
+
+      {blot && <BlotCard className={attachedBlotStyles()} blot={blot} />}
     </div>
   )
 })
@@ -70,5 +74,15 @@ const baseStyles = {
     top: 0,
   },
 }
+
+const attachedBlotStyles = css({
+  '&&': {
+    width: '1rem',
+    height: '1rem',
+    position: 'absolute',
+    left: '-0.25rem',
+    top: '-0.25rem',
+  },
+})
 
 export default LetterCard

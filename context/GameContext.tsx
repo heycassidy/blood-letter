@@ -9,8 +9,7 @@ import {
   GameState,
   Player,
   PhaseKind,
-  LetterOriginKind,
-  BlotOriginKind,
+  ItemOriginKind,
   UUID,
 } from '../lib/types'
 import Letter from '../lib/Letter'
@@ -160,7 +159,7 @@ export const GameContextProvider = ({ children }: PropsWithChildren) => {
 
     return randomItems(tierAndBelowLetters, amount).map((letter) => {
       const { name, tier, value } = letter
-      return new Letter({ name, tier, value, origin: LetterOriginKind.Pool })
+      return new Letter({ name, tier, value, origin: ItemOriginKind.Pool })
     })
   }
   function getWellBlots(blots: Blot[], tier: number, amount: number) {
@@ -175,7 +174,7 @@ export const GameContextProvider = ({ children }: PropsWithChildren) => {
         description,
         tier,
         effect,
-        origin: BlotOriginKind.Well,
+        origin: ItemOriginKind.Well,
       })
     })
   }

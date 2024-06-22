@@ -15,6 +15,7 @@ export interface GameConfig {
 
   letterBuyCost: number
   letterSellValue: number
+  blotBuyCost: number
   poolRefreshCost: number
 
   rackCapacity: number
@@ -90,14 +91,15 @@ export interface LetterOptions {
   tier: number
   value: number
   frozen?: boolean
-  origin?: LetterOriginKind
+  origin?: ItemOriginKind
 }
 
 export interface BlotOptions {
   name: string
   tier: number
   description: string
-  origin?: BlotOriginKind
+  frozen?: boolean
+  origin?: ItemOriginKind
   attachedTo?: Letter
   effect: () => void
 }
@@ -147,13 +149,10 @@ export interface GameState {
   getWellBlots: (allBlots: Blot[], tier: number, amount: number) => Blot[]
 }
 
-export enum LetterOriginKind {
+export enum ItemOriginKind {
   Pool = 'POOL',
   Rack = 'RACK',
   Battle = 'BATTLE',
-}
-
-export enum BlotOriginKind {
   Well = 'WELL',
   Letter = 'LETTER',
 }
@@ -161,6 +160,7 @@ export enum BlotOriginKind {
 export enum DroppableKind {
   Pool = 'POOL',
   Rack = 'RACK',
+  Letter = 'LETTER',
 }
 
 export interface BuildPhaseState {
@@ -179,11 +179,13 @@ export interface BuildPhaseState {
   addLetterToRack: (letterId: UUID, overId: UUID) => void
   removeLetterFromRack: (letterId: UUID) => void
   moveLetterInRack: (letterId: UUID, overId: UUID) => void
+  addBlotToLetter: (blotId: UUID, letterID: UUID) => void
+  removeBlotFromLetter: (blotId: UUID) => void
   spendGold: (amount: number) => void
   setLetterOrigins: () => void
   shallowMergeState: (partialState: Partial<BuildPhaseState>) => void
 }
 
 export interface DragAndDropState {
-  draggingLetter: Letter | null
+  draggingItem: Letter | Blot | null
 }

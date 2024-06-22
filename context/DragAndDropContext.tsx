@@ -11,11 +11,12 @@ import {
 import { createPortal } from 'react-dom'
 import {
   DragAndDropState,
-  LetterOriginKind,
+  ItemOriginKind,
   DroppableKind,
   BuildPhaseState,
 } from '../lib/types'
 import Letter from '../lib/Letter'
+import Blot from '../lib/Blot'
 import { GameConfigContext } from './GameConfigContext'
 import { useBuildPhaseContext } from '../context/BuildPhaseContext'
 import {
@@ -35,6 +36,7 @@ import {
   KeyboardSensor,
 } from '@dnd-kit/core'
 import LetterCard from '../components/LetterCard'
+import BlotCard from '../components/BlotCard'
 import { CancelDropArguments } from '@dnd-kit/core/dist/components/DndContext/DndContext'
 
 const DragAndDropContext = createContext<DragAndDropState | undefined>(
@@ -68,19 +70,26 @@ export const DragAndDropContextProvider = ({ children }: Props) => {
 
   const {
     rack,
+    well,
     pool,
     gold,
     addLetterToRack,
     removeLetterFromRack,
     moveLetterInRack,
+    addBlotToLetter,
+    removeBlotFromLetter,
     spendGold,
     setLetterOrigins,
     shallowMergeState,
   } = useBuildPhaseContext()
 
   const [state, dispatch] = useReducer(reducer, {
-    draggingLetter: null,
+    draggingItem: null,
   })
+
+  useEffect(() => {
+    // console.log(state.draggingItem)
+  }, [state.draggingItem])
 
   const [clonedBuildPhaseState, setClonedBuildPhaseState] =
     useState<Partial<BuildPhaseState> | null>(null)
@@ -98,138 +107,181 @@ export const DragAndDropContextProvider = ({ children }: Props) => {
     (args) => {
       const { active, droppableContainers } = args
 
-      const letterId = active?.id
-      const letter = active?.data?.current?.letter
-      const letterOrigin = letter?.origin
-
-      const rackIds = rack.map(({ id }) => id)
+      const activeItem = active.data.current?.item
+      const activeItemOriginKind = active.data.current?.item?.origin
 
       const rackCollisions = pointerWithin({
         ...args,
-        droppableContainers: droppableContainers.filter(
-          ({ id }) => id === DroppableKind.Rack
-        ),
+        droppableContainers: droppableContainers.filter(({ data }) => {
+          return data.current?.droppableKind === DroppableKind.Rack
+        }),
       })
 
       const letterCollisions = closestCenter({
         ...args,
-        droppableContainers: droppableContainers.filter(({ id }) =>
-          rackIds.includes(id)
-        ),
+        droppableContainers: droppableContainers.filter(({ data }) => {
+          return data.current?.droppableKind === DroppableKind.Letter
+        }),
       })
 
       if (
-        letterOrigin === LetterOriginKind.Rack &&
-        rackIds.includes(letterId)
+        activeItemOriginKind === ItemOriginKind.Rack &&
+        activeItem instanceof Letter
       ) {
         return letterCollisions
       }
 
       if (
-        letterOrigin === LetterOriginKind.Pool &&
-        rackCollisions.length > 0 &&
-        rackIds.filter((id) => letterId !== id).length > 0
+        activeItemOriginKind === ItemOriginKind.Pool &&
+        rackCollisions.length > 0
       ) {
         return letterCollisions
       }
 
       return rectIntersection(args)
     },
-    [rack, state.draggingLetter]
+    [rack, well, state.draggingItem]
   )
 
-  function handleDragStart({ active }: DragStartEvent) {
-    const draggingLetter: Letter | undefined = active.data.current?.letter
+  const handleDragStart = useCallback(
+    ({ active }: DragStartEvent) => {
+      const activeItem = active.data.current?.item
 
-    if (draggingLetter === undefined) {
+      if (!(activeItem instanceof Letter || activeItem instanceof Blot)) {
+        return false
+      }
+
+      setClonedBuildPhaseState({ rack, pool, well, gold })
+
+      dispatch({
+        type: ActionKind.SetDraggingItem,
+        payload: activeItem,
+      })
+    },
+    [rack, pool, well, gold]
+  )
+
+  const handleDragCancel = useCallback(
+    ({}: DragCancelEvent) => {
+      if (clonedBuildPhaseState) {
+        shallowMergeState(clonedBuildPhaseState)
+      }
+      setClonedBuildPhaseState(null)
+      dispatch({
+        type: ActionKind.SetDraggingItem,
+        payload: null,
+      })
+    },
+    [clonedBuildPhaseState]
+  )
+
+  const handleDragOver = useCallback(
+    ({ active, over }: DragOverEvent) => {
+      // if (!over) return
+
+      const activeItem = active.data.current?.item
+      const overItemKind = over?.data.current?.droppableKind
+      const activeItemOriginKind = active.data.current?.item?.origin
+      const overItemOriginKind = over?.data.current?.item?.origin
+      const overId = over?.data.current?.item?.id
+      const activeId = active.data.current?.item?.id
+      const rackIds = rack.map(({ id }) => id)
+
+      console.log(overItemKind)
+
+      if (activeItem instanceof Letter) {
+        if (
+          overItemKind !== DroppableKind.Rack ||
+          overItemKind !== DroppableKind.Letter
+        ) {
+          removeLetterFromRack(activeId)
+          // return
+        }
+
+        if (
+          // if the letter is already in the rack OR
+          rackIds.includes(activeId) ||
+          // if the rack is full OR
+          rackIds.length >= rackCapacity ||
+          // if letter is not from the pool
+          activeItemOriginKind !== ItemOriginKind.Pool
+        ) {
+          // do nothing
+          return
+        }
+
+        if (
+          // if over a the rack OR
+          overItemKind === DroppableKind.Rack ||
+          // if over a Letter
+          overItemKind === DroppableKind.Letter
+        ) {
+          addLetterToRack(activeId, overId)
+          return
+        }
+      }
+
+      if (activeItem instanceof Blot) {
+        if (overItemKind !== DroppableKind.Letter) {
+          removeBlotFromLetter(activeId)
+          return
+        }
+
+        if (
+          // if over a letter in the rack
+          overItemKind === DroppableKind.Letter &&
+          overItemOriginKind === ItemOriginKind.Rack
+        ) {
+          // Add blot to letter
+          removeBlotFromLetter(activeId)
+          addBlotToLetter(activeId, overId)
+          return
+        }
+      }
+    },
+    [rack]
+  )
+
+  const handleDragEnd = useCallback(
+    ({ active, over }: DragEndEvent) => {
+      dispatch({
+        type: ActionKind.SetDraggingItem,
+        payload: null,
+      })
+
+      const activeItem = active.data.current?.item
+
+      if (activeItem instanceof Letter) {
+        handleLetterDragEnd({ active, over })
+      }
+
+      if (activeItem instanceof Blot) {
+        handleBlotDragEnd({ active, over })
+      }
+    },
+    [rack]
+  )
+
+  const cancelDrop = useCallback(
+    ({ active }: CancelDropArguments) => {
+      const activeItem = active.data.current?.item
+
+      if (activeItem instanceof Letter) {
+        return cancelLetterDrop({ active })
+      }
+
+      if (activeItem instanceof Letter) {
+        return cancelBlotDrop({ active })
+      }
+
       return false
-    }
+    },
+    [clonedBuildPhaseState]
+  )
 
-    setClonedBuildPhaseState({ rack, pool, gold })
-
-    dispatch({
-      type: ActionKind.SetDraggingLetter,
-      payload: draggingLetter,
-    })
-  }
-
-  function handleDragOver({ active, over }: DragOverEvent) {
-    const overId = over?.id
-    const letterId = active?.id
-
-    const letter = active?.data?.current?.letter
-    const letterOrigin = letter?.origin
-
-    if (letterId === undefined) {
-      return
-    }
-
-    const rackIds = rack.map(({ id }) => id)
-
-    if (
-      letterOrigin === LetterOriginKind.Pool &&
-      rackIds.length >= rackCapacity
-    ) {
-      return
-    }
-
-    if (!overId || overId === DroppableKind.Pool) {
-      removeLetterFromRack(letterId)
-      return
-    }
-
-    if (
-      letterOrigin === LetterOriginKind.Pool &&
-      overId !== letterId &&
-      !rackIds.includes(letterId) &&
-      (overId === DroppableKind.Rack || rackIds.includes(overId))
-    ) {
-      addLetterToRack(letterId, overId)
-      return
-    }
-  }
-
-  function handleDragCancel({}: DragCancelEvent) {
-    if (clonedBuildPhaseState) {
-      shallowMergeState(clonedBuildPhaseState)
-    }
-    setClonedBuildPhaseState(null)
-    dispatch({
-      type: ActionKind.SetDraggingLetter,
-      payload: null,
-    })
-  }
-
-  function handleDragEnd({ active, over }: DragEndEvent) {
-    dispatch({
-      type: ActionKind.SetDraggingLetter,
-      payload: null,
-    })
-
-    const overId = over?.id
-    const letterId = active?.id
-    const letter = active?.data?.current?.letter
-    const letterOrigin = letter?.origin
-    const rackIds = rack.map(({ id }) => id)
-
-    if (
-      overId &&
-      letterOrigin === LetterOriginKind.Pool &&
-      (overId === DroppableKind.Rack || rackIds.includes(overId))
-    ) {
-      spendGold(letterBuyCost)
-    }
-
-    if (overId && (overId === DroppableKind.Rack || rackIds.includes(overId))) {
-      moveLetterInRack(letterId, overId)
-    }
-
-    setLetterOrigins()
-  }
-
-  function cancelDrop({ active }: CancelDropArguments) {
-    const letter = active?.data?.current?.letter
-    const letterOrigin = letter?.origin
+  function cancelLetterDrop({ active }: Pick<CancelDropArguments, 'active'>) {
+    const activeItem = active.data.current?.item
+    const activeItemOrigin = activeItem?.origin
 
     if (
       clonedBuildPhaseState?.gold === undefined ||
@@ -239,12 +291,55 @@ export const DragAndDropContextProvider = ({ children }: Props) => {
     }
 
     if (
-      letterOrigin === LetterOriginKind.Pool &&
+      activeItemOrigin === ItemOriginKind.Pool &&
       (clonedBuildPhaseState.rack.length >= rackCapacity ||
         clonedBuildPhaseState.gold < letterBuyCost)
     ) {
       return true
     }
+
+    return false
+  }
+
+  function handleLetterDragEnd({
+    active,
+    over,
+  }: Pick<DragEndEvent, 'active' | 'over'>) {
+    if (!over) return
+
+    const overId = over.data.current?.item?.id
+    const activeItem = active.data.current?.item
+
+    const rackLetterIds = rack.map(({ id }) => id)
+
+    if (
+      activeItem?.origin === ItemOriginKind.Pool &&
+      (overId === DroppableKind.Rack || rackLetterIds.includes(overId))
+    ) {
+      spendGold(letterBuyCost)
+    }
+
+    if (overId === DroppableKind.Rack || rackLetterIds.includes(overId)) {
+      moveLetterInRack(activeItem?.id, overId)
+    }
+
+    setLetterOrigins()
+  }
+
+  function handleBlotDragEnd({
+    active,
+    over,
+  }: Pick<DragEndEvent, 'active' | 'over'>) {
+    if (!over) return
+
+    // console.log(over)
+
+    return
+  }
+
+  function cancelBlotDrop({ active }: Pick<CancelDropArguments, 'active'>) {
+    const activeItem = active.data.current?.item
+    const activeItemOrigin = activeItem?.origin
 
     return false
   }
@@ -265,9 +360,13 @@ export const DragAndDropContextProvider = ({ children }: Props) => {
         {mounted
           ? createPortal(
               <DragOverlay>
-                {state.draggingLetter ? (
-                  <LetterCard letter={state.draggingLetter} />
-                ) : null}
+                {state.draggingItem instanceof Letter && (
+                  <LetterCard letter={state.draggingItem} />
+                )}
+
+                {state.draggingItem instanceof Blot && (
+                  <BlotCard blot={state.draggingItem} />
+                )}
               </DragOverlay>,
               document.body
             )
@@ -278,14 +377,14 @@ export const DragAndDropContextProvider = ({ children }: Props) => {
 }
 
 enum ActionKind {
-  SetDraggingLetter,
+  SetDraggingItem,
 }
-interface SetDraggingLetterAction {
-  type: ActionKind.SetDraggingLetter
-  payload: Letter | null
+interface SetDraggingItemAction {
+  type: ActionKind.SetDraggingItem
+  payload: Letter | Blot | null
 }
 
-type DragAndDropContextAction = SetDraggingLetterAction
+type DragAndDropContextAction = SetDraggingItemAction
 
 const reducer = (
   state: DragAndDropState,
@@ -294,10 +393,10 @@ const reducer = (
   const { type, payload } = action
 
   switch (type) {
-    case ActionKind.SetDraggingLetter: {
+    case ActionKind.SetDraggingItem: {
       return {
         ...state,
-        draggingLetter: payload,
+        draggingItem: payload,
       }
     }
 

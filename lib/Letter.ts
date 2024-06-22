@@ -2,8 +2,9 @@ import {
   UUID,
   LetterOptions,
   AlphabetCharacter,
-  LetterOriginKind,
+  ItemOriginKind,
 } from '../lib/types'
+import Blot from './Blot'
 import { nanoid } from 'nanoid'
 
 class Letter implements LetterOptions {
@@ -13,21 +14,16 @@ class Letter implements LetterOptions {
   readonly tier: number
   readonly value: number
 
-  frozen?: boolean = false
-  origin?: LetterOriginKind
+  frozen?: boolean
+  origin?: ItemOriginKind
+  blot?: Blot
 
   constructor(options: LetterOptions) {
     this.name = options.name
     this.tier = options.tier
     this.value = options.value
-    this.frozen = options.frozen
+    this.frozen = options.frozen ?? false
     this.origin = options.origin
-
-    // this.doSomething()
-  }
-
-  doSomething(): void {
-    console.log('something')
   }
 }
 

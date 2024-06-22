@@ -8,7 +8,7 @@ type Ref = HTMLDivElement
 
 const BlotCard = forwardRef<Ref, BlotCardProps & ComponentPropsWithRef<'div'>>(
   (props, ref) => {
-    const { blot, dragging, selectable, freezable, ...rest } = props
+    const { blot, className, dragging, selectable, freezable, ...rest } = props
 
     const { name } = blot
 
@@ -19,7 +19,7 @@ const BlotCard = forwardRef<Ref, BlotCardProps & ComponentPropsWithRef<'div'>>(
     const styles = css(baseStyles, dynamicStyles)
 
     return (
-      <div ref={ref} className={styles()} {...rest}>
+      <div ref={ref} className={`${styles()} ${className}`} {...rest}>
         {/* <div className="name">{name}</div> */}
       </div>
     )

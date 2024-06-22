@@ -7,6 +7,7 @@ import LetterList from './LetterList'
 import BlotList from './BlotList'
 import BlotCard from './BlotCard'
 import { useDroppable } from '@dnd-kit/core'
+import { DraggableBlotCard } from './DraggableBlotCard'
 
 type Props = {
   blots: Blot[]
@@ -24,7 +25,13 @@ const Well = ({ blots, amount }: Props) => {
     <div className={styles()}>
       <BlotList capacity={amount}>
         {wellBlots.map((blot) => (
-          <BlotCard key={blot.id} blot={blot} />
+          <DraggableBlotCard
+            id={blot.id}
+            key={blot.id}
+            blot={blot}
+            selectable
+            freezable
+          />
         ))}
       </BlotList>
     </div>

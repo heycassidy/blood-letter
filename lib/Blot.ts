@@ -1,6 +1,6 @@
 import { nanoid } from 'nanoid'
 
-import { UUID, BlotOptions, BlotOriginKind } from './types'
+import { UUID, BlotOptions, ItemOriginKind } from './types'
 import Letter from './Letter'
 
 class Blot implements BlotOptions {
@@ -10,7 +10,8 @@ class Blot implements BlotOptions {
   readonly tier: number
   readonly description: string
 
-  origin?: BlotOriginKind
+  frozen?: boolean = false
+  origin?: ItemOriginKind
 
   attachedTo?: Letter
   effect: () => void
@@ -19,6 +20,8 @@ class Blot implements BlotOptions {
     this.name = options.name
     this.tier = options.tier
     this.description = options.description
+    this.frozen = options.frozen
+    this.origin = options.origin
 
     this.attachedTo = options.attachedTo
     this.effect = options.effect

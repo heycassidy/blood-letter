@@ -1,17 +1,17 @@
 import { useDraggable } from '@dnd-kit/core'
-import { LetterCardProps, UUID } from '../lib/types'
-import LetterCard from './LetterCard'
+import { BlotCardProps, UUID } from '../lib/types'
+import BlotCard from './BlotCard'
 
 interface Props {
   id: UUID
 }
 
-export const DraggableLetterCard = (props: Props & LetterCardProps) => {
-  const { letter, id, ...rest } = props
+export const DraggableBlotCard = (props: Props & BlotCardProps) => {
+  const { blot, id, ...rest } = props
 
   const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
     id,
-    data: { item: letter },
+    data: { item: blot },
   })
 
   const styles = {
@@ -20,12 +20,12 @@ export const DraggableLetterCard = (props: Props & LetterCardProps) => {
   }
 
   return (
-    <LetterCard
+    <BlotCard
       ref={setNodeRef}
       {...attributes}
       {...listeners}
       style={styles}
-      letter={letter}
+      blot={blot}
       dragging={isDragging}
       {...rest}
     />

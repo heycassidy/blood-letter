@@ -8,11 +8,12 @@ import {
 import {
   BuildPhaseState,
   Player,
-  LetterOriginKind,
+  ItemOriginKind,
   DroppableKind,
   UUID,
 } from '../lib/types'
 import Letter from '../lib/Letter'
+import Blot from '../lib/Blot'
 import { wordList } from '../lib/words'
 import { GameConfigContext } from './GameConfigContext'
 import { useGameContext } from '../context/GameContext'
@@ -38,6 +39,7 @@ interface Props {
 export const BuildPhaseContextProvider = ({ children }: Props) => {
   const {
     alphabet,
+    allBlots,
     rackCapacity,
     letterBuyCost,
     letterSellValue,
@@ -50,8 +52,11 @@ export const BuildPhaseContextProvider = ({ children }: Props) => {
     activePlayer,
     updatePlayer,
     getPoolLetters,
+    getWellBlots,
     poolTier,
     poolCapacity,
+    wellTier,
+    wellCapacity,
   } = useGameContext()
 
   const initState = (player: Player): BuildPhaseState => {
@@ -71,6 +76,8 @@ export const BuildPhaseContextProvider = ({ children }: Props) => {
       addLetterToRack,
       removeLetterFromRack,
       moveLetterInRack,
+      addBlotToLetter,
+      removeBlotFromLetter,
       spendGold,
       setLetterOrigins,
       shallowMergeState,
@@ -104,7 +111,7 @@ export const BuildPhaseContextProvider = ({ children }: Props) => {
       wordBonus,
       roundScore,
     })
-  }, [state.pool, state.rack, state.gold])
+  }, [state.pool, state.well, state.rack, state.gold])
 
   useEffect(() => {
     if (gameCount > 0) {
@@ -120,10 +127,15 @@ export const BuildPhaseContextProvider = ({ children }: Props) => {
       type: ActionKind.RecallPlayer,
       payload: {
         newRandomLetters: getPoolLetters(alphabet, poolTier, poolCapacity),
+        newRandomBlots: getWellBlots(allBlots, wellTier, wellCapacity),
         player: activePlayer,
       },
     })
   }, [activePlayer.id])
+
+  useEffect(() => {
+    // console.log(state.rack)
+  }, [state.rack])
 
   return (
     <BuildPhaseContext.Provider value={state}>
@@ -182,6 +194,18 @@ export const BuildPhaseContextProvider = ({ children }: Props) => {
       payload: { letterId, overId },
     })
   }
+  function addBlotToLetter(blotId: UUID, letterId: UUID): void {
+    dispatch({
+      type: ActionKind.AddBlotToLetter,
+      payload: { blotId, letterId },
+    })
+  }
+  function removeBlotFromLetter(blotId: UUID): void {
+    dispatch({
+      type: ActionKind.RemoveBlotFromLetter,
+      payload: { blotId },
+    })
+  }
   function spendGold(amount: number): void {
     dispatch({
       type: ActionKind.SpendGold,
@@ -211,6 +235,8 @@ enum ActionKind {
   SelectLetter,
   AddLetterToRack,
   MoveLetterInRack,
+  AddBlotToLetter,
+  RemoveBlotFromLetter,
   SetLetterOrigins,
   RemoveLetterFromRack,
   RefreshPool,
@@ -256,6 +282,14 @@ interface MoveLetterInRackAction {
   type: ActionKind.MoveLetterInRack
   payload: { overId: UUID; letterId: UUID }
 }
+interface AddBlotToLetterAction {
+  type: ActionKind.AddBlotToLetter
+  payload: { blotId: UUID; letterId: UUID }
+}
+interface RemoveBlotFromLetterAction {
+  type: ActionKind.RemoveBlotFromLetter
+  payload: { blotId: UUID }
+}
 interface SetLetterOriginsAction {
   type: ActionKind.SetLetterOrigins
   payload?: undefined
@@ -266,7 +300,11 @@ interface RefreshPoolAction {
 }
 interface RecallPlayerAction {
   type: ActionKind.RecallPlayer
-  payload: { player: Player; newRandomLetters: Letter[] }
+  payload: {
+    player: Player
+    newRandomLetters: Letter[]
+    newRandomBlots: Blot[]
+  }
 }
 
 type BuildPhaseContextAction =
@@ -281,6 +319,8 @@ type BuildPhaseContextAction =
   | RemoveLetterFromRackAction
   | RefreshPoolAction
   | MoveLetterInRackAction
+  | AddBlotToLetterAction
+  | RemoveBlotFromLetterAction
   | SetLetterOriginsAction
   | RecallPlayerAction
 
@@ -312,14 +352,10 @@ const reducer = (
 
       const newRack = [...state.rack]
 
-      newRack.splice(
-        insertAt,
-        0,
-        new Letter({
-          ...letter,
-          origin: LetterOriginKind.Rack,
-        })
-      )
+      const newLetter = letter
+      letter.origin = ItemOriginKind.Rack
+
+      newRack.splice(insertAt, 0, newLetter)
 
       return {
         ...state,
@@ -341,13 +377,19 @@ const reducer = (
     }
 
     case ActionKind.ToggleFreeze: {
+      const newPool = [...state.pool]
+
+      newPool.forEach((letter) => {
+        if (letter.id === payload.letter.id) {
+          letter.frozen = true
+        }
+      })
+
+      console.log(newPool)
+
       return {
         ...state,
-        pool: state.pool.map((letter) =>
-          letter.id === payload.letter.id
-            ? new Letter({ ...letter, frozen: !letter.frozen })
-            : letter
-        ),
+        pool: newPool,
         selectedLetter: null,
       }
     }
@@ -438,23 +480,58 @@ const reducer = (
     }
 
     case ActionKind.SetLetterOrigins: {
+      const newRack = [...state.rack]
+      const newPool = [...state.pool]
+
+      newRack.forEach((letter) => {
+        letter.origin = ItemOriginKind.Rack
+      })
+      newPool.forEach((letter) => {
+        letter.origin = ItemOriginKind.Pool
+      })
+
       return {
         ...state,
-        rack: state.rack.map(
-          (letter) =>
-            new Letter({
-              ...letter,
-              origin: LetterOriginKind.Rack,
-            })
-        ),
-        pool: state.pool.map(
-          (letter) =>
-            new Letter({
-              ...letter,
-              origin: LetterOriginKind.Pool,
-            })
-        ),
+        rack: newRack,
+        pool: newPool,
       }
+    }
+
+    case ActionKind.AddBlotToLetter: {
+      const blots = [...state.well]
+      const blot = blots.find(({ id }) => id === payload.blotId)
+
+      if (blot === undefined) return state
+
+      const newRack = [...state.rack]
+
+      newRack.forEach((letter) => {
+        if (letter.id === payload.letterId) {
+          letter.blot = blot
+        }
+      })
+
+      return {
+        ...state,
+        rack: newRack,
+      }
+    }
+
+    case ActionKind.RemoveBlotFromLetter: {
+      const blots = [...state.well]
+      const blot = blots.find(({ id }) => id === payload.blotId)
+
+      if (blot === undefined) return state
+
+      const newRack = [...state.rack]
+
+      newRack.forEach((letter) => {
+        if (letter?.blot?.id === payload.blotId) {
+          letter.blot = undefined
+        }
+      })
+
+      return { ...state, rack: newRack }
     }
 
     case ActionKind.RefreshPool: {
@@ -470,12 +547,15 @@ const reducer = (
     }
 
     case ActionKind.RecallPlayer: {
-      const { pool, rack, gold } = payload.player
+      const { pool, well, rack, gold } = payload.player
 
       return {
         ...state,
         pool: payload.newRandomLetters.map((letter, index) => {
           return pool[index]?.frozen ? state.pool[index] : letter
+        }),
+        well: payload.newRandomBlots.map((blot, index) => {
+          return well[index]?.frozen ? state.well[index] : blot
         }),
         rack,
         gold,

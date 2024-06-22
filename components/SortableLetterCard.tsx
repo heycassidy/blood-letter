@@ -1,6 +1,6 @@
 import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
-import { LetterCardProps, UUID } from '../lib/types'
+import { DroppableKind, LetterCardProps, UUID } from '../lib/types'
 import LetterCard from './LetterCard'
 
 interface Props {
@@ -19,7 +19,7 @@ export const SortableLetterCard = (props: Props & LetterCardProps) => {
     isDragging,
   } = useSortable({
     id,
-    data: { letter, origin: letter.origin },
+    data: { item: letter, droppableKind: DroppableKind.Letter },
   })
 
   const styles = {

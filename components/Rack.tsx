@@ -18,6 +18,9 @@ type Props = {
 const Rack = ({ letters = [], capacity }: Props) => {
   const { setNodeRef } = useDroppable({
     id: DroppableKind.Rack,
+    data: {
+      droppableKind: DroppableKind.Rack,
+    },
   })
 
   const [rackLetters, setRackLetters] = useState<Letter[]>(letters)
