@@ -98,7 +98,7 @@ export const BuildPhaseContextProvider = ({ children }: Props) => {
 
       buyLetter,
       sellLetter,
-      freezeLetter,
+      toggleLetterFreeze,
       selectLetter,
       refreshPool,
     }
@@ -344,7 +344,7 @@ export const BuildPhaseContextProvider = ({ children }: Props) => {
     })
   }
 
-  function freezeLetter(letter: Letter): void {
+  function toggleLetterFreeze(letter: Letter): void {
     dispatch({
       type: ActionKind.ToggleFreeze,
       payload: { letter },

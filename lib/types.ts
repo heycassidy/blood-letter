@@ -136,7 +136,7 @@ export interface BuildPhaseState {
 
   buyLetter: (letter: Letter) => void
   sellLetter: (letter: Letter) => void
-  freezeLetter: (letter: Letter) => void
+  toggleLetterFreeze: (letter: Letter) => void
   selectLetter: (letter: Letter | null) => void
   refreshPool: () => void
 }

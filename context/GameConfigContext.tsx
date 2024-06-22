@@ -54,6 +54,7 @@ export const GameConfigContext = createContext<GameConfig>({
 
   wordBonusComputation: (letters) => letters.length ** 2,
 
+  // round : pool tier
   poolTierMap: {
     1: 1,
     2: 1,
@@ -67,6 +68,8 @@ export const GameConfigContext = createContext<GameConfig>({
     10: 5,
     max: 6,
   },
+
+  // round : pool capacity
   poolCapacityMap: {
     1: 3,
     2: 3,
@@ -80,6 +83,8 @@ export const GameConfigContext = createContext<GameConfig>({
     10: 6,
     max: 6,
   },
+
+  // round : health cost for losing
   healthCostMap: {
     1: 1,
     2: 1,

@@ -20,7 +20,7 @@ const BuildPhase = () => {
     refreshPool,
     buyLetter,
     sellLetter,
-    freezeLetter,
+    toggleLetterFreeze,
   } = useBuildPhaseContext()
 
   const highestPoolTier = getPoolTier(round)
@@ -65,7 +65,7 @@ const BuildPhase = () => {
               )}
 
             {selectedLetter.origin === LetterOriginKind.Pool && (
-              <button onClick={() => freezeLetter(selectedLetter)}>
+              <button onClick={() => toggleLetterFreeze(selectedLetter)}>
                 {selectedLetter.frozen ? 'Unfreeze' : 'Freeze'}
               </button>
             )}
