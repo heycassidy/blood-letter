@@ -1,4 +1,5 @@
-import { useLayoutEffect, useState } from 'react'
+import { useState } from 'react'
+import { useIsomorphicLayoutEffect } from '../hooks/useIsomorphicLayoutEffect'
 import { DroppableKind } from '../lib/types'
 import Letter from '../lib/Letter'
 import { css } from '../stitches.config'
@@ -22,7 +23,7 @@ const Rack = ({ letters = [], capacity }: Props) => {
 
   const [rackLetters, setRackLetters] = useState<Letter[]>(letters)
 
-  useLayoutEffect(() => {
+  useIsomorphicLayoutEffect(() => {
     setRackLetters(letters)
   }, [letters])
 

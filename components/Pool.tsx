@@ -1,4 +1,5 @@
-import { useLayoutEffect, useState } from 'react'
+import { useState } from 'react'
+import { useIsomorphicLayoutEffect } from '../hooks/useIsomorphicLayoutEffect'
 import { DroppableKind } from '../lib/types'
 import Letter from '../lib/Letter'
 import { css } from '../stitches.config'
@@ -18,7 +19,7 @@ const Pool = ({ letters = [], amount }: Props) => {
 
   const [poolLetters, setPoolLetters] = useState<Letter[]>([])
 
-  useLayoutEffect(() => {
+  useIsomorphicLayoutEffect(() => {
     setPoolLetters(letters)
   }, [letters])
 
