@@ -99,6 +99,7 @@ export const BuildPhaseContextProvider = ({ children }: Props) => {
       buyLetter,
       sellLetter,
       toggleLetterFreeze,
+      moveLetterToLetter,
       selectLetter,
       refreshPool,
     }
@@ -284,8 +285,8 @@ export const BuildPhaseContextProvider = ({ children }: Props) => {
     })
 
     const overId = over?.id
-    const letterId = active?.id
     const letter = active?.data?.current?.letter
+    const overLetter = over?.data?.current?.letter
     const letterOrigin = letter?.origin
     const rackIds = state.rack.map(({ id }) => id)
 
@@ -300,11 +301,13 @@ export const BuildPhaseContextProvider = ({ children }: Props) => {
       })
     }
 
-    if (overId && (overId === DroppableKind.Rack || rackIds.includes(overId))) {
-      dispatch({
-        type: ActionKind.DragToSortRack,
-        payload: { overId, letterId },
-      })
+    if (
+      overId &&
+      (overId === DroppableKind.Rack || rackIds.includes(overId)) &&
+      letter &&
+      overLetter
+    ) {
+      moveLetterToLetter(letter, overLetter)
     }
 
     dispatch({
@@ -341,6 +344,13 @@ export const BuildPhaseContextProvider = ({ children }: Props) => {
     dispatch({
       type: ActionKind.Sell,
       payload: { letter, refund: letterSellValue },
+    })
+  }
+
+  function moveLetterToLetter(letter: Letter, overLetter: Letter): void {
+    dispatch({
+      type: ActionKind.MoveLetterInRack,
+      payload: { letterId: letter.id, overId: overLetter.id },
     })
   }
 
@@ -405,7 +415,7 @@ enum ActionKind {
   SelectLetter,
   SetDraggingLetter,
   DragLetterToRack,
-  DragToSortRack,
+  MoveLetterInRack,
   SetLetterOrigins,
   RemoveLetterFromRack,
   RefreshPool,
@@ -447,8 +457,8 @@ interface RemoveLetterFromRack {
   type: ActionKind.RemoveLetterFromRack
   payload: { letterId: UUID }
 }
-interface DragToSortRackAction {
-  type: ActionKind.DragToSortRack
+interface MoveLetterInRackAction {
+  type: ActionKind.MoveLetterInRack
   payload: { overId: UUID; letterId: UUID }
 }
 interface SetLetterOrigins {
@@ -475,7 +485,7 @@ type BuildPhaseContextAction =
   | DragLetterToRack
   | RemoveLetterFromRack
   | RefreshPoolAction
-  | DragToSortRackAction
+  | MoveLetterInRackAction
   | SetLetterOrigins
   | RecallPlayerAction
 
@@ -593,7 +603,7 @@ const reducer = (
       }
     }
 
-    case ActionKind.DragToSortRack: {
+    case ActionKind.MoveLetterInRack: {
       const { overId, letterId } = payload
 
       const rackLetters = state.rack
