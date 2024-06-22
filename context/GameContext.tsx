@@ -11,6 +11,8 @@ import {
   PhaseKind,
   LetterOriginKind,
   UUID,
+  PlayerClassificationKind,
+  GameModeKind,
 } from '../lib/types'
 import Letter from '../lib/Letter'
 import { GameConfigContext } from './GameConfigContext'
@@ -47,30 +49,33 @@ export const GameContextProvider = ({ children }: PropsWithChildren) => {
     healthCostMap,
     healthToLose,
     battleVictoriesToWin,
+    gameMode,
   } = useContext(GameConfigContext)
 
   const poolAmount = getPoolCapacity(initialRound)
   const poolTier = getPoolTier(initialRound)
 
-  const generatePlayer = (name: string) => ({
-    name,
-    id: nanoid() as UUID,
-    health: initialHealth,
-    gold: initialGold,
-    rack: [],
-    rackWord: '',
-    rackScore: 0,
-    wordBonus: 0,
-    roundScore: 0,
-    pool: getPoolLetters(alphabet, poolTier, poolAmount),
-    completedTurn: false,
-    battleVictories: 0,
-  })
+  const [state, dispatch] = useReducer(reducer, null, initState)
 
-  const initState = (): GameState => {
+  function restartGame(): void {
+    dispatch({
+      type: ActionKind.RestartGame,
+      payload: { state: initState() },
+    })
+  }
+
+  function initState(): GameState {
     const players = new Map(
-      getPlayerNames(numberOfPlayers).map((p) => {
-        const player = generatePlayer(p)
+      Array.from({ length: numberOfPlayers }).map((_, i) => {
+        let player
+        if (gameMode === GameModeKind.AgainstComputer && i !== 0) {
+          player = generatePlayer(
+            `Player ${i + 1} (computer)`,
+            PlayerClassificationKind.Computer
+          )
+        } else {
+          player = generatePlayer(`Player ${i + 1}`)
+        }
         return [player.id, player]
       })
     )
@@ -100,14 +105,27 @@ export const GameContextProvider = ({ children }: PropsWithChildren) => {
     }
   }
 
-  const [state, dispatch] = useReducer(reducer, null, initState)
-
-  function restartGame(): void {
-    dispatch({
-      type: ActionKind.RestartGame,
-      payload: { state: initState() },
-    })
+  function generatePlayer(
+    name: string,
+    playerClassification: PlayerClassificationKind = PlayerClassificationKind.Human
+  ): Player {
+    return {
+      name,
+      id: nanoid() as UUID,
+      health: initialHealth,
+      gold: initialGold,
+      rack: [],
+      rackWord: '',
+      rackScore: 0,
+      wordBonus: 0,
+      roundScore: 0,
+      pool: getPoolLetters(alphabet, poolTier, poolAmount),
+      completedTurn: false,
+      battleVictories: 0,
+      playerClassification,
+    }
   }
+
   function updatePlayer(id: UUID, player: Partial<Player>): void {
     dispatch({
       type: ActionKind.UpdatePlayer,
@@ -117,22 +135,26 @@ export const GameContextProvider = ({ children }: PropsWithChildren) => {
       },
     })
   }
+
   function setActivePlayer(id: UUID): void {
     dispatch({
       type: ActionKind.SetActivePlayer,
       payload: { id },
     })
   }
+
   function togglePlayer(): void {
     dispatch({
       type: ActionKind.ToggleActivePlayer,
     })
   }
+
   function togglePhase(): void {
     dispatch({
       type: ActionKind.TogglePhase,
     })
   }
+
   function incrementRound(): void {
     dispatch({
       type: ActionKind.IncrementRound,

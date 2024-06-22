@@ -1,4 +1,4 @@
-import { PhaseKind, GameConfig } from '../lib/types'
+import { PhaseKind, GameConfig, GameModeKind } from '../lib/types'
 import Letter from '../lib/Letter'
 import { createContext } from 'react'
 
@@ -45,6 +45,7 @@ export const GameConfigContext = createContext<GameConfig>({
   healthToLose: 0,
   battleVictoriesToWin: 10,
   numberOfPlayers: 2,
+  gameMode: GameModeKind.AgainstComputer,
 
   letterBuyCost: 3,
   letterSellValue: 2,

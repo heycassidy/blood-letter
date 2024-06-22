@@ -9,6 +9,7 @@ export interface GameConfig {
   healthToLose: number
   battleVictoriesToWin: number
   numberOfPlayers: number
+  gameMode: GameModeKind
 
   letterBuyCost: number
   letterSellValue: number
@@ -38,11 +39,22 @@ export interface Player {
   roundScore: number
   completedTurn: boolean
   battleVictories: number
+  playerClassification: PlayerClassificationKind
 }
 
 export enum PhaseKind {
   Build = 'BUILD',
   Battle = 'BATTLE',
+}
+
+export enum PlayerClassificationKind {
+  Human = 'HUMAN',
+  Computer = 'COMPUTER',
+}
+
+export enum GameModeKind {
+  PassToPlay = 'PASS_TO_PLAY',
+  AgainstComputer = 'AGAINST_COMPUTER',
 }
 
 export type AlphabetCharacter =
