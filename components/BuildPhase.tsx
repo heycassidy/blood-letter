@@ -11,7 +11,7 @@ import { LetterOriginKind } from '../lib/types'
 const BuildPhase = () => {
   const { rackCapacity, letterBuyCost, letterSellValue, poolRefreshCost } =
     useContext(GameConfigContext)
-  const { round, activePlayer, updatePlayer, getPoolTier, getPoolCapacity } =
+  const { round, activePlayer, endTurn, getPoolTier, getPoolCapacity } =
     useGameContext()
   const {
     rack,
@@ -78,14 +78,7 @@ const BuildPhase = () => {
           </>
         )}
 
-        <button
-          style={{ marginLeft: 'auto' }}
-          onClick={() => {
-            updatePlayer(activePlayer.id, {
-              completedTurn: true,
-            })
-          }}
-        >
+        <button style={{ marginLeft: 'auto' }} onClick={endTurn}>
           End Turn
         </button>
       </div>

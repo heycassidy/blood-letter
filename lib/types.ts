@@ -37,7 +37,6 @@ export interface Player {
   rackScore: number
   wordBonus: number
   roundScore: number
-  completedTurn: boolean
   battleVictories: number
   playerClassification: PlayerClassificationKind
 }
@@ -109,15 +108,15 @@ export interface GameState {
   activePlayer: Player
   round: number
   phase: PhaseKind
+  playersWhoCompletedRound: Player[]
   battleWinner: Player | undefined | false
   gameOver: boolean
   gameWinner: Player | undefined
   gameCount: number
 
   updatePlayer: (id: UUID, player: Partial<Player>) => void
-  setActivePlayer: (id: UUID) => void
-  togglePlayer: () => void
   togglePhase: () => void
+  endTurn: () => void
   incrementRound: () => void
   restartGame: () => void
 

@@ -85,14 +85,14 @@ export const GameContextProvider = ({ children }: PropsWithChildren) => {
       activePlayer: [...players.values()][0],
       round: initialRound,
       phase: initialPhase,
+      playersWhoCompletedRound: [],
       battleWinner: undefined,
       gameOver: false,
       gameWinner: undefined,
       gameCount: 0,
 
       updatePlayer,
-      setActivePlayer,
-      togglePlayer,
+      endTurn,
       togglePhase,
       incrementRound,
       restartGame,
@@ -120,7 +120,6 @@ export const GameContextProvider = ({ children }: PropsWithChildren) => {
       wordBonus: 0,
       roundScore: 0,
       pool: getPoolLetters(alphabet, poolTier, poolAmount),
-      completedTurn: false,
       battleVictories: 0,
       playerClassification,
     }
@@ -136,16 +135,9 @@ export const GameContextProvider = ({ children }: PropsWithChildren) => {
     })
   }
 
-  function setActivePlayer(id: UUID): void {
+  function endTurn(): void {
     dispatch({
-      type: ActionKind.SetActivePlayer,
-      payload: { id },
-    })
-  }
-
-  function togglePlayer(): void {
-    dispatch({
-      type: ActionKind.ToggleActivePlayer,
+      type: ActionKind.EndTurn,
     })
   }
 
@@ -162,11 +154,6 @@ export const GameContextProvider = ({ children }: PropsWithChildren) => {
         gold: initialGold,
       },
     })
-  }
-
-  function getPlayerNames(numberOfPlayers: number) {
-    // TODO: Allow Players to choose their name
-    return [...Array(numberOfPlayers)].map((_, i) => `Player ${i + 1}`)
   }
 
   function getPoolLetters(letters: Letter[], tier: number, amount: number) {
@@ -193,18 +180,12 @@ export const GameContextProvider = ({ children }: PropsWithChildren) => {
     if (state.phase === PhaseKind.Build) {
       const players = Array.from(state.players.values())
 
-      if (players.every((p) => p.completedTurn)) {
+      if (state.playersWhoCompletedRound.length === players.length) {
         dispatch({
           type: ActionKind.SetPhase,
           payload: PhaseKind.Battle,
         })
         return
-      }
-
-      if (state.activePlayer.completedTurn) {
-        dispatch({
-          type: ActionKind.ToggleActivePlayer,
-        })
       }
     }
   }, [state.activePlayer])
@@ -250,8 +231,7 @@ export const GameContextProvider = ({ children }: PropsWithChildren) => {
 enum ActionKind {
   RestartGame,
   UpdatePlayer,
-  SetActivePlayer,
-  ToggleActivePlayer,
+  EndTurn,
   TogglePhase,
   SetPhase,
   SetBattleResult,
@@ -266,12 +246,8 @@ interface UpdatePlayerAction {
   type: ActionKind.UpdatePlayer
   payload: { id: UUID; player: Partial<Player> }
 }
-interface SetActivePlayerAction {
-  type: ActionKind.SetActivePlayer
-  payload: { id: UUID }
-}
-interface ToggleActivePlayerAction {
-  type: ActionKind.ToggleActivePlayer
+interface EndTurnAction {
+  type: ActionKind.EndTurn
   payload?: null
 }
 interface TogglePhaseAction {
@@ -297,8 +273,7 @@ interface SetGameResultAction {
 type GameContextAction =
   | RestartGameAction
   | UpdatePlayerAction
-  | SetActivePlayerAction
-  | ToggleActivePlayerAction
+  | EndTurnAction
   | TogglePhaseAction
   | SetPhaseAction
   | SetBattleResultAction
@@ -313,36 +288,6 @@ const reducer = (state: GameState, action: GameContextAction): GameState => {
       return {
         ...payload.state,
         gameCount: state.gameCount + 1,
-      }
-    }
-
-    case ActionKind.SetActivePlayer: {
-      const player = state.players.get(payload.id)
-
-      console.log(state.players, player)
-
-      if (player === undefined) return state
-
-      return {
-        ...state,
-        activePlayer: player,
-      }
-    }
-
-    case ActionKind.ToggleActivePlayer: {
-      const { players, activePlayer } = state
-
-      const nextId = cyclicalNext(Array.from(players.keys()), activePlayer.id)
-
-      if (typeof nextId !== 'string') return state
-
-      const player = state.players.get(nextId)
-
-      if (player === undefined) return state
-
-      return {
-        ...state,
-        activePlayer: player,
       }
     }
 
@@ -390,6 +335,25 @@ const reducer = (state: GameState, action: GameContextAction): GameState => {
       }
     }
 
+    case ActionKind.EndTurn: {
+      const players = new Map(state.players) // must clone Map
+      const { activePlayer } = state
+
+      const nextId = cyclicalNext(Array.from(players.keys()), activePlayer.id)
+      const nextPlayer = players.get(nextId)
+
+      if (nextPlayer === undefined) return state
+
+      return {
+        ...state,
+        playersWhoCompletedRound: [
+          ...state.playersWhoCompletedRound,
+          activePlayer,
+        ],
+        activePlayer: nextPlayer,
+      }
+    }
+
     case ActionKind.UpdatePlayer: {
       const players = new Map(state.players) // must clone Map
       const player = players.get(payload.id)
@@ -416,7 +380,6 @@ const reducer = (state: GameState, action: GameContextAction): GameState => {
         players.set(player.id, {
           ...player,
           gold: payload.gold,
-          completedTurn: false,
         })
       })
 
@@ -426,6 +389,7 @@ const reducer = (state: GameState, action: GameContextAction): GameState => {
         phase: PhaseKind.Build,
         players,
         activePlayer: [...players.values()][0],
+        playersWhoCompletedRound: [],
       }
     }
 
