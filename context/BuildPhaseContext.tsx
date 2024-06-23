@@ -77,7 +77,6 @@ export const BuildPhaseContextProvider = ({ children }: Props) => {
 
   const {
     round,
-    gameCount,
     activePlayer,
     updatePlayer,
     getPoolTier,
@@ -143,15 +142,6 @@ export const BuildPhaseContextProvider = ({ children }: Props) => {
       roundScore,
     })
   }, [state.pool, state.rack, state.gold])
-
-  useEffect(() => {
-    if (gameCount > 0) {
-      dispatch({
-        type: ActionKind.Reset,
-        payload: { state: initState(activePlayer) },
-      })
-    }
-  }, [gameCount])
 
   useEffect(() => {
     dispatch({
