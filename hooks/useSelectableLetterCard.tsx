@@ -1,4 +1,3 @@
-import { useState, useEffect } from 'react'
 import { useBuildPhaseContext } from '../context/BuildPhaseContext'
 import Letter from '../lib/Letter'
 
@@ -8,11 +7,8 @@ const useSelectableLetterCard = (letter: Letter, enabled?: boolean) => {
   }
 
   const { selectedLetter, selectLetter } = useBuildPhaseContext()
-  const [selected, setSelected] = useState(false)
 
-  useEffect(() => {
-    setSelected(selectedLetter?.id === letter.id)
-  }, [selectedLetter])
+  const selected = selectedLetter?.id === letter.id
 
   let styles = {}
 

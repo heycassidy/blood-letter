@@ -1,4 +1,3 @@
-import { useState, useEffect } from 'react'
 import Letter from '../lib/Letter'
 
 const useFreezableLetterCard = (letter: Letter, enabled?: boolean) => {
@@ -6,15 +5,9 @@ const useFreezableLetterCard = (letter: Letter, enabled?: boolean) => {
     return [{}, {}]
   }
 
-  const [frozen, setFrozen] = useState(false)
-
-  useEffect(() => {
-    setFrozen(!!letter.frozen)
-  }, [letter])
-
   let styles = {}
 
-  if (frozen) {
+  if (letter.frozen) {
     styles = {
       color: '$blue750',
       backgroundColor: '$blue50',

@@ -1,10 +1,4 @@
-import {
-  PropsWithChildren,
-  createContext,
-  useContext,
-  useReducer,
-  useEffect,
-} from 'react'
+import { PropsWithChildren, createContext, useContext, useReducer } from 'react'
 import {
   GameState,
   Player,
@@ -138,6 +132,11 @@ export const GameContextProvider = ({ children }: PropsWithChildren) => {
   function endTurn(): void {
     dispatch({
       type: ActionKind.EndTurn,
+      payload: {
+        healthCost: getHealthCost(state.round),
+        battleVictoriesToWin,
+        healthToLose,
+      },
     })
   }
 
@@ -166,64 +165,18 @@ export const GameContextProvider = ({ children }: PropsWithChildren) => {
       return new Letter({ name, tier, value, origin: LetterOriginKind.Pool })
     })
   }
+
   function getPoolTier(round: number) {
     return getFromNumericMapWithMax(poolTierMap, round)
   }
+
   function getPoolCapacity(round: number) {
     return getFromNumericMapWithMax(poolCapacityMap, round)
   }
+
   function getHealthCost(round: number) {
     return getFromNumericMapWithMax(healthCostMap, round)
   }
-
-  useEffect(() => {
-    if (state.phase === PhaseKind.Build) {
-      const players = Array.from(state.players.values())
-
-      if (state.playersWhoCompletedRound.length === players.length) {
-        dispatch({
-          type: ActionKind.SetPhase,
-          payload: PhaseKind.Battle,
-        })
-        return
-      }
-    }
-  }, [state.activePlayer])
-
-  useEffect(() => {
-    const players = [...state.players.values()]
-    const isDraw = players.every((p) => p.roundScore === players[0].roundScore)
-    const winner = players.reduce((p, c) =>
-      p.roundScore > c.roundScore ? p : c
-    )
-    const losers = players.filter((p) => p !== winner)
-
-    if (state.phase === PhaseKind.Battle) {
-      dispatch({
-        type: ActionKind.SetBattleResult,
-        payload: {
-          winner: isDraw ? false : winner,
-          losers: isDraw ? [] : losers,
-          healthCost: getHealthCost(state.round),
-        },
-      })
-    }
-
-    if (state.phase === PhaseKind.Build) {
-      if (
-        players.some(
-          (player) =>
-            player.health <= healthToLose ||
-            player.battleVictories >= battleVictoriesToWin
-        )
-      ) {
-        dispatch({
-          type: ActionKind.SetGameResult,
-          payload: { winner },
-        })
-      }
-    }
-  }, [state.phase])
 
   return <GameContext.Provider value={state}>{children}</GameContext.Provider>
 }
@@ -248,7 +201,11 @@ interface UpdatePlayerAction {
 }
 interface EndTurnAction {
   type: ActionKind.EndTurn
-  payload?: null
+  payload: {
+    healthCost: number
+    healthToLose: number
+    battleVictoriesToWin: number
+  }
 }
 interface TogglePhaseAction {
   type: ActionKind.TogglePhase
@@ -336,16 +293,71 @@ const reducer = (state: GameState, action: GameContextAction): GameState => {
     }
 
     case ActionKind.EndTurn: {
+      const { healthCost, healthToLose, battleVictoriesToWin } = payload
+
       const players = new Map(state.players) // must clone Map
+      const playersArr = [...players.values()]
+      const playerIds = [...players.keys()]
       const { activePlayer } = state
 
-      const nextId = cyclicalNext(Array.from(players.keys()), activePlayer.id)
+      const isLastTurnInRound =
+        playerIds.indexOf(state.activePlayer.id) === playerIds.length - 1
+
+      const nextId = cyclicalNext(playerIds, activePlayer.id)
       const nextPlayer = players.get(nextId)
+
+      const winner = playersArr.reduce((p, c) =>
+        p.roundScore > c.roundScore ? p : c
+      )
+      const losers = playersArr.filter((p) => p !== winner)
+      playersArr.indexOf(state.activePlayer) === playersArr.length - 1
+      const isDraw = playersArr.every(
+        (p) => p.roundScore === playersArr[0].roundScore
+      )
+
+      let battleState = {}
+      if (isLastTurnInRound) {
+        if (!isDraw && winner) {
+          players.set(winner.id, {
+            ...winner,
+            battleVictories: winner.battleVictories + 1,
+          })
+
+          losers.forEach((loser) => {
+            players.set(loser.id, {
+              ...loser,
+              health: loser.health - healthCost,
+            })
+          })
+        }
+
+        battleState = {
+          phase: PhaseKind.Battle,
+          players,
+          battleWinner: isDraw ? false : winner,
+        }
+      }
+
+      const isGameOver = [...players.values()].some(
+        (player) =>
+          player.health <= healthToLose ||
+          player.battleVictories >= battleVictoriesToWin
+      )
+
+      let gameOverState = {}
+      if (isGameOver) {
+        gameOverState = {
+          gameOver: true,
+          gameWinner: winner,
+        }
+      }
 
       if (nextPlayer === undefined) return state
 
       return {
         ...state,
+        ...battleState,
+        ...gameOverState,
         playersWhoCompletedRound: [
           ...state.playersWhoCompletedRound,
           activePlayer,
