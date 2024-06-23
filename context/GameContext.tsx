@@ -101,7 +101,7 @@ export const GameContextProvider = ({ children }: PropsWithChildren) => {
 
   function generatePlayer(
     name: string,
-    playerClassification: PlayerClassificationKind = PlayerClassificationKind.Human
+    classification: PlayerClassificationKind = PlayerClassificationKind.Human
   ): Player {
     return {
       name,
@@ -115,7 +115,7 @@ export const GameContextProvider = ({ children }: PropsWithChildren) => {
       roundScore: 0,
       pool: getPoolLetters(alphabet, poolTier, poolAmount),
       battleVictories: 0,
-      playerClassification,
+      classification,
     }
   }
 

@@ -38,7 +38,7 @@ export interface Player {
   wordBonus: number
   roundScore: number
   battleVictories: number
-  playerClassification: PlayerClassificationKind
+  classification: PlayerClassificationKind
 }
 
 export enum PhaseKind {
