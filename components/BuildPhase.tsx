@@ -1,4 +1,4 @@
-import { useContext, useEffect, useState } from 'react'
+import { useContext } from 'react'
 import { GameConfigContext } from '../context/GameConfigContext'
 import { css } from '../stitches.config'
 import Pool from './Pool'
@@ -26,13 +26,7 @@ const BuildPhase = () => {
   const highestPoolTier = getPoolTier(round)
   const poolAmount = getPoolCapacity(round)
 
-  const [showRack, setShowRack] = useState(false)
-
   const { name: playerName, gold, health, battleVictories } = activePlayer
-
-  useEffect(() => {
-    setShowRack(true)
-  }, [])
 
   return (
     <div className={styles()}>
@@ -44,7 +38,7 @@ const BuildPhase = () => {
         <span>Wins: {battleVictories}</span>
       </InfoList>
 
-      {showRack && <Rack letters={rack} capacity={rackCapacity} />}
+      <Rack letters={rack} capacity={rackCapacity} />
 
       <InfoList>
         <span>Tier: {highestPoolTier}</span>
