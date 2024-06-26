@@ -1,12 +1,14 @@
-import { useBuildPhaseContext } from '../context/BuildPhaseContext'
+import { useGameContext, useGameDispatchContext } from '../context/GameContext'
 import Letter from '../lib/Letter'
+import { GameActionKind } from '../context/GameContextReducer'
 
 const useSelectableLetterCard = (letter: Letter, enabled?: boolean) => {
   if (!enabled) {
     return [{}, {}]
   }
 
-  const { selectedLetter, selectLetter } = useBuildPhaseContext()
+  const { selectedLetter } = useGameContext()
+  const dispatch = useGameDispatchContext()
 
   const selected = selectedLetter?.id === letter.id
 
@@ -20,7 +22,16 @@ const useSelectableLetterCard = (letter: Letter, enabled?: boolean) => {
 
   const props = {
     onClick: () => {
-      selectLetter(selected ? null : letter)
+      if (selected) {
+        dispatch({
+          type: GameActionKind.DeselectLetter,
+        })
+      } else {
+        dispatch({
+          type: GameActionKind.SelectLetter,
+          payload: { letter },
+        })
+      }
     },
   }
 

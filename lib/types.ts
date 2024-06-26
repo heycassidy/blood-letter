@@ -1,45 +1,6 @@
 import Letter from '../lib/Letter'
 
-export interface GameConfig {
-  alphabet: Letter[]
-  initialRound: number
-  initialPhase: PhaseKind
-  initialGold: number
-  initialHealth: number
-  healthToLose: number
-  battleVictoriesToWin: number
-  numberOfPlayers: number
-  gameMode: GameModeKind
-
-  letterBuyCost: number
-  letterSellValue: number
-  poolRefreshCost: number
-
-  rackCapacity: number
-
-  poolTierMap: { [key in number | 'max']: number }
-  poolCapacityMap: { [key in number | 'max']: number }
-  healthCostMap: { [key in number | 'max']: number }
-
-  wordBonusComputation: (letters: Letter[]) => number
-}
-
 export type UUID = string | number
-
-export interface Player {
-  id: UUID
-  name: string
-  health: number
-  gold: number
-  rack: Letter[]
-  rackWord: string
-  pool: Letter[]
-  rackScore: number
-  wordBonus: number
-  roundScore: number
-  battleVictories: number
-  classification: PlayerClassificationKind
-}
 
 export enum PhaseKind {
   Build = 'BUILD',
@@ -108,23 +69,34 @@ export interface GameState {
   activePlayer: Player
   round: number
   phase: PhaseKind
-  playersWhoCompletedRound: Player[]
-  battleWinner: Player | undefined | false
+  battleWinner: Player | undefined | null
   gameOver: boolean
   gameWinner: Player | undefined
   gameCount: number
+  gameMode: GameModeKind.AgainstComputer
 
-  updatePlayer: (id: UUID, player: Partial<Player>) => void
-  togglePhase: () => void
-  endTurn: () => void
-  incrementRound: () => void
+  rack: Letter[]
+  pool: Letter[]
+  gold: number
+  selectedLetter: Letter | null
+  draggingLetter: Letter | null
+
   restartGame: () => void
+}
 
-  getPoolLetters: (alphabet: Letter[], tier: number, amount: number) => Letter[]
-
-  getPoolTier: (round: number) => number
-  getPoolCapacity: (round: number) => number
-  getHealthCost: (round: number) => number
+export interface Player {
+  id: UUID
+  name: string
+  health: number
+  gold: number
+  rack: Letter[]
+  rackWord: string
+  pool: Letter[]
+  rackScore: number
+  wordBonus: number
+  roundScore: number
+  battleVictories: number
+  classification: PlayerClassificationKind
 }
 
 export enum LetterOriginKind {
@@ -136,19 +108,4 @@ export enum LetterOriginKind {
 export enum DroppableKind {
   Pool = 'POOL',
   Rack = 'RACK',
-}
-
-export interface BuildPhaseState {
-  rack: Letter[]
-  pool: Letter[]
-  gold: number
-  selectedLetter: Letter | null
-  draggingLetter: Letter | null
-
-  buyLetter: (letter: Letter) => void
-  sellLetter: (letter: Letter) => void
-  toggleLetterFreeze: (letter: Letter) => void
-  selectLetter: (letter: Letter | null) => void
-  moveLetterToLetter: (letter: Letter, overLetter: Letter) => void
-  refreshPool: () => void
 }

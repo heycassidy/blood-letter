@@ -4,7 +4,6 @@ import Layout from '../components/Layout'
 import BuildPhase from '../components/BuildPhase'
 import BattlePhase from '../components/BattlePhase'
 import { useGameContext } from '../context/GameContext'
-import { BuildPhaseContextProvider } from '../context/BuildPhaseContext'
 import { PhaseKind } from '../lib/types'
 import { css } from '../stitches.config'
 
@@ -31,9 +30,7 @@ const Home: NextPage = () => {
         {!gameOver && phase === PhaseKind.Build && (
           <>
             <h3>Build Phase</h3>
-            <BuildPhaseContextProvider>
-              <BuildPhase />
-            </BuildPhaseContextProvider>
+            <BuildPhase />
           </>
         )}
 

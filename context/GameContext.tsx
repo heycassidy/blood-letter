@@ -1,24 +1,56 @@
-import { PropsWithChildren, createContext, useContext, useReducer } from 'react'
+import React, {
+  PropsWithChildren,
+  createContext,
+  useState,
+  useContext,
+  useReducer,
+  useCallback,
+} from 'react'
+import {
+  DndContext,
+  DragOverlay,
+  closestCenter,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+  DragCancelEvent,
+  DragStartEvent,
+  DragOverEvent,
+  rectIntersection,
+  CollisionDetection,
+  pointerWithin,
+  KeyboardSensor,
+} from '@dnd-kit/core'
+import { CancelDropArguments } from '@dnd-kit/core/dist/components/DndContext/DndContext'
 import {
   GameState,
   Player,
-  PhaseKind,
   LetterOriginKind,
   UUID,
   PlayerClassificationKind,
   GameModeKind,
+  DroppableKind,
 } from '../lib/types'
 import Letter from '../lib/Letter'
-import { GameConfigContext } from './GameConfigContext'
-import { nanoid } from 'nanoid'
 import {
-  cyclicalNext,
-  randomItems,
-  getFromNumericMapWithMax,
-  itemIsInRange,
-} from '../lib/helpers'
+  gameConfig,
+  getPoolTier,
+  getPoolCapacity,
+  getRandomPoolLetters,
+} from '../lib/gameConfig'
+import { nanoid } from 'nanoid'
+import LetterCard from '../components/LetterCard'
+import {
+  gameContextReducer,
+  GameContextAction,
+  GameActionKind,
+} from './GameContextReducer'
 
 const GameContext = createContext<GameState | undefined>(undefined)
+const GameDispatchContext = createContext<
+  React.Dispatch<GameContextAction> | undefined
+>(undefined)
 
 export const useGameContext = () => {
   const context = useContext(GameContext)
@@ -30,35 +62,87 @@ export const useGameContext = () => {
   return context
 }
 
+export const useGameDispatchContext = () => {
+  const context = useContext(GameDispatchContext)
+
+  if (context === undefined) {
+    throw Error('Game Dispatch Context is undefined')
+  }
+
+  return context
+}
+
 export const GameContextProvider = ({ children }: PropsWithChildren) => {
   const {
     alphabet,
     initialRound,
+    initialPhase,
     initialGold,
     initialHealth,
     numberOfPlayers,
-    initialPhase,
-    poolTierMap,
-    poolCapacityMap,
-    healthCostMap,
-    healthToLose,
-    battleVictoriesToWin,
-    gameMode,
-  } = useContext(GameConfigContext)
+    rackCapacity,
+    letterBuyCost,
+  } = gameConfig
 
-  const poolAmount = getPoolCapacity(initialRound)
-  const poolTier = getPoolTier(initialRound)
+  const [state, dispatch] = useReducer(gameContextReducer, null, initGameState)
+  const [clonedState, setClonedState] = useState<GameState | null>(null)
 
-  const [state, dispatch] = useReducer(reducer, null, initState)
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 10,
+      },
+    }),
+    useSensor(KeyboardSensor)
+  )
 
-  function restartGame(): void {
-    dispatch({
-      type: ActionKind.RestartGame,
-      payload: { state: initState() },
-    })
-  }
+  const collisionDetectionStrategy: CollisionDetection = useCallback(
+    (args) => {
+      const { active, droppableContainers } = args
 
-  function initState(): GameState {
+      const letterId = active?.id
+      const letter = active?.data?.current?.letter
+      const letterOrigin = letter?.origin
+
+      const rackIds = state.rack.map(({ id }) => id)
+
+      const rackCollisions = pointerWithin({
+        ...args,
+        droppableContainers: droppableContainers.filter(
+          ({ id }) => id === DroppableKind.Rack
+        ),
+      })
+
+      const letterCollisions = closestCenter({
+        ...args,
+        droppableContainers: droppableContainers.filter(({ id }) =>
+          rackIds.includes(id)
+        ),
+      })
+
+      if (
+        letterOrigin === LetterOriginKind.Rack &&
+        rackIds.includes(letterId)
+      ) {
+        return letterCollisions
+      }
+
+      if (
+        letterOrigin === LetterOriginKind.Pool &&
+        rackCollisions.length > 0 &&
+        rackIds.filter((id) => letterId !== id).length > 0
+      ) {
+        return letterCollisions
+      }
+
+      return rectIntersection(args)
+    },
+    [state.rack, state.draggingLetter]
+  )
+
+  function initGameState(): GameState {
+    const gameMode = GameModeKind.AgainstComputer
+
     const players = new Map(
       Array.from({ length: numberOfPlayers }).map((_, i) => {
         let player
@@ -74,28 +158,26 @@ export const GameContextProvider = ({ children }: PropsWithChildren) => {
       })
     )
 
+    const firstPlayer = [...players.values()][0]
+
     return {
       players,
-      activePlayer: [...players.values()][0],
+      activePlayer: firstPlayer,
       round: initialRound,
       phase: initialPhase,
-      playersWhoCompletedRound: [],
       battleWinner: undefined,
       gameOver: false,
       gameWinner: undefined,
       gameCount: 0,
+      gameMode,
 
-      updatePlayer,
-      endTurn,
-      togglePhase,
-      incrementRound,
+      rack: firstPlayer.rack,
+      pool: firstPlayer.pool,
+      gold: firstPlayer.gold,
+      selectedLetter: null,
+      draggingLetter: null,
+
       restartGame,
-
-      getPoolLetters,
-
-      getPoolTier,
-      getPoolCapacity,
-      getHealthCost,
     }
   }
 
@@ -103,6 +185,9 @@ export const GameContextProvider = ({ children }: PropsWithChildren) => {
     name: string,
     classification: PlayerClassificationKind = PlayerClassificationKind.Human
   ): Player {
+    const poolAmount = getPoolCapacity(initialRound, gameConfig)
+    const poolTier = getPoolTier(initialRound, gameConfig)
+
     return {
       name,
       id: nanoid() as UUID,
@@ -113,307 +198,169 @@ export const GameContextProvider = ({ children }: PropsWithChildren) => {
       rackScore: 0,
       wordBonus: 0,
       roundScore: 0,
-      pool: getPoolLetters(alphabet, poolTier, poolAmount),
+      pool: getRandomPoolLetters(alphabet, poolTier, poolAmount),
       battleVictories: 0,
       classification,
     }
   }
 
-  function updatePlayer(id: UUID, player: Partial<Player>): void {
+  function restartGame(): void {
     dispatch({
-      type: ActionKind.UpdatePlayer,
-      payload: {
-        id,
-        player,
-      },
+      type: GameActionKind.RestartGame,
+      payload: { state: initGameState() },
     })
   }
 
-  function endTurn(): void {
-    dispatch({
-      type: ActionKind.EndTurn,
-      payload: {
-        healthCost: getHealthCost(state.round),
-        battleVictoriesToWin,
-        healthToLose,
-      },
-    })
-  }
+  // DnD-Kit Handlers:
+  function handleDragStart({ active }: DragStartEvent): void {
+    const draggingLetter: Letter | undefined = active.data.current?.letter
 
-  function togglePhase(): void {
-    dispatch({
-      type: ActionKind.TogglePhase,
-    })
-  }
-
-  function incrementRound(): void {
-    dispatch({
-      type: ActionKind.IncrementRound,
-      payload: {
-        gold: initialGold,
-      },
-    })
-  }
-
-  function getPoolLetters(letters: Letter[], tier: number, amount: number) {
-    const tierAndBelowLetters = letters.filter((letter) =>
-      itemIsInRange(letter.tier, 1, tier)
-    )
-
-    return randomItems(tierAndBelowLetters, amount).map((letter) => {
-      const { name, tier, value } = letter
-      return new Letter({ name, tier, value, origin: LetterOriginKind.Pool })
-    })
-  }
-
-  function getPoolTier(round: number) {
-    return getFromNumericMapWithMax(poolTierMap, round)
-  }
-
-  function getPoolCapacity(round: number) {
-    return getFromNumericMapWithMax(poolCapacityMap, round)
-  }
-
-  function getHealthCost(round: number) {
-    return getFromNumericMapWithMax(healthCostMap, round)
-  }
-
-  return <GameContext.Provider value={state}>{children}</GameContext.Provider>
-}
-
-enum ActionKind {
-  RestartGame,
-  UpdatePlayer,
-  EndTurn,
-  TogglePhase,
-  SetPhase,
-  SetBattleResult,
-  IncrementRound,
-  SetGameResult,
-}
-interface RestartGameAction {
-  type: ActionKind.RestartGame
-  payload: { state: GameState }
-}
-interface UpdatePlayerAction {
-  type: ActionKind.UpdatePlayer
-  payload: { id: UUID; player: Partial<Player> }
-}
-interface EndTurnAction {
-  type: ActionKind.EndTurn
-  payload: {
-    healthCost: number
-    healthToLose: number
-    battleVictoriesToWin: number
-  }
-}
-interface TogglePhaseAction {
-  type: ActionKind.TogglePhase
-  payload?: null
-}
-interface SetPhaseAction {
-  type: ActionKind.SetPhase
-  payload: PhaseKind
-}
-interface SetBattleResultAction {
-  type: ActionKind.SetBattleResult
-  payload: { winner: Player | false; losers: Player[]; healthCost: number }
-}
-interface IncrementRoundAction {
-  type: ActionKind.IncrementRound
-  payload: { gold: number }
-}
-interface SetGameResultAction {
-  type: ActionKind.SetGameResult
-  payload: { winner: Player }
-}
-type GameContextAction =
-  | RestartGameAction
-  | UpdatePlayerAction
-  | EndTurnAction
-  | TogglePhaseAction
-  | SetPhaseAction
-  | SetBattleResultAction
-  | IncrementRoundAction
-  | SetGameResultAction
-
-const reducer = (state: GameState, action: GameContextAction): GameState => {
-  const { type, payload } = action
-
-  switch (type) {
-    case ActionKind.RestartGame: {
-      return {
-        ...payload.state,
-        gameCount: state.gameCount + 1,
-      }
+    if (draggingLetter === undefined) {
+      return
     }
 
-    case ActionKind.TogglePhase: {
-      const nextPhase = cyclicalNext(
-        Object.values(PhaseKind),
-        state.phase
-      ) as PhaseKind
+    setClonedState(state)
 
-      return {
-        ...state,
-        phase: nextPhase,
-      }
+    dispatch({
+      type: GameActionKind.SetDraggingLetter,
+      payload: draggingLetter,
+    })
+  }
+
+  function handleDragOver({ active, over }: DragOverEvent): void {
+    const overId = over?.id
+    const letterId = active?.id
+
+    const letter = active?.data?.current?.letter
+    const letterOrigin = letter?.origin
+
+    if (letterId === undefined) {
+      return
     }
 
-    case ActionKind.SetPhase: {
-      return {
-        ...state,
-        phase: payload,
-      }
+    const rackIds = state.rack.map(({ id }) => id)
+
+    if (
+      letterOrigin === LetterOriginKind.Pool &&
+      rackIds.length >= rackCapacity
+    ) {
+      return
     }
 
-    case ActionKind.SetBattleResult: {
-      const { winner, losers, healthCost } = payload
-      const players = new Map(state.players) // must clone Map
-
-      if (winner) {
-        players.set(winner.id, {
-          ...winner,
-          battleVictories: winner.battleVictories + 1,
-        })
-      }
-
-      losers.forEach((loser) => {
-        players.set(loser.id, {
-          ...loser,
-          health: loser.health - healthCost,
-        })
+    if (!overId || overId === DroppableKind.Pool) {
+      dispatch({
+        type: GameActionKind.RemoveLetterFromRack,
+        payload: { letterId },
       })
-
-      return {
-        ...state,
-        players,
-        battleWinner: winner,
-      }
+      return
     }
 
-    case ActionKind.EndTurn: {
-      const { healthCost, healthToLose, battleVictoriesToWin } = payload
-
-      const players = new Map(state.players) // must clone Map
-      const playersArr = [...players.values()]
-      const playerIds = [...players.keys()]
-      const { activePlayer } = state
-
-      const isLastTurnInRound =
-        playerIds.indexOf(state.activePlayer.id) === playerIds.length - 1
-
-      const nextId = cyclicalNext(playerIds, activePlayer.id)
-      const nextPlayer = players.get(nextId)
-
-      const winner = playersArr.reduce((p, c) =>
-        p.roundScore > c.roundScore ? p : c
-      )
-      const losers = playersArr.filter((p) => p !== winner)
-      playersArr.indexOf(state.activePlayer) === playersArr.length - 1
-      const isDraw = playersArr.every(
-        (p) => p.roundScore === playersArr[0].roundScore
-      )
-
-      let battleState = {}
-      if (isLastTurnInRound) {
-        if (!isDraw && winner) {
-          players.set(winner.id, {
-            ...winner,
-            battleVictories: winner.battleVictories + 1,
-          })
-
-          losers.forEach((loser) => {
-            players.set(loser.id, {
-              ...loser,
-              health: loser.health - healthCost,
-            })
-          })
-        }
-
-        battleState = {
-          phase: PhaseKind.Battle,
-          players,
-          battleWinner: isDraw ? false : winner,
-        }
-      }
-
-      const isGameOver = [...players.values()].some(
-        (player) =>
-          player.health <= healthToLose ||
-          player.battleVictories >= battleVictoriesToWin
-      )
-
-      let gameOverState = {}
-      if (isGameOver) {
-        gameOverState = {
-          gameOver: true,
-          gameWinner: winner,
-        }
-      }
-
-      if (nextPlayer === undefined) return state
-
-      return {
-        ...state,
-        ...battleState,
-        ...gameOverState,
-        playersWhoCompletedRound: [
-          ...state.playersWhoCompletedRound,
-          activePlayer,
-        ],
-        activePlayer: nextPlayer,
-      }
-    }
-
-    case ActionKind.UpdatePlayer: {
-      const players = new Map(state.players) // must clone Map
-      const player = players.get(payload.id)
-
-      if (player === undefined) return state
-
-      const updatedPlayer = {
-        ...player,
-        ...payload.player,
-      }
-
-      return {
-        ...state,
-        activePlayer:
-          player.id === payload.id ? updatedPlayer : state.activePlayer,
-        players: players.set(payload.id, updatedPlayer),
-      }
-    }
-
-    case ActionKind.IncrementRound: {
-      const players = new Map(state.players) // must clone Map
-
-      players.forEach((player) => {
-        players.set(player.id, {
-          ...player,
-          gold: payload.gold,
-        })
+    if (
+      letterOrigin === LetterOriginKind.Pool &&
+      overId !== letterId &&
+      !rackIds.includes(letterId) &&
+      (overId === DroppableKind.Rack || rackIds.includes(overId))
+    ) {
+      dispatch({
+        type: GameActionKind.DragLetterToRack,
+        payload: { overId, letterId },
       })
-
-      return {
-        ...state,
-        round: state.round + 1,
-        phase: PhaseKind.Build,
-        players,
-        activePlayer: [...players.values()][0],
-        playersWhoCompletedRound: [],
-      }
+      return
     }
-
-    case ActionKind.SetGameResult: {
-      return {
-        ...state,
-        gameOver: true,
-        gameWinner: payload.winner,
-      }
-    }
-
-    default:
-      throw new Error()
   }
+
+  function handleDragCancel({}: DragCancelEvent): void {
+    if (clonedState) {
+      dispatch({
+        type: GameActionKind.Reset,
+        payload: { state: clonedState },
+      })
+    }
+    setClonedState(null)
+    dispatch({
+      type: GameActionKind.SetDraggingLetter,
+      payload: null,
+    })
+  }
+
+  function handleDragEnd({ active, over }: DragEndEvent): void {
+    dispatch({
+      type: GameActionKind.SetDraggingLetter,
+      payload: null,
+    })
+
+    const overId = over?.id
+    const letter = active?.data?.current?.letter
+    const overLetter = over?.data?.current?.letter
+    const letterOrigin = letter?.origin
+    const rackIds = state.rack.map(({ id }) => id)
+
+    if (
+      overId &&
+      letterOrigin === LetterOriginKind.Pool &&
+      (overId === DroppableKind.Rack || rackIds.includes(overId))
+    ) {
+      dispatch({
+        type: GameActionKind.SpendGold,
+        payload: { amount: letterBuyCost },
+      })
+    }
+
+    if (
+      overId &&
+      (overId === DroppableKind.Rack || rackIds.includes(overId)) &&
+      letter &&
+      overLetter
+    ) {
+      dispatch({
+        type: GameActionKind.MoveLetterInRack,
+        payload: { letterId: letter.id, overId: overLetter.id },
+      })
+    }
+
+    dispatch({
+      type: GameActionKind.SetLetterOrigins,
+    })
+  }
+
+  function cancelDrop({ active }: CancelDropArguments): boolean {
+    const letter = active?.data?.current?.letter
+    const letterOrigin = letter?.origin
+
+    if (!clonedState) return true
+
+    if (
+      letterOrigin === LetterOriginKind.Pool &&
+      (clonedState.rack.length >= rackCapacity ||
+        clonedState.gold < letterBuyCost)
+    ) {
+      console.log('cancelled')
+      return true
+    }
+
+    return false
+  }
+
+  return (
+    <GameContext.Provider value={state}>
+      <GameDispatchContext.Provider value={dispatch}>
+        <DndContext
+          sensors={sensors}
+          collisionDetection={collisionDetectionStrategy}
+          cancelDrop={cancelDrop}
+          onDragStart={handleDragStart}
+          onDragOver={handleDragOver}
+          onDragCancel={handleDragCancel}
+          onDragEnd={handleDragEnd}
+        >
+          {children}
+          <DragOverlay>
+            {state.draggingLetter ? (
+              <LetterCard letter={state.draggingLetter} />
+            ) : null}
+          </DragOverlay>
+        </DndContext>
+      </GameDispatchContext.Provider>
+    </GameContext.Provider>
+  )
 }

@@ -1,10 +1,12 @@
 import { css } from '../stitches.config'
-import { useGameContext } from '../context/GameContext'
+import { useGameContext, useGameDispatchContext } from '../context/GameContext'
 import BattleSide from './BattleSide'
 import InfoList from '../atoms/InfoList'
+import { GameActionKind } from '../context/GameContextReducer'
 
 const BattlePhase = () => {
-  const { players, incrementRound, battleWinner } = useGameContext()
+  const { players, battleWinner } = useGameContext()
+  const dispatch = useGameDispatchContext()
 
   return (
     <div className={styles()}>
@@ -20,7 +22,15 @@ const BattlePhase = () => {
         ))}
       </div>
 
-      <button onClick={incrementRound}>Next Round</button>
+      <button
+        onClick={() => {
+          dispatch({
+            type: GameActionKind.IncrementRound,
+          })
+        }}
+      >
+        Next Round
+      </button>
     </div>
   )
 }

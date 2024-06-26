@@ -1,5 +1,4 @@
-import { useContext } from 'react'
-import { GameConfigContext } from '../context/GameConfigContext'
+import { gameConfig, getHealthCost } from '../lib/gameConfig'
 import type { Player } from '../lib/types'
 import { css } from '../stitches.config'
 import LetterList from './LetterList'
@@ -8,8 +7,8 @@ import { useGameContext } from '../context/GameContext'
 import InfoList from '../atoms/InfoList'
 
 const BattleSide = ({ player }: { player: Player }) => {
-  const { rackCapacity } = useContext(GameConfigContext)
-  const { round, battleWinner, getHealthCost } = useGameContext()
+  const { rackCapacity } = gameConfig
+  const { round, battleWinner } = useGameContext()
 
   return (
     <div className={styles()}>
@@ -26,7 +25,7 @@ const BattleSide = ({ player }: { player: Player }) => {
           <strong>Winner</strong>
         )}
         {battleWinner && battleWinner.id !== player.id && (
-          <span>Health: -{getHealthCost(round)}</span>
+          <span>Health: -{getHealthCost(round, gameConfig)}</span>
         )}
       </InfoList>
 

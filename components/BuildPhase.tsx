@@ -1,32 +1,23 @@
-import { useContext } from 'react'
-import { GameConfigContext } from '../context/GameConfigContext'
+import { gameConfig, getPoolTier, getPoolCapacity } from '../lib/gameConfig'
 import { css } from '../stitches.config'
 import Pool from './Pool'
 import Rack from './Rack'
 import InfoList from '../atoms/InfoList'
-import { useGameContext } from '../context/GameContext'
-import { useBuildPhaseContext } from '../context/BuildPhaseContext'
+import { useGameContext, useGameDispatchContext } from '../context/GameContext'
 import { LetterOriginKind } from '../lib/types'
+import { GameActionKind } from '../context/GameContextReducer'
 
 const BuildPhase = () => {
   const { rackCapacity, letterBuyCost, letterSellValue, poolRefreshCost } =
-    useContext(GameConfigContext)
-  const { round, activePlayer, endTurn, getPoolTier, getPoolCapacity } =
+    gameConfig
+  const { round, activePlayer, rack, pool, gold, selectedLetter } =
     useGameContext()
-  const {
-    rack,
-    pool,
-    selectedLetter,
-    refreshPool,
-    buyLetter,
-    sellLetter,
-    toggleLetterFreeze,
-  } = useBuildPhaseContext()
+  const dispatch = useGameDispatchContext()
 
-  const highestPoolTier = getPoolTier(round)
-  const poolAmount = getPoolCapacity(round)
+  const highestPoolTier = getPoolTier(round, gameConfig)
+  const poolAmount = getPoolCapacity(round, gameConfig)
 
-  const { name: playerName, gold, health, battleVictories } = activePlayer
+  const { name: playerName, health, battleVictories } = activePlayer
 
   return (
     <div className={styles()}>
@@ -47,32 +38,68 @@ const BuildPhase = () => {
       <Pool letters={pool} amount={poolAmount} />
 
       <div className="button-row">
-        <button onClick={refreshPool}>Refresh pool ({poolRefreshCost})</button>
+        <button
+          onClick={() => {
+            dispatch({
+              type: GameActionKind.RefreshPool,
+            })
+          }}
+        >
+          Refresh pool ({poolRefreshCost})
+        </button>
 
         {selectedLetter && (
           <>
             {selectedLetter.origin === LetterOriginKind.Pool &&
               gold >= letterBuyCost && (
-                <button onClick={() => buyLetter(selectedLetter)}>
+                <button
+                  onClick={() =>
+                    dispatch({
+                      type: GameActionKind.BuyLetter,
+                      payload: { letter: selectedLetter },
+                    })
+                  }
+                >
                   Buy Letter ({letterBuyCost})
                 </button>
               )}
 
             {selectedLetter.origin === LetterOriginKind.Pool && (
-              <button onClick={() => toggleLetterFreeze(selectedLetter)}>
+              <button
+                onClick={() =>
+                  dispatch({
+                    type: GameActionKind.ToggleFreeze,
+                    payload: { letter: selectedLetter },
+                  })
+                }
+              >
                 {selectedLetter.frozen ? 'Unfreeze' : 'Freeze'}
               </button>
             )}
 
             {selectedLetter.origin === LetterOriginKind.Rack && (
-              <button onClick={() => sellLetter(selectedLetter)}>
+              <button
+                onClick={() =>
+                  dispatch({
+                    type: GameActionKind.SellLetter,
+                    payload: { letter: selectedLetter },
+                  })
+                }
+              >
                 Sell Letter ({letterSellValue})
               </button>
             )}
           </>
         )}
 
-        <button style={{ marginLeft: 'auto' }} onClick={endTurn}>
+        <button
+          style={{ marginLeft: 'auto' }}
+          onClick={() => {
+            dispatch({
+              type: GameActionKind.EndTurn,
+            })
+          }}
+        >
           End Turn
         </button>
       </div>
