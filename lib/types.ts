@@ -109,3 +109,9 @@ export enum DroppableKind {
   Pool = 'POOL',
   Rack = 'RACK',
 }
+
+export interface computerPlayerMove {
+  name: string
+  id: UUID
+  playMove: () => void
+}

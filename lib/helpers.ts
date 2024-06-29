@@ -7,7 +7,10 @@ export const integerRange = (start = 0, stop = 10): number[] =>
   [...Array(stop + start - 1)].map((_, i) => i + start)
 
 export const randomItems = <T>(items: T[], amount: number): T[] =>
-  [...Array(amount)].map(() => items[Math.floor(Math.random() * items.length)])
+  [...Array(amount)].map(() => randomItem(items))
+
+export const randomItem = <T>(items: T[]): T =>
+  items[Math.floor(Math.random() * items.length)]
 
 export const assignIds = <T>(items: T[], id: UUID | (() => UUID)): T[] =>
   items.map((item) => ({

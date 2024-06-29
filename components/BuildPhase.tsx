@@ -4,15 +4,25 @@ import Pool from './Pool'
 import Rack from './Rack'
 import InfoList from '../atoms/InfoList'
 import { useGameContext, useGameDispatchContext } from '../context/GameContext'
-import { LetterOriginKind } from '../lib/types'
+import { LetterOriginKind, PlayerClassificationKind } from '../lib/types'
 import { GameActionKind } from '../context/GameContextReducer'
+import useComputerPlayer from '../hooks/useComputerPlayer'
+import { useEffect } from 'react'
 
 const BuildPhase = () => {
   const { rackCapacity, letterBuyCost, letterSellValue, poolRefreshCost } =
     gameConfig
-  const { round, activePlayer, rack, pool, gold, selectedLetter } =
-    useGameContext()
+  const gameState = useGameContext()
+  const { round, activePlayer, rack, pool, gold, selectedLetter } = gameState
   const dispatch = useGameDispatchContext()
+
+  const [runComputerPlayer] = useComputerPlayer()
+
+  useEffect(() => {
+    if (activePlayer.classification === PlayerClassificationKind.Computer) {
+      runComputerPlayer()
+    }
+  }, [activePlayer.id])
 
   const highestPoolTier = getPoolTier(round, gameConfig)
   const poolAmount = getPoolCapacity(round, gameConfig)
