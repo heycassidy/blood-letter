@@ -1,5 +1,5 @@
 import { gameConfig, getHealthCost } from '../lib/gameConfig'
-import type { Player } from '../lib/types'
+import Player from '../lib/Player'
 import { css } from '../stitches.config'
 import LetterList from './LetterList'
 import LetterCard from './LetterCard'
@@ -7,7 +7,7 @@ import { useGameContext } from '../context/GameContext'
 import InfoList from '../atoms/InfoList'
 
 const BattleSide = ({ player }: { player: Player }) => {
-  const { rackCapacity } = gameConfig
+  const { rackCapacity, healthCostMap } = gameConfig
   const { round, battleWinner } = useGameContext()
 
   return (
@@ -20,12 +20,12 @@ const BattleSide = ({ player }: { player: Player }) => {
         ) : (
           <span>Not in word list</span>
         )}
-        <strong>Total: {player.roundScore}</strong>
+        <strong>Total: {player.totalScore}</strong>
         {battleWinner && battleWinner.id === player.id && (
           <strong>Winner</strong>
         )}
         {battleWinner && battleWinner.id !== player.id && (
-          <span>Health: -{getHealthCost(round, gameConfig)}</span>
+          <span>Health: -{getHealthCost(round, healthCostMap)}</span>
         )}
       </InfoList>
 

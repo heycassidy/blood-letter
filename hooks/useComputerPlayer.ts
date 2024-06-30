@@ -30,10 +30,6 @@ const useComputerPlayer = () => {
     }
   }, [lastMove?.id])
 
-  // useEffect(() => {
-  //   console.log(lastMove?.name)
-  // }, [lastMove?.id])
-
   return [runComputerPlayer]
 
   function computePossibleMoves() {

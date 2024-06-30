@@ -1,4 +1,5 @@
 import Letter from '../lib/Letter'
+import Player from '../lib/Player'
 
 export type UUID = string | number
 
@@ -53,6 +54,16 @@ export interface LetterOptions {
   origin?: LetterOriginKind
 }
 
+export interface PlayerOptions {
+  id?: UUID
+  name: string
+  classification: PlayerClassificationKind
+  health?: number
+  battleVictories?: number
+  rack?: Letter[]
+  pool?: Letter[]
+}
+
 export interface LetterCardProps {
   letter: Letter
   dragging?: boolean
@@ -73,7 +84,7 @@ export interface GameState {
   gameOver: boolean
   gameWinner: Player | undefined
   gameCount: number
-  gameMode: GameModeKind.AgainstComputer
+  gameMode: GameModeKind.AgainstComputer | GameModeKind.PassToPlay
 
   rack: Letter[]
   pool: Letter[]
@@ -82,21 +93,6 @@ export interface GameState {
   draggingLetter: Letter | null
 
   restartGame: () => void
-}
-
-export interface Player {
-  id: UUID
-  name: string
-  health: number
-  gold: number
-  rack: Letter[]
-  rackWord: string
-  pool: Letter[]
-  rackScore: number
-  wordBonus: number
-  roundScore: number
-  battleVictories: number
-  classification: PlayerClassificationKind
 }
 
 export enum LetterOriginKind {

@@ -10,8 +10,14 @@ import useComputerPlayer from '../hooks/useComputerPlayer'
 import { useEffect } from 'react'
 
 const BuildPhase = () => {
-  const { rackCapacity, letterBuyCost, letterSellValue, poolRefreshCost } =
-    gameConfig
+  const {
+    rackCapacity,
+    letterBuyCost,
+    letterSellValue,
+    poolRefreshCost,
+    poolTierMap,
+    poolCapacityMap,
+  } = gameConfig
   const gameState = useGameContext()
   const { round, activePlayer, rack, pool, gold, selectedLetter } = gameState
   const dispatch = useGameDispatchContext()
@@ -24,8 +30,8 @@ const BuildPhase = () => {
     }
   }, [activePlayer.id])
 
-  const highestPoolTier = getPoolTier(round, gameConfig)
-  const poolAmount = getPoolCapacity(round, gameConfig)
+  const highestPoolTier = getPoolTier(round, poolTierMap)
+  const poolAmount = getPoolCapacity(round, poolCapacityMap)
 
   const { name: playerName, health, battleVictories } = activePlayer
 

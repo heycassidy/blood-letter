@@ -1,23 +1,15 @@
 import {
   GameState,
-  Player,
   PhaseKind,
   LetterOriginKind,
   UUID,
   DroppableKind,
 } from '../lib/types'
 import Letter from '../lib/Letter'
+import Player from '../lib/Player'
 import { cyclicalNext } from '../lib/helpers'
 import { arrayMove } from '@dnd-kit/sortable'
-import {
-  gameConfig,
-  getPoolTier,
-  getPoolCapacity,
-  getHealthCost,
-  getRandomPoolLetters,
-  saveBoardStateToPlayer,
-  restoreBoardStateFromPlayer,
-} from '../lib/gameConfig'
+import { gameConfig, getHealthCost, getBattleWinner } from '../lib/gameConfig'
 
 export enum GameActionKind {
   Reset,
@@ -130,7 +122,6 @@ export const gameContextReducer = (
   const { type, payload } = action
 
   const {
-    alphabet,
     initialGold,
     rackCapacity,
     letterBuyCost,
@@ -139,6 +130,18 @@ export const gameContextReducer = (
     healthToLose,
     poolRefreshCost,
   } = gameConfig
+
+  // Clone players Map and explicitly assign active player so we can safely mutate players
+  const players = new Map<UUID, Player>(
+    [...state.players.entries()].map(([id, player]) => [id, player.clone()])
+  )
+  const playerIds = [...players.keys()]
+
+  // Get active player from cloned Map instead of state
+  const activePlayer = players.get(state.activePlayer.id)
+  if (activePlayer === undefined) return state
+  const nextPlayer = players.get(cyclicalNext(playerIds, activePlayer.id))
+  if (nextPlayer === undefined) return state
 
   switch (type) {
     case GameActionKind.Reset: {
@@ -153,109 +156,76 @@ export const gameContextReducer = (
     }
 
     case GameActionKind.EndTurn: {
-      const players = new Map<UUID, Player>(state.players) // must clone Map
-      const { activePlayer } = state
-
-      const getFreshPlayer = (player: Player): Player =>
-        players.get(player.id) ?? player
-
-      const playerIds = [...players.keys()]
-
-      const currentPlayer = getFreshPlayer(activePlayer)
-      const nextId = cyclicalNext(playerIds, currentPlayer.id)
-      const nextPlayer = players.get(nextId)
-
-      const isLastTurnInRound =
-        playerIds.indexOf(state.activePlayer.id) === playerIds.length - 1
-
-      if (nextPlayer === undefined) return state
-
-      players.set(
-        currentPlayer.id,
-        saveBoardStateToPlayer(getFreshPlayer(currentPlayer), state)
-      )
-
-      const winner: Player | null = [...players.values()].reduce(
-        (acc: Player | null, player: Player): Player | null => {
-          if (!acc || player.roundScore > acc.roundScore) {
-            return player
-          } else if (player.roundScore === acc.roundScore) {
-            return null
-          }
-          return acc
-        },
-        null
-      )
-
+      const winner = getBattleWinner([...players.values()])
       const losers = [...players.values()].filter((p) => p !== winner)
 
-      let battleState = {}
-      if (isLastTurnInRound) {
-        if (winner) {
-          players.set(winner.id, {
-            ...getFreshPlayer(winner),
-            battleVictories: getFreshPlayer(winner).battleVictories + 1,
-          })
+      const battleOver = activePlayer.id === [...players.values()].at(-1)?.id
 
-          losers.forEach((loser) => {
-            players.set(loser.id, {
-              ...getFreshPlayer(loser),
-              health:
-                getFreshPlayer(loser).health -
-                getHealthCost(state.round, gameConfig),
-            })
-          })
-        }
+      // Other plays still have yet to take their turns
+      if (!battleOver) {
+        nextPlayer.refreshPool(state.round)
 
-        battleState = {
-          phase: PhaseKind.Battle,
+        return {
+          ...state,
+          rack: nextPlayer.rack,
+          pool: nextPlayer.pool,
+          gold: initialGold,
+          activePlayer: nextPlayer,
           players,
-          battleWinner: winner,
         }
       }
 
-      const isGameOver = [...players.values()].some((player) => {
-        const freshPlayer = getFreshPlayer(player)
-        return (
-          freshPlayer.health <= healthToLose ||
-          freshPlayer.battleVictories >= battleVictoriesToWin
-        )
-      })
+      // Battle Over, all players have taken their turns
+      if (winner) {
+        winner.battleVictories = winner.battleVictories + 1
 
-      let gameOverState = {}
-      if (isGameOver) {
-        gameOverState = {
+        losers.forEach((loser) => {
+          loser.health =
+            loser.health - getHealthCost(state.round, gameConfig.healthCostMap)
+        })
+      }
+
+      // Game winner is battle winner when any player's lose or win condition is met
+      const gameOver =
+        winner &&
+        [...players.values()].some((player) => {
+          return (
+            player.health <= healthToLose ||
+            player.battleVictories >= battleVictoriesToWin
+          )
+        })
+
+      if (gameOver) {
+        return {
+          ...state,
           gameOver: true,
           gameWinner: winner,
+          players,
         }
       }
 
+      // At this point all players have taken their turns, but the game is not over, so we show battle results
       return {
         ...state,
-        ...battleState,
-        ...gameOverState,
-        ...restoreBoardStateFromPlayer(state, nextPlayer),
-        gold: initialGold,
-        activePlayer: nextPlayer,
+        phase: PhaseKind.Battle,
+        battleWinner: winner,
         players,
       }
     }
 
     case GameActionKind.IncrementRound: {
-      const players = new Map(state.players) // must clone Map
       const firstPlayer = [...players.values()][0]
 
-      players.forEach((player) => {
-        players.set(player.id, {
-          ...player,
-          gold: initialGold,
-        })
-      })
+      const newRound = state.round + 1
+
+      firstPlayer.refreshPool(newRound)
 
       return {
         ...state,
-        ...restoreBoardStateFromPlayer(state, firstPlayer),
-        round: state.round + 1,
+        gold: initialGold,
+        rack: firstPlayer.rack,
+        pool: firstPlayer.pool,
+        round: newRound,
         phase: PhaseKind.Build,
         players,
         activePlayer: firstPlayer,
@@ -271,6 +241,9 @@ export const gameContextReducer = (
       const insertAt = index ?? state.rack.length
 
       const newRack = [...state.rack]
+      const newPool = state.pool.filter(
+        (letter) => letter.id !== payload.letter.id
+      )
 
       newRack.splice(
         insertAt,
@@ -281,34 +254,52 @@ export const gameContextReducer = (
         })
       )
 
+      activePlayer.rack = newRack
+      activePlayer.pool = newPool
+
       return {
         ...state,
         selectedLetter: null,
         gold: state.gold - letterBuyCost,
-        pool: state.pool.filter((letter) => letter.id !== payload.letter.id),
+        pool: newPool,
         rack: newRack,
+        activePlayer,
+        players,
       }
     }
 
     case GameActionKind.SellLetter: {
+      const newRack = state.rack.filter(
+        (letter) => letter.id !== payload.letter.id
+      )
+
+      activePlayer.rack = newRack
+
       return {
         ...state,
         selectedLetter: null,
         gold: state.gold + letterSellValue,
-        rack: state.rack.filter((letter) => letter.id !== payload.letter.id),
-        pool: state.pool,
+        rack: newRack,
+        activePlayer,
+        players,
       }
     }
 
     case GameActionKind.ToggleFreeze: {
+      const newPool = state.pool.map((letter) =>
+        letter.id === payload.letter.id
+          ? new Letter({ ...letter, frozen: !letter.frozen })
+          : letter
+      )
+
+      activePlayer.pool = newPool
+
       return {
         ...state,
-        pool: state.pool.map((letter) =>
-          letter.id === payload.letter.id
-            ? new Letter({ ...letter, frozen: !letter.frozen })
-            : letter
-        ),
+        pool: newPool,
         selectedLetter: null,
+        activePlayer,
+        players,
       }
     }
 
@@ -360,15 +351,23 @@ export const gameContextReducer = (
         newIndex = rackIds.indexOf(overId)
       }
 
+      const newPool = state.pool.filter(({ id }) => letterId !== id)
+      const newRack = [
+        ...rackLetters.slice(0, newIndex),
+        letter,
+        ...rackLetters.slice(newIndex, rackLetters.length),
+      ]
+
+      activePlayer.pool = newPool
+      activePlayer.rack = newRack
+
       return {
         ...state,
         selectedLetter: null,
-        pool: state.pool.filter(({ id }) => letterId !== id),
-        rack: [
-          ...rackLetters.slice(0, newIndex),
-          letter,
-          ...rackLetters.slice(newIndex, rackLetters.length),
-        ],
+        pool: newPool,
+        rack: newRack,
+        activePlayer,
+        players,
       }
     }
 
@@ -381,9 +380,15 @@ export const gameContextReducer = (
       const oldIndex = rackIds.indexOf(letterId)
       const newIndex = rackIds.indexOf(overId)
 
+      const newRack = arrayMove(rackLetters, oldIndex, newIndex)
+
+      activePlayer.rack = newRack
+
       return {
         ...state,
-        rack: arrayMove(rackLetters, oldIndex, newIndex),
+        rack: newRack,
+        activePlayer,
+        players,
       }
     }
 
@@ -400,52 +405,59 @@ export const gameContextReducer = (
 
       const newIndex = poolIds.length + 1
 
+      const newPool = [
+        ...poolLetters.slice(0, newIndex),
+        letter,
+        ...poolLetters.slice(newIndex, poolLetters.length),
+      ]
+      const newRack = state.rack.filter(({ id }) => letterId !== id)
+
+      activePlayer.pool = newPool
+      activePlayer.rack = newRack
+
       return {
         ...state,
-        rack: state.rack.filter(({ id }) => letterId !== id),
-        pool: [
-          ...poolLetters.slice(0, newIndex),
-          letter,
-          ...poolLetters.slice(newIndex, poolLetters.length),
-        ],
+        rack: newRack,
+        pool: newPool,
       }
     }
 
     case GameActionKind.SetLetterOrigins: {
+      const newRack = state.rack.map(
+        (letter) =>
+          new Letter({
+            ...letter,
+            origin: LetterOriginKind.Rack,
+          })
+      )
+
+      const newPool = state.pool.map(
+        (letter) =>
+          new Letter({
+            ...letter,
+            origin: LetterOriginKind.Pool,
+          })
+      )
+
+      activePlayer.rack = newRack
+      activePlayer.pool = newPool
+
       return {
         ...state,
-        rack: state.rack.map(
-          (letter) =>
-            new Letter({
-              ...letter,
-              origin: LetterOriginKind.Rack,
-            })
-        ),
-        pool: state.pool.map(
-          (letter) =>
-            new Letter({
-              ...letter,
-              origin: LetterOriginKind.Pool,
-            })
-        ),
+        rack: newRack,
+        pool: newPool,
       }
     }
 
     case GameActionKind.RefreshPool: {
       if (state.gold < poolRefreshCost) return state
 
-      const newRandomLetters = getRandomPoolLetters(
-        alphabet,
-        getPoolTier(state.round, gameConfig),
-        getPoolCapacity(state.round, gameConfig)
-      )
+      activePlayer.refreshPool(state.round)
 
       return {
         ...state,
         gold: state.gold - poolRefreshCost,
-        pool: newRandomLetters.map((letter, index) => {
-          return state.pool[index]?.frozen ? state.pool[index] : letter
-        }),
+        pool: activePlayer.pool,
       }
     }
 

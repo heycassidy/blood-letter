@@ -25,21 +25,14 @@ import {
 import { CancelDropArguments } from '@dnd-kit/core/dist/components/DndContext/DndContext'
 import {
   GameState,
-  Player,
   LetterOriginKind,
-  UUID,
   PlayerClassificationKind,
   GameModeKind,
   DroppableKind,
 } from '../lib/types'
 import Letter from '../lib/Letter'
-import {
-  gameConfig,
-  getPoolTier,
-  getPoolCapacity,
-  getRandomPoolLetters,
-} from '../lib/gameConfig'
-import { nanoid } from 'nanoid'
+import Player from '../lib/Player'
+import { gameConfig } from '../lib/gameConfig'
 import LetterCard from '../components/LetterCard'
 import {
   gameContextReducer,
@@ -74,11 +67,9 @@ export const useGameDispatchContext = () => {
 
 export const GameContextProvider = ({ children }: PropsWithChildren) => {
   const {
-    alphabet,
     initialRound,
     initialPhase,
     initialGold,
-    initialHealth,
     numberOfPlayers,
     rackCapacity,
     letterBuyCost,
@@ -142,18 +133,24 @@ export const GameContextProvider = ({ children }: PropsWithChildren) => {
 
   function initGameState(): GameState {
     const gameMode = GameModeKind.AgainstComputer
+    // const gameMode: GameModeKind = GameModeKind.PassToPlay
 
     const players = new Map(
       Array.from({ length: numberOfPlayers }).map((_, i) => {
         let player
+
         if (gameMode === GameModeKind.AgainstComputer && i !== 0) {
-          player = generatePlayer(
-            `Player ${i + 1} (computer)`,
-            PlayerClassificationKind.Computer
-          )
+          player = new Player({
+            name: `Player ${i + 1} (computer)`,
+            classification: PlayerClassificationKind.Computer,
+          })
         } else {
-          player = generatePlayer(`Player ${i + 1}`)
+          player = new Player({
+            name: `Player ${i + 1}`,
+            classification: PlayerClassificationKind.Human,
+          })
         }
+
         return [player.id, player]
       })
     )
@@ -173,34 +170,11 @@ export const GameContextProvider = ({ children }: PropsWithChildren) => {
 
       rack: firstPlayer.rack,
       pool: firstPlayer.pool,
-      gold: firstPlayer.gold,
+      gold: initialGold,
       selectedLetter: null,
       draggingLetter: null,
 
       restartGame,
-    }
-  }
-
-  function generatePlayer(
-    name: string,
-    classification: PlayerClassificationKind = PlayerClassificationKind.Human
-  ): Player {
-    const poolAmount = getPoolCapacity(initialRound, gameConfig)
-    const poolTier = getPoolTier(initialRound, gameConfig)
-
-    return {
-      name,
-      id: nanoid() as UUID,
-      health: initialHealth,
-      gold: initialGold,
-      rack: [],
-      rackWord: '',
-      rackScore: 0,
-      wordBonus: 0,
-      roundScore: 0,
-      pool: getRandomPoolLetters(alphabet, poolTier, poolAmount),
-      battleVictories: 0,
-      classification,
     }
   }
 

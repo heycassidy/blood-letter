@@ -1,12 +1,11 @@
 import { wordList } from '../lib/words'
-import { PhaseKind, LetterOriginKind, GameState, Player } from './types'
+import { PhaseKind, LetterOriginKind } from './types'
 import Letter from './Letter'
+import Player from './Player'
 import {
   randomItems,
   getFromNumericMapWithMax,
   itemIsInRange,
-  sumItemProperty,
-  concatItemProperty,
 } from '../lib/helpers'
 
 const alphabet: Letter[] = [
@@ -62,9 +61,11 @@ interface gameConfig {
   poolTierMap: { [key in number | 'max']: number }
   poolCapacityMap: { [key in number | 'max']: number }
   healthCostMap: { [key in number | 'max']: number }
+
+  wordBonusComputation: (wordLength: number) => number
 }
 
-export const gameConfig: gameConfig = {
+export const gameConfig: Readonly<gameConfig> = {
   alphabet,
   initialRound: 1,
   initialPhase: PhaseKind.Build,
@@ -124,18 +125,21 @@ export const gameConfig: gameConfig = {
     10: 3,
     max: 3,
   },
+
+  wordBonusComputation: (wordLength) => wordLength ** 2,
 }
 
-export const getPoolTier = (round: number, gameConfig: gameConfig): number => {
-  const { poolTierMap } = gameConfig
+export const getPoolTier = (
+  round: number,
+  poolTierMap: gameConfig['poolTierMap']
+): number => {
   return getFromNumericMapWithMax(poolTierMap, round)
 }
 
 export const getPoolCapacity = (
   round: number,
-  gameConfig: gameConfig
+  poolCapacityMap: gameConfig['poolCapacityMap']
 ): number => {
-  const { poolCapacityMap } = gameConfig
   return getFromNumericMapWithMax(poolCapacityMap, round)
 }
 
@@ -156,60 +160,17 @@ export const getRandomPoolLetters = (
 
 export const getHealthCost = (
   round: number,
-  gameConfig: gameConfig
+  healthCostMap: gameConfig['healthCostMap']
 ): number => {
-  const { healthCostMap } = gameConfig
   return getFromNumericMapWithMax(healthCostMap, round)
 }
 
-export const getWordBonus = (letters: Letter[]): number => {
-  return letters.length ** 2
-}
-
-export const saveBoardStateToPlayer = (
-  player: Player,
-  state: GameState
-): Player => {
-  const { rack, pool } = state
-
-  const word = concatItemProperty(
-    rack.map((letter) => ({ ...letter })),
-    'name'
-  )
-  const rackScore = sumItemProperty(
-    rack.map((letter) => ({ ...letter })),
-    'value'
-  )
-  const wordBonus = wordList.includes(word) ? getWordBonus(rack) : 0
-
-  const roundScore = rackScore + wordBonus
-
-  return {
-    ...player,
-    rack,
-    pool,
-    rackScore,
-    wordBonus,
-    roundScore,
-  }
-}
-
-export const restoreBoardStateFromPlayer = (
-  state: GameState,
-  player: Player
-): Partial<GameState> => {
-  const { rack, pool } = player
-
-  const newRandomLetters = getRandomPoolLetters(
-    alphabet,
-    getPoolTier(state.round, gameConfig),
-    getPoolCapacity(state.round, gameConfig)
-  ).map((letter, index) => {
-    return pool[index]?.frozen ? pool[index] : letter
-  })
-
-  return {
-    rack,
-    pool: newRandomLetters,
-  }
-}
+export const getBattleWinner = (players: Player[]): Player | null =>
+  players.reduce((acc: Player | null, player: Player): Player | null => {
+    if (!acc || player.totalScore > acc.totalScore) {
+      return player
+    } else if (player.totalScore === acc.totalScore) {
+      return null
+    }
+    return acc
+  }, null)
