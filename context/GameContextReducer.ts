@@ -12,7 +12,7 @@ import { arrayMove } from '@dnd-kit/sortable'
 import { gameConfig, getHealthCost, getBattleWinner } from '../lib/gameConfig'
 
 export enum GameActionKind {
-  Reset,
+  Set,
 
   RestartGame,
 
@@ -45,8 +45,8 @@ interface IncrementRoundAction {
   type: GameActionKind.IncrementRound
   payload?: undefined
 }
-interface ResetAction {
-  type: GameActionKind.Reset
+interface SetAction {
+  type: GameActionKind.Set
   payload: { state: GameState }
 }
 interface BuyLetterAction {
@@ -101,7 +101,7 @@ export type GameContextAction =
   | RestartGameAction
   | EndTurnAction
   | IncrementRoundAction
-  | ResetAction
+  | SetAction
   | BuyLetterAction
   | SellLetterAction
   | ToggleFreezeAction
@@ -144,8 +144,10 @@ export const gameContextReducer = (
   if (nextPlayer === undefined) return state
 
   switch (type) {
-    case GameActionKind.Reset: {
-      return payload.state
+    case GameActionKind.Set: {
+      return {
+        ...payload.state,
+      }
     }
 
     case GameActionKind.RestartGame: {

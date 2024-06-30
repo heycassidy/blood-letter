@@ -246,7 +246,7 @@ export const GameContextProvider = ({ children }: PropsWithChildren) => {
   function handleDragCancel({}: DragCancelEvent): void {
     if (clonedState) {
       dispatch({
-        type: GameActionKind.Reset,
+        type: GameActionKind.Set,
         payload: { state: clonedState },
       })
     }
