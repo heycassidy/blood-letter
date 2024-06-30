@@ -93,6 +93,8 @@ export interface GameState {
   draggingLetter: Letter | null
 
   restartGame: () => void
+
+  getAvailableMoves: ({ rack, pool, gold }: Partial<GameState>) => GameMove[]
 }
 
 export enum LetterOriginKind {
@@ -106,8 +108,8 @@ export enum DroppableKind {
   Rack = 'RACK',
 }
 
-export interface computerPlayerMove {
+export interface GameMove {
   name: string
   id: UUID
-  playMove: () => void
+  execute: () => void
 }

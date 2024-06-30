@@ -6,6 +6,7 @@ import React, {
   useReducer,
   useCallback,
 } from 'react'
+import { nanoid } from 'nanoid'
 import {
   DndContext,
   DragOverlay,
@@ -29,6 +30,7 @@ import {
   PlayerClassificationKind,
   GameModeKind,
   DroppableKind,
+  GameMove,
 } from '../lib/types'
 import Letter from '../lib/Letter'
 import Player from '../lib/Player'
@@ -73,6 +75,7 @@ export const GameContextProvider = ({ children }: PropsWithChildren) => {
     numberOfPlayers,
     rackCapacity,
     letterBuyCost,
+    poolRefreshCost,
   } = gameConfig
 
   const [state, dispatch] = useReducer(gameContextReducer, null, initGameState)
@@ -175,6 +178,7 @@ export const GameContextProvider = ({ children }: PropsWithChildren) => {
       draggingLetter: null,
 
       restartGame,
+      getAvailableMoves,
     }
   }
 
@@ -337,4 +341,134 @@ export const GameContextProvider = ({ children }: PropsWithChildren) => {
       </GameDispatchContext.Provider>
     </GameContext.Provider>
   )
+
+  function getAvailableMoves({ rack, pool, gold }: Partial<GameState>) {
+    const moves: GameMove[] = []
+
+    if (!rack || !pool || !gold) {
+      return moves
+    }
+
+    // Buy Moves
+    if (gold >= letterBuyCost && rack.length < rackCapacity) {
+      Array.from(pool.values()).forEach((letter) => {
+        moves.push({
+          name: `buy-letter-${letter.name}`,
+          id: nanoid(10),
+          execute: () => buyLetter(letter),
+        })
+      })
+    }
+
+    // Sell Moves
+    rack.forEach((letter) => {
+      moves.push({
+        name: `sell-letter-${letter.name}-at-${rack.indexOf(letter)}`,
+        id: nanoid(10),
+        execute: () => sellLetter(letter),
+      })
+    })
+
+    // Freeze Moves
+    pool
+      .filter((letter) => !letter.frozen)
+      .forEach((letter) => {
+        moves.push({
+          name: `freeze-letter-${letter.name}`,
+          id: nanoid(10),
+          execute: () => freezeLetter(letter),
+        })
+      })
+
+    // Thaw Moves
+    pool
+      .filter((letter) => letter.frozen)
+      .forEach((letter) => {
+        moves.push({
+          name: `thaw-letter-${letter.name}`,
+          id: nanoid(10),
+          execute: () => thawLetter(letter),
+        })
+      })
+
+    // Re-arrange Moves
+    rack.forEach((fromLetter) => {
+      rack
+        .filter((letter) => letter.id !== fromLetter.id)
+        .forEach((toLetter) => {
+          moves.push({
+            name: `move-letter-${fromLetter.name}-at-${rack.indexOf(
+              fromLetter
+            )}-to-${toLetter.name}-at-${rack.indexOf(toLetter)}`,
+            id: nanoid(10),
+            execute: () => moveLetterInRack(fromLetter, toLetter),
+          })
+        })
+    })
+
+    // Refresh Pool
+    if (gold >= poolRefreshCost) {
+      moves.push({
+        name: 'refresh-pool',
+        id: nanoid(10),
+        execute: () => refreshPool(),
+      })
+    }
+
+    // End Turn
+    moves.push({
+      name: 'end-turn',
+      id: nanoid(10),
+      execute: () => endTurn(),
+    })
+
+    return moves
+  }
+
+  function buyLetter(letter: Letter) {
+    return dispatch({
+      type: GameActionKind.BuyLetter,
+      payload: { letter },
+    })
+  }
+
+  function sellLetter(letter: Letter) {
+    return dispatch({
+      type: GameActionKind.SellLetter,
+      payload: { letter },
+    })
+  }
+
+  function freezeLetter(letter: Letter) {
+    return dispatch({
+      type: GameActionKind.ToggleFreeze,
+      payload: { letter },
+    })
+  }
+
+  function thawLetter(letter: Letter) {
+    return dispatch({
+      type: GameActionKind.ToggleFreeze,
+      payload: { letter },
+    })
+  }
+
+  function moveLetterInRack(letter: Letter, overLetter: Letter) {
+    return dispatch({
+      type: GameActionKind.MoveLetterInRack,
+      payload: { letterId: letter.id, overId: overLetter.id },
+    })
+  }
+
+  function refreshPool() {
+    return dispatch({
+      type: GameActionKind.RefreshPool,
+    })
+  }
+
+  function endTurn() {
+    return dispatch({
+      type: GameActionKind.EndTurn,
+    })
+  }
 }

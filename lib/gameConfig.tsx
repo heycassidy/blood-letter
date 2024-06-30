@@ -1,4 +1,3 @@
-import { wordList } from '../lib/words'
 import { PhaseKind, LetterOriginKind } from './types'
 import Letter from './Letter'
 import Player from './Player'
