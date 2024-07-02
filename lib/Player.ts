@@ -1,3 +1,5 @@
+import { immerable } from 'immer'
+
 import { UUID, PlayerOptions, PlayerClassificationKind } from '../lib/types'
 import Letter from './Letter'
 import { nanoid } from 'nanoid'
@@ -11,6 +13,8 @@ import { sumItemProperty, concatItemProperty } from './helpers'
 import { wordList } from './words'
 
 class Player implements PlayerOptions {
+  [immerable] = true // Option 1
+
   readonly id: UUID
   readonly name: string
   readonly classification: PlayerClassificationKind
@@ -54,14 +58,14 @@ class Player implements PlayerOptions {
 
   get rackWord(): string {
     return concatItemProperty(
-      this.rack.map((letter) => ({ ...letter })),
+      this.rack.map((letter) => ({ name: letter.name })),
       'name'
     )
   }
 
   get rackScore(): number {
     return sumItemProperty(
-      this.rack.map((letter) => ({ ...letter })),
+      this.rack.map((letter) => ({ value: letter.value })),
       'value'
     )
   }

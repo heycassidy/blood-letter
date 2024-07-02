@@ -1,3 +1,4 @@
+import { produce } from 'immer'
 import {
   GameState,
   PhaseKind,
@@ -6,7 +7,6 @@ import {
   DroppableKind,
 } from '../lib/types'
 import Letter from '../lib/Letter'
-import Player from '../lib/Player'
 import { cyclicalNext } from '../lib/helpers'
 import { arrayMove } from '@dnd-kit/sortable'
 import { gameConfig, getHealthCost, getBattleWinner } from '../lib/gameConfig'
@@ -115,355 +115,251 @@ export type GameContextAction =
   | MoveLetterInRackAction
   | SetLetterOrigins
 
-export const gameContextReducer = (
-  state: GameState,
-  action: GameContextAction
-): GameState => {
-  const { type, payload } = action
+const {
+  initialGold,
+  rackCapacity,
+  letterBuyCost,
+  letterSellValue,
+  battleVictoriesToWin,
+  healthToLose,
+  poolRefreshCost,
+} = gameConfig
 
-  const {
-    initialGold,
-    rackCapacity,
-    letterBuyCost,
-    letterSellValue,
-    battleVictoriesToWin,
-    healthToLose,
-    poolRefreshCost,
-  } = gameConfig
+export const gameContextReducer = produce(
+  (draft: GameState, action: GameContextAction) => {
+    const { type, payload } = action
+    const activePlayer = draft.players.get(draft.activePlayerId)
 
-  // Clone players Map and explicitly assign active player so we can safely mutate players
-  const players = new Map<UUID, Player>(
-    [...state.players.entries()].map(([id, player]) => [id, player.clone()])
-  )
-  const playerIds = [...players.keys()]
+    if (!activePlayer) return
 
-  // Get active player from cloned Map instead of state
-  const activePlayer = players.get(state.activePlayer.id)
-  if (activePlayer === undefined) return state
-  const nextPlayer = players.get(cyclicalNext(playerIds, activePlayer.id))
-  if (nextPlayer === undefined) return state
-
-  switch (type) {
-    case GameActionKind.Set: {
-      return {
-        ...payload.state,
+    switch (type) {
+      case GameActionKind.Set: {
+        return payload.state
       }
-    }
 
-    case GameActionKind.RestartGame: {
-      return {
-        ...payload.state,
-        gameCount: state.gameCount + 1,
+      case GameActionKind.RestartGame: {
+        return { ...payload.state, gameCount: draft.gameCount + 1 }
       }
-    }
 
-    case GameActionKind.EndTurn: {
-      const winner = getBattleWinner([...players.values()])
-      const losers = [...players.values()].filter((p) => p !== winner)
+      case GameActionKind.EndTurn: {
+        const winner = getBattleWinner([...draft.players.values()])
+        const losers = [...draft.players.values()].filter((p) => p !== winner)
+        const nextPlayer = cyclicalNext(
+          [...draft.players.values()],
+          activePlayer
+        )
 
-      const battleOver = activePlayer.id === [...players.values()].at(-1)?.id
+        const battleOver =
+          draft.activePlayerId === [...draft.players.keys()].at(-1)
 
-      // Other plays still have yet to take their turns
-      if (!battleOver) {
-        nextPlayer.refreshPool(state.round)
-
-        return {
-          ...state,
-          rack: nextPlayer.rack,
-          pool: nextPlayer.pool,
-          gold: initialGold,
-          activePlayer: nextPlayer,
-          players,
+        // Other plays still have yet to take their turns
+        if (!battleOver && nextPlayer) {
+          nextPlayer.refreshPool(draft.round)
+          draft.rack = nextPlayer.rack
+          draft.pool = nextPlayer.pool
+          draft.gold = initialGold
+          draft.activePlayerId = nextPlayer.id
+          return
         }
-      }
 
-      // Battle Over, all players have taken their turns
-      if (winner) {
-        winner.battleVictories = winner.battleVictories + 1
+        // Battle Over, all players have taken their turns
+        if (winner) {
+          winner.battleVictories = winner.battleVictories + 1
 
-        losers.forEach((loser) => {
-          loser.health =
-            loser.health - getHealthCost(state.round, gameConfig.healthCostMap)
-        })
-      }
-
-      // Game winner is battle winner when any player's lose or win condition is met
-      const gameOver =
-        winner &&
-        [...players.values()].some((player) => {
-          return (
-            player.health <= healthToLose ||
-            player.battleVictories >= battleVictoriesToWin
-          )
-        })
-
-      if (gameOver) {
-        return {
-          ...state,
-          gameOver: true,
-          gameWinner: winner,
-          players,
+          losers.forEach((loser) => {
+            loser.health =
+              loser.health -
+              getHealthCost(draft.round, gameConfig.healthCostMap)
+          })
         }
+
+        // Game winner is battle winner when any player's lose or win condition is met
+        const gameOver =
+          winner &&
+          [...draft.players.values()].some((player) => {
+            return (
+              player.health <= healthToLose ||
+              player.battleVictories >= battleVictoriesToWin
+            )
+          })
+
+        if (gameOver) {
+          draft.gameOver = true
+          draft.gameWinnerId = winner.id
+          return
+        }
+
+        // At this point all players have taken their turns, but the game is not over, so we show battle results
+        draft.phase = PhaseKind.Battle
+        draft.battleWinnerId = winner?.id
+        return
       }
 
-      // At this point all players have taken their turns, but the game is not over, so we show battle results
-      return {
-        ...state,
-        phase: PhaseKind.Battle,
-        battleWinner: winner,
-        players,
-      }
-    }
+      case GameActionKind.IncrementRound: {
+        const firstPlayer = [...draft.players.values()][0]
+        const newRound = draft.round + 1
 
-    case GameActionKind.IncrementRound: {
-      const firstPlayer = [...players.values()][0]
+        firstPlayer.refreshPool(newRound)
 
-      const newRound = state.round + 1
-
-      firstPlayer.refreshPool(newRound)
-
-      return {
-        ...state,
-        gold: initialGold,
-        rack: firstPlayer.rack,
-        pool: firstPlayer.pool,
-        round: newRound,
-        phase: PhaseKind.Build,
-        players,
-        activePlayer: firstPlayer,
-      }
-    }
-
-    case GameActionKind.BuyLetter: {
-      const { index, letter } = payload
-
-      if (state.rack.length >= rackCapacity) return state
-      if (state.gold < letterBuyCost) return state
-
-      const insertAt = index ?? state.rack.length
-
-      const newRack = [...state.rack]
-      const newPool = state.pool.filter(
-        (letter) => letter.id !== payload.letter.id
-      )
-
-      newRack.splice(
-        insertAt,
-        0,
-        new Letter({
-          ...letter,
-          origin: LetterOriginKind.Rack,
-        })
-      )
-
-      activePlayer.rack = newRack
-      activePlayer.pool = newPool
-
-      return {
-        ...state,
-        selectedLetter: null,
-        gold: state.gold - letterBuyCost,
-        pool: newPool,
-        rack: newRack,
-        activePlayer,
-        players,
-      }
-    }
-
-    case GameActionKind.SellLetter: {
-      const newRack = state.rack.filter(
-        (letter) => letter.id !== payload.letter.id
-      )
-
-      activePlayer.rack = newRack
-
-      return {
-        ...state,
-        selectedLetter: null,
-        gold: state.gold + letterSellValue,
-        rack: newRack,
-        activePlayer,
-        players,
-      }
-    }
-
-    case GameActionKind.ToggleFreeze: {
-      const newPool = state.pool.map((letter) =>
-        letter.id === payload.letter.id
-          ? new Letter({ ...letter, frozen: !letter.frozen })
-          : letter
-      )
-
-      activePlayer.pool = newPool
-
-      return {
-        ...state,
-        pool: newPool,
-        selectedLetter: null,
-        activePlayer,
-        players,
-      }
-    }
-
-    case GameActionKind.SpendGold: {
-      return {
-        ...state,
-        gold: state.gold - payload.amount,
-      }
-    }
-
-    case GameActionKind.SelectLetter: {
-      return {
-        ...state,
-        selectedLetter: payload.letter,
-      }
-    }
-
-    case GameActionKind.DeselectLetter: {
-      return {
-        ...state,
-        selectedLetter: null,
-      }
-    }
-
-    case GameActionKind.SetDraggingLetter: {
-      return {
-        ...state,
-        draggingLetter: payload,
-      }
-    }
-
-    case GameActionKind.DragLetterToRack: {
-      const { overId, letterId } = payload
-
-      const rackLetters = state.rack
-      const poolLetters = state.pool
-      const letter = [...poolLetters, ...rackLetters].find(
-        ({ id }) => id === letterId
-      )
-
-      if (letter === undefined) return state
-
-      const rackIds = rackLetters.map(({ id }) => id)
-      let newIndex: number
-
-      if (overId === DroppableKind.Rack) {
-        newIndex = rackIds.length
-      } else {
-        newIndex = rackIds.indexOf(overId)
+        draft.gold = initialGold
+        draft.rack = firstPlayer.rack
+        draft.pool = firstPlayer.pool
+        draft.round = newRound
+        draft.activePlayerId = firstPlayer.id
+        draft.phase = PhaseKind.Build
+        return
       }
 
-      const newPool = state.pool.filter(({ id }) => letterId !== id)
-      const newRack = [
-        ...rackLetters.slice(0, newIndex),
-        letter,
-        ...rackLetters.slice(newIndex, rackLetters.length),
-      ]
+      case GameActionKind.BuyLetter: {
+        const { index, letter } = payload
 
-      activePlayer.pool = newPool
-      activePlayer.rack = newRack
+        if (draft.rack.length >= rackCapacity) return
+        if (draft.gold < letterBuyCost) return
 
-      return {
-        ...state,
-        selectedLetter: null,
-        pool: newPool,
-        rack: newRack,
-        activePlayer,
-        players,
-      }
-    }
-
-    case GameActionKind.MoveLetterInRack: {
-      const { overId, letterId } = payload
-
-      const rackLetters = state.rack
-      const rackIds = rackLetters.map(({ id }) => id)
-
-      const oldIndex = rackIds.indexOf(letterId)
-      const newIndex = rackIds.indexOf(overId)
-
-      const newRack = arrayMove(rackLetters, oldIndex, newIndex)
-
-      activePlayer.rack = newRack
-
-      return {
-        ...state,
-        rack: newRack,
-        activePlayer,
-        players,
-      }
-    }
-
-    case GameActionKind.RemoveLetterFromRack: {
-      const { letterId } = payload
-
-      const rackLetters = state.rack
-      const poolLetters = state.pool
-      const letter = rackLetters.find(({ id }) => id === letterId)
-
-      if (letter === undefined) return state
-
-      const poolIds = rackLetters.map(({ id }) => id)
-
-      const newIndex = poolIds.length + 1
-
-      const newPool = [
-        ...poolLetters.slice(0, newIndex),
-        letter,
-        ...poolLetters.slice(newIndex, poolLetters.length),
-      ]
-      const newRack = state.rack.filter(({ id }) => letterId !== id)
-
-      activePlayer.pool = newPool
-      activePlayer.rack = newRack
-
-      return {
-        ...state,
-        rack: newRack,
-        pool: newPool,
-      }
-    }
-
-    case GameActionKind.SetLetterOrigins: {
-      const newRack = state.rack.map(
-        (letter) =>
+        draft.rack.splice(
+          index ?? draft.rack.length,
+          0,
           new Letter({
             ...letter,
             origin: LetterOriginKind.Rack,
           })
-      )
+        )
 
-      const newPool = state.pool.map(
-        (letter) =>
-          new Letter({
-            ...letter,
-            origin: LetterOriginKind.Pool,
+        draft.pool = draft.pool.filter(
+          (letter) => letter.id !== payload.letter.id
+        )
+
+        activePlayer.rack = draft.rack
+        activePlayer.pool = draft.pool
+
+        draft.selectedLetter = null
+        draft.gold = draft.gold - letterBuyCost
+        return
+      }
+
+      case GameActionKind.SellLetter: {
+        draft.rack = draft.rack.filter(
+          (letter) => letter.id !== payload.letter.id
+        )
+        draft.selectedLetter = null
+        draft.gold = draft.gold + letterSellValue
+        activePlayer.rack = draft.rack
+        return
+      }
+
+      case GameActionKind.ToggleFreeze: {
+        const index = draft.pool.findIndex(
+          (letter) => letter.id === payload.letter.id
+        )
+
+        if (index !== -1) {
+          draft.pool[index] = new Letter({
+            ...draft.pool[index],
+            frozen: !draft.pool[index].frozen,
           })
-      )
+        }
 
-      activePlayer.rack = newRack
-      activePlayer.pool = newPool
-
-      return {
-        ...state,
-        rack: newRack,
-        pool: newPool,
+        draft.selectedLetter = null
+        activePlayer.pool = draft.pool
+        return
       }
-    }
 
-    case GameActionKind.RefreshPool: {
-      if (state.gold < poolRefreshCost) return state
-
-      activePlayer.refreshPool(state.round)
-
-      return {
-        ...state,
-        gold: state.gold - poolRefreshCost,
-        pool: activePlayer.pool,
+      case GameActionKind.SpendGold: {
+        draft.gold = draft.gold - payload.amount
+        return
       }
-    }
 
-    default:
-      throw new Error()
+      case GameActionKind.SelectLetter: {
+        draft.selectedLetter = payload.letter
+        return
+      }
+
+      case GameActionKind.DeselectLetter: {
+        draft.selectedLetter = null
+        return
+      }
+
+      case GameActionKind.SetDraggingLetter: {
+        draft.draggingLetter = payload
+        return
+      }
+
+      case GameActionKind.DragLetterToRack: {
+        const { overId, letterId } = payload
+
+        const letter = [...draft.rack, ...draft.pool].find(
+          ({ id }) => id === letterId
+        )
+
+        if (letter === undefined) return
+
+        const rackIds = draft.rack.map(({ id }) => id)
+        const newIndex =
+          overId === DroppableKind.Rack
+            ? rackIds.length
+            : rackIds.indexOf(overId)
+
+        draft.selectedLetter = null
+        draft.pool = draft.pool.filter(({ id }) => letterId !== id)
+        draft.rack.splice(newIndex, 0, letter)
+        activePlayer.pool = draft.pool
+        activePlayer.rack = draft.rack
+        return
+      }
+
+      case GameActionKind.MoveLetterInRack: {
+        const { overId, letterId } = payload
+
+        const rackIds = draft.rack.map(({ id }) => id)
+
+        const oldIndex = rackIds.indexOf(letterId)
+        const newIndex = rackIds.indexOf(overId)
+
+        draft.rack = arrayMove(draft.rack, oldIndex, newIndex)
+        activePlayer.rack = draft.rack
+        return
+      }
+
+      case GameActionKind.RemoveLetterFromRack: {
+        const { letterId } = payload
+
+        const letter = draft.rack.find(({ id }) => id === letterId)
+        if (letter === undefined) return draft
+
+        const newIndex = draft.pool.length + 1
+
+        draft.pool.splice(newIndex, 0, letter)
+        draft.rack = draft.rack.filter(({ id }) => letterId !== id)
+
+        activePlayer.pool = draft.pool
+        activePlayer.rack = draft.rack
+        return
+      }
+
+      case GameActionKind.SetLetterOrigins: {
+        for (const letter of draft.rack) {
+          letter.origin = LetterOriginKind.Rack
+        }
+        for (const letter of draft.pool) {
+          letter.origin = LetterOriginKind.Pool
+        }
+
+        activePlayer.rack = draft.rack
+        activePlayer.pool = draft.pool
+        return
+      }
+
+      case GameActionKind.RefreshPool: {
+        if (draft.gold < poolRefreshCost) return draft
+
+        activePlayer.refreshPool(draft.round)
+        draft.gold = draft.gold - poolRefreshCost
+        draft.pool = activePlayer.pool
+        return
+      }
+
+      default:
+        throw new Error()
+    }
   }
-}
+)

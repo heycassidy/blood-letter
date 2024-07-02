@@ -1,3 +1,4 @@
+import { immerable } from 'immer'
 import {
   UUID,
   LetterOptions,
@@ -7,6 +8,8 @@ import {
 import { nanoid } from 'nanoid'
 
 class Letter implements LetterOptions {
+  [immerable] = true
+
   id: UUID = nanoid(10)
 
   readonly name: AlphabetCharacter
@@ -23,10 +26,6 @@ class Letter implements LetterOptions {
     this.origin = options.origin
 
     // this.doSomething()
-  }
-
-  doSomething(): void {
-    console.log('something')
   }
 }
 

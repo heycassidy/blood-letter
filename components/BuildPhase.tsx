@@ -4,10 +4,8 @@ import Pool from './Pool'
 import Rack from './Rack'
 import InfoList from '../atoms/InfoList'
 import { useGameContext, useGameDispatchContext } from '../context/GameContext'
-import { LetterOriginKind, PlayerClassificationKind } from '../lib/types'
+import { LetterOriginKind } from '../lib/types'
 import { GameActionKind } from '../context/GameContextReducer'
-import useComputerPlayer from '../hooks/useComputerPlayer'
-import { useEffect } from 'react'
 
 const BuildPhase = () => {
   const {
@@ -19,19 +17,17 @@ const BuildPhase = () => {
     poolCapacityMap,
   } = gameConfig
   const gameState = useGameContext()
-  const { round, activePlayer, rack, pool, gold, selectedLetter } = gameState
+  const { round, players, activePlayerId, rack, pool, gold, selectedLetter } =
+    gameState
   const dispatch = useGameDispatchContext()
-
-  const [runComputerPlayer] = useComputerPlayer()
-
-  useEffect(() => {
-    if (activePlayer.classification === PlayerClassificationKind.Computer) {
-      runComputerPlayer()
-    }
-  }, [activePlayer.id])
 
   const highestPoolTier = getPoolTier(round, poolTierMap)
   const poolAmount = getPoolCapacity(round, poolCapacityMap)
+
+  const activePlayer = players.get(activePlayerId)
+
+  // Typescript thinks Map.get() can return undefined in this case even though we know it won't
+  if (!activePlayer) return <></>
 
   const { name: playerName, health, battleVictories } = activePlayer
 

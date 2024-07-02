@@ -31,6 +31,7 @@ import {
   GameModeKind,
   DroppableKind,
   GameMove,
+  UUID,
 } from '../lib/types'
 import Letter from '../lib/Letter'
 import Player from '../lib/Player'
@@ -138,36 +139,36 @@ export const GameContextProvider = ({ children }: PropsWithChildren) => {
     const gameMode = GameModeKind.AgainstComputer
     // const gameMode: GameModeKind = GameModeKind.PassToPlay
 
-    const players = new Map(
-      Array.from({ length: numberOfPlayers }).map((_, i) => {
-        let player
+    const players: Map<UUID, Player> = new Map()
 
-        if (gameMode === GameModeKind.AgainstComputer && i !== 0) {
-          player = new Player({
-            name: `Player ${i + 1} (computer)`,
-            classification: PlayerClassificationKind.Computer,
-          })
-        } else {
-          player = new Player({
-            name: `Player ${i + 1}`,
-            classification: PlayerClassificationKind.Human,
-          })
-        }
+    Array.from({ length: numberOfPlayers }).map((_, i) => {
+      let player
 
-        return [player.id, player]
-      })
-    )
+      if (gameMode === GameModeKind.AgainstComputer && i !== 0) {
+        player = new Player({
+          name: `Player ${i + 1} (computer)`,
+          classification: PlayerClassificationKind.Computer,
+        })
+      } else {
+        player = new Player({
+          name: `Player ${i + 1}`,
+          classification: PlayerClassificationKind.Human,
+        })
+      }
+
+      players.set(player.id, player)
+    })
 
     const firstPlayer = [...players.values()][0]
 
     return {
       players,
-      activePlayer: firstPlayer,
+      activePlayerId: firstPlayer.id,
+      battleWinnerId: undefined,
+      gameWinnerId: undefined,
       round: initialRound,
       phase: initialPhase,
-      battleWinner: undefined,
       gameOver: false,
-      gameWinner: undefined,
       gameCount: 0,
       gameMode,
 
@@ -342,12 +343,9 @@ export const GameContextProvider = ({ children }: PropsWithChildren) => {
     </GameContext.Provider>
   )
 
-  function getAvailableMoves({ rack, pool, gold }: Partial<GameState>) {
+  function getAvailableMoves(state: GameState) {
     const moves: GameMove[] = []
-
-    if (!rack || !pool || !gold) {
-      return moves
-    }
+    const { rack, pool, gold } = state
 
     // Buy Moves
     if (gold >= letterBuyCost && rack.length < rackCapacity) {
@@ -355,7 +353,7 @@ export const GameContextProvider = ({ children }: PropsWithChildren) => {
         moves.push({
           name: `buy-letter-${letter.name}`,
           id: nanoid(10),
-          execute: () => buyLetter(letter),
+          execute: () => buyLetter(letter, state),
         })
       })
     }
@@ -365,7 +363,7 @@ export const GameContextProvider = ({ children }: PropsWithChildren) => {
       moves.push({
         name: `sell-letter-${letter.name}-at-${rack.indexOf(letter)}`,
         id: nanoid(10),
-        execute: () => sellLetter(letter),
+        execute: () => sellLetter(letter, state),
       })
     })
 
@@ -376,7 +374,7 @@ export const GameContextProvider = ({ children }: PropsWithChildren) => {
         moves.push({
           name: `freeze-letter-${letter.name}`,
           id: nanoid(10),
-          execute: () => freezeLetter(letter),
+          execute: () => freezeLetter(letter, state),
         })
       })
 
@@ -387,7 +385,7 @@ export const GameContextProvider = ({ children }: PropsWithChildren) => {
         moves.push({
           name: `thaw-letter-${letter.name}`,
           id: nanoid(10),
-          execute: () => thawLetter(letter),
+          execute: () => thawLetter(letter, state),
         })
       })
 
@@ -401,7 +399,7 @@ export const GameContextProvider = ({ children }: PropsWithChildren) => {
               fromLetter
             )}-to-${toLetter.name}-at-${rack.indexOf(toLetter)}`,
             id: nanoid(10),
-            execute: () => moveLetterInRack(fromLetter, toLetter),
+            execute: () => moveLetterInRack(fromLetter, toLetter, state),
           })
         })
     })
@@ -411,7 +409,7 @@ export const GameContextProvider = ({ children }: PropsWithChildren) => {
       moves.push({
         name: 'refresh-pool',
         id: nanoid(10),
-        execute: () => refreshPool(),
+        execute: () => refreshPool(state),
       })
     }
 
@@ -419,55 +417,59 @@ export const GameContextProvider = ({ children }: PropsWithChildren) => {
     moves.push({
       name: 'end-turn',
       id: nanoid(10),
-      execute: () => endTurn(),
+      execute: () => endTurn(state),
     })
 
     return moves
   }
 
-  function buyLetter(letter: Letter) {
-    return dispatch({
+  function buyLetter(letter: Letter, state: GameState) {
+    return gameContextReducer(state, {
       type: GameActionKind.BuyLetter,
       payload: { letter },
     })
   }
 
-  function sellLetter(letter: Letter) {
-    return dispatch({
+  function sellLetter(letter: Letter, state: GameState) {
+    return gameContextReducer(state, {
       type: GameActionKind.SellLetter,
       payload: { letter },
     })
   }
 
-  function freezeLetter(letter: Letter) {
-    return dispatch({
+  function freezeLetter(letter: Letter, state: GameState) {
+    return gameContextReducer(state, {
       type: GameActionKind.ToggleFreeze,
       payload: { letter },
     })
   }
 
-  function thawLetter(letter: Letter) {
-    return dispatch({
+  function thawLetter(letter: Letter, state: GameState) {
+    return gameContextReducer(state, {
       type: GameActionKind.ToggleFreeze,
       payload: { letter },
     })
   }
 
-  function moveLetterInRack(letter: Letter, overLetter: Letter) {
-    return dispatch({
+  function moveLetterInRack(
+    letter: Letter,
+    overLetter: Letter,
+    state: GameState
+  ) {
+    return gameContextReducer(state, {
       type: GameActionKind.MoveLetterInRack,
       payload: { letterId: letter.id, overId: overLetter.id },
     })
   }
 
-  function refreshPool() {
-    return dispatch({
+  function refreshPool(state: GameState) {
+    return gameContextReducer(state, {
       type: GameActionKind.RefreshPool,
     })
   }
 
-  function endTurn() {
-    return dispatch({
+  function endTurn(state: GameState) {
+    return gameContextReducer(state, {
       type: GameActionKind.EndTurn,
     })
   }

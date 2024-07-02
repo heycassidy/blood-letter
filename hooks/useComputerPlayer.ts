@@ -1,31 +1,30 @@
-import { useGameContext } from '../context/GameContext'
-import { GameMove } from '../lib/types'
+import { useGameDispatchContext } from '../context/GameContext'
+import { GameState } from '../lib/types'
 import { randomItem } from '../lib/helpers'
-import { useEffect, useState } from 'react'
+import { GameActionKind } from '../context/GameContextReducer'
 
 const useComputerPlayer = () => {
-  const { rack, pool, gold, getAvailableMoves } = useGameContext()
+  const dispatch = useGameDispatchContext()
 
-  const [lastMove, setLastMove] = useState<GameMove | null>(null)
-  const [moves, setMoves] = useState<GameMove[]>(
-    getAvailableMoves({ rack, pool, gold })
-  )
+  function runComputerPlayer(state: GameState) {
+    const { getAvailableMoves } = state
 
-  function runComputerPlayer() {
-    const randomMove = randomItem(moves)
+    const randomMove = randomItem(getAvailableMoves(state))
+    console.log(randomMove.name)
+    const nextState = randomMove.execute()
 
-    randomMove.execute()
-    setLastMove(randomMove)
-    setMoves(getAvailableMoves({ rack, pool, gold }))
-  }
+    const nextAvailableMoves = getAvailableMoves(nextState)
 
-  useEffect(() => {
-    if (lastMove && moves.length > 0 && lastMove.name !== 'end-turn') {
-      setTimeout(() => {
-        runComputerPlayer()
-      }, 100)
+    if (randomMove.name !== 'end-turn' && nextAvailableMoves.length > 0) {
+      runComputerPlayer(nextState)
+    } else {
+      console.log(nextState)
+      dispatch({
+        type: GameActionKind.Set,
+        payload: { state: nextState },
+      })
     }
-  }, [lastMove?.id])
+  }
 
   return [runComputerPlayer]
 }

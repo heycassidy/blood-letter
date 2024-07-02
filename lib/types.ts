@@ -77,12 +77,12 @@ export interface LetterTierMap {
 
 export interface GameState {
   players: Map<UUID, Player>
-  activePlayer: Player
+  activePlayerId: UUID
+  battleWinnerId: UUID | undefined | null
+  gameWinnerId: UUID | undefined
   round: number
   phase: PhaseKind
-  battleWinner: Player | undefined | null
   gameOver: boolean
-  gameWinner: Player | undefined
   gameCount: number
   gameMode: GameModeKind.AgainstComputer | GameModeKind.PassToPlay
 
@@ -94,7 +94,7 @@ export interface GameState {
 
   restartGame: () => void
 
-  getAvailableMoves: ({ rack, pool, gold }: Partial<GameState>) => GameMove[]
+  getAvailableMoves: (state: GameState) => GameMove[]
 }
 
 export enum LetterOriginKind {
@@ -111,5 +111,5 @@ export enum DroppableKind {
 export interface GameMove {
   name: string
   id: UUID
-  execute: () => void
+  execute: () => GameState
 }

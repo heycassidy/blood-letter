@@ -1,14 +1,36 @@
 import type { NextPage } from 'next'
+import { useEffect } from 'react'
 import Head from 'next/head'
 import Layout from '../components/Layout'
 import BuildPhase from '../components/BuildPhase'
 import BattlePhase from '../components/BattlePhase'
 import { useGameContext } from '../context/GameContext'
-import { PhaseKind } from '../lib/types'
+import { PhaseKind, PlayerClassificationKind } from '../lib/types'
 import { css } from '../stitches.config'
+import useComputerPlayer from '../hooks/useComputerPlayer'
 
 const Home: NextPage = () => {
-  const { phase, gameOver, gameWinner, restartGame } = useGameContext()
+  const gameState = useGameContext()
+  const {
+    phase,
+    gameOver,
+    gameWinnerId,
+    restartGame,
+    players,
+    activePlayerId,
+  } = gameState
+  const [runComputerPlayer] = useComputerPlayer()
+  const activePlayer = players.get(activePlayerId)
+  const gameWinner = players.get(gameWinnerId ?? '')
+
+  useEffect(() => {
+    if (
+      activePlayer &&
+      activePlayer.classification === PlayerClassificationKind.Computer
+    ) {
+      runComputerPlayer(gameState)
+    }
+  }, [activePlayerId])
 
   return (
     <div className={styles()}>
