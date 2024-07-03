@@ -93,8 +93,6 @@ export interface GameState {
   draggingLetter: Letter | null
 
   restartGame: () => void
-
-  getAvailableMoves: (state: GameState) => GameMove[]
 }
 
 export enum LetterOriginKind {
@@ -108,7 +106,7 @@ export enum DroppableKind {
   Rack = 'RACK',
 }
 
-export interface GameMove {
+export interface cpuMove {
   name: string
   id: UUID
   execute: () => GameState

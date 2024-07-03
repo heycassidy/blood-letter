@@ -1,29 +1,24 @@
 import { useGameDispatchContext } from '../context/GameContext'
 import { GameState } from '../lib/types'
-import { randomItem } from '../lib/helpers'
 import { GameActionKind } from '../context/GameContextReducer'
+import { MCTSGame } from '../lib/MCTS'
 
 const useComputerPlayer = () => {
   const dispatch = useGameDispatchContext()
 
-  function runComputerPlayer(state: GameState) {
-    const { getAvailableMoves } = state
+  function runComputerPlayer(initialState: GameState) {
+    const game = new MCTSGame(initialState)
 
-    const randomMove = randomItem(getAvailableMoves(state))
-    console.log(randomMove.name)
-    const nextState = randomMove.execute()
-
-    const nextAvailableMoves = getAvailableMoves(nextState)
-
-    if (randomMove.name !== 'end-turn' && nextAvailableMoves.length > 0) {
-      runComputerPlayer(nextState)
-    } else {
-      console.log(nextState)
-      dispatch({
-        type: GameActionKind.Set,
-        payload: { state: nextState },
-      })
+    while (!game.isTurnOver) {
+      const move = game.selectMove()
+      console.log(move.name)
+      game.state = move.execute()
     }
+
+    dispatch({
+      type: GameActionKind.Set,
+      payload: { state: game.state },
+    })
   }
 
   return [runComputerPlayer]
