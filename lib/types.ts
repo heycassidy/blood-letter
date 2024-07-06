@@ -78,7 +78,7 @@ export interface LetterTierMap {
 export interface GameState {
   players: Map<UUID, Player>
   activePlayerId: UUID
-  battleWinnerId: UUID | undefined | null
+  battleWinnerId: UUID | undefined
   gameWinnerId: UUID | undefined
   round: number
   phase: PhaseKind
@@ -106,7 +106,7 @@ export enum DroppableKind {
   Rack = 'RACK',
 }
 
-export interface cpuMove {
+export interface MCTSMove {
   name: string
   id: UUID
   execute: () => GameState

@@ -166,7 +166,7 @@ export const GameContextProvider = ({ children }: PropsWithChildren) => {
       round: initialRound,
       phase: initialPhase,
       gameOver: false,
-      gameCount: 0,
+      gameCount: 1,
       gameMode,
 
       rack: firstPlayer.rack,

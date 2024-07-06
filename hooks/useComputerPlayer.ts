@@ -1,19 +1,19 @@
 import { useGameDispatchContext } from '../context/GameContext'
 import { GameState } from '../lib/types'
 import { GameActionKind } from '../context/GameContextReducer'
-import { MCTSGame } from '../lib/MCTS'
+import { MCTSGame, MCTS } from '../lib/MCTS'
 
 const useComputerPlayer = () => {
   const dispatch = useGameDispatchContext()
 
   function runComputerPlayer(initialState: GameState) {
     const game = new MCTSGame(initialState)
+    const computerPlayer = new MCTS(game, initialState.activePlayerId, 500)
 
-    while (!game.isTurnOver) {
-      const move = game.selectMove()
-      console.log(move.name)
-      game.state = move.execute()
-    }
+    console.log('Computer player: ', initialState.activePlayerId)
+    game.state = computerPlayer.playTurn()
+
+    console.log('BATTLE OVER: ', game.state)
 
     dispatch({
       type: GameActionKind.Set,
