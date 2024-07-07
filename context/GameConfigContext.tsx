@@ -1,4 +1,4 @@
-import { PhaseKind, GameConfig, GameModeKind } from '../lib/types'
+import { PhaseKind, GameConfig } from '../lib/types'
 import Letter from '../lib/Letter'
 import { createContext } from 'react'
 
