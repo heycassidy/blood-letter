@@ -108,6 +108,5 @@ export enum DroppableKind {
 
 export interface MCTSMove {
   name: string
-  id: UUID
   execute: () => GameState
 }

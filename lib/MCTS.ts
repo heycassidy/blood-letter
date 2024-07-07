@@ -61,7 +61,6 @@ export class MCTSGame {
 
         moves.set(name, {
           name,
-          id: nanoid(10),
           execute: () => this.buyLetter(letter, this.state),
         })
       })
@@ -73,7 +72,6 @@ export class MCTSGame {
 
       moves.set(name, {
         name,
-        id: nanoid(10),
         execute: () => this.sellLetter(letter, this.state),
       })
     })
@@ -85,7 +83,6 @@ export class MCTSGame {
         const name = `freeze-letter-${letter.name}`
         moves.set(name, {
           name,
-          id: nanoid(10),
           execute: () => this.freezeLetter(letter, this.state),
         })
       })
@@ -97,7 +94,6 @@ export class MCTSGame {
         const name = `thaw-letter-${letter.name}`
         moves.set(name, {
           name,
-          id: nanoid(10),
           execute: () => this.thawLetter(letter, this.state),
         })
       })
@@ -112,7 +108,6 @@ export class MCTSGame {
           )}-to-${toLetter.name}-at-${rack.indexOf(toLetter)}`
           moves.set(name, {
             name,
-            id: nanoid(10),
             execute: () =>
               this.moveLetterInRack(fromLetter, toLetter, this.state),
           })
@@ -124,7 +119,6 @@ export class MCTSGame {
       const name = 'refresh-pool'
       moves.set(name, {
         name,
-        id: nanoid(10),
         execute: () => this.refreshPool(this.state),
       })
     }
@@ -132,7 +126,6 @@ export class MCTSGame {
     // End Turn
     moves.set('end-turn', {
       name: 'end-turn',
-      id: nanoid(10),
       execute: () => this.endTurn(this.state),
     })
 
