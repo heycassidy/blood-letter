@@ -10,10 +10,10 @@ import {
 import { gameConfig } from './gameConfig'
 
 export class MCTSGame {
-  _state: GameState
+  state: GameState
 
   constructor(initialState: GameState) {
-    this._state = initialState
+    this.state = initialState
   }
 
   get isBattlePhase(): boolean {
@@ -26,23 +26,6 @@ export class MCTSGame {
 
   get winnerId(): UUID | false {
     return this.state.gameWinnerId ?? false
-  }
-
-  set state(newState: GameState) {
-    if (newState.rack.some((letter) => letter === undefined)) {
-      debugger
-    }
-    this._state = newState
-  }
-
-  get state() {
-    return this._state
-  }
-
-  cloneState(state: GameState): GameState {
-    return produce(state, (draft) => {
-      return draft
-    })
   }
 
   get randomMove(): MCTSMove {
@@ -130,6 +113,12 @@ export class MCTSGame {
     })
 
     return moves
+  }
+
+  cloneState(state: GameState): GameState {
+    return produce(state, (draft) => {
+      return draft
+    })
   }
 
   buyLetter(letter: Letter, state: GameState) {
