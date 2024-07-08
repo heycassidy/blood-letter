@@ -180,29 +180,18 @@ export class MCTSNode {
   parent: MCTSNode | null
   visits: number
   wins: number
-  heuristicScore: number
   numUnexpandedMoves: number
   children: Map<string, MCTSNode>
   moves: Map<string, MCTSMove>
-  gameState: GameState
 
-  constructor(
-    moves: Map<string, MCTSMove>,
-    parent: MCTSNode | null,
-    gameState: GameState
-  ) {
+  constructor(moves: Map<string, MCTSMove>, parent: MCTSNode | null) {
     this.parent = parent
     this.visits = 0
     this.wins = 0
-    this.heuristicScore = 0
     this.numUnexpandedMoves = moves.size
     this.children = new Map<string, MCTSNode>()
     this.moves = moves
-    this.gameState = gameState
-  }
-
-  get combinedScore() {
-    return this.wins + this.heuristicScore
+    // this.playerId = playerId
   }
 
   // Used to balance between selecting optimal nodes and exploring new areas of the tree
@@ -210,8 +199,7 @@ export class MCTSNode {
     return (
       this.wins / this.visits +
       explorationConstant *
-        Math.sqrt(Math.log(this?.parent?.visits ?? 0) / this.visits) +
-      this.heuristicScore / this.visits
+        Math.sqrt(Math.log(this?.parent?.visits ?? 0) / this.visits)
     )
   }
 }
@@ -238,7 +226,7 @@ export class MCTS {
   public playTurn(): GameState {
     const originalState = this.game.state
     const moves = this.game.moves
-    const root = new MCTSNode(moves, null, this.game.state)
+    const root = new MCTSNode(moves, null)
 
     // Build stats
     console.log('building stats...')
@@ -261,30 +249,15 @@ export class MCTS {
       this.#simulate()
 
       // Phase 4: Back Propagate
-      let reward
+      let wins = -1
       if (!this.game.winnerId) {
-        reward = 0
+        wins = 0
       } else if (this.game.winnerId === this.playerId) {
-        reward = 1
-      } else {
-        reward = -1
-      }
-
-      let heuristicScore = 0
-      const currentPlayer = expandedNode.gameState.players.get(
-        expandedNode.gameState.activePlayerId
-      )
-
-      if (currentPlayer) {
-        if (currentPlayer.id === this.playerId) {
-          heuristicScore += currentPlayer.totalScore
-        } else {
-          heuristicScore -= currentPlayer.totalScore
-        }
+        wins = 1
       }
 
       // console.log('back propagate: ', expandedNode, reward)
-      this.#backPropagate(expandedNode, reward, heuristicScore)
+      this.#backPropagate(expandedNode, wins)
     }
 
     // Play Turn
@@ -295,13 +268,13 @@ export class MCTS {
 
   // a sequence of moves representing the build phase, similar to #simulate, but ends when the turn is over instead of when the game is over
   #playTurnMoves(node: MCTSNode): GameState {
-    let maxScore = -Infinity
+    let visits = -Infinity
     let bestChild
     let bestMoveName = ''
 
     node.children.forEach((child, moveName) => {
-      if (child.combinedScore > maxScore) {
-        maxScore = child.combinedScore
+      if (child.visits > visits) {
+        visits = child.visits
         bestChild = child
         bestMoveName = moveName
       }
@@ -366,12 +339,11 @@ export class MCTS {
     const move = this.#selectRandomUnexpandedMove(node)
 
     this.game.state = move.execute()
-
     if (this.game.isBattlePhase) {
       this.game.state = this.game.incrementRound(this.game.state)
     }
 
-    const newNode = new MCTSNode(this.game.moves, node, this.game.state)
+    const newNode = new MCTSNode(this.game.moves, node)
     node.children.set(move.name, newNode)
 
     return newNode
@@ -402,7 +374,7 @@ export class MCTS {
   }
 
   // Phase 4: Iterate back up the tree from the provided node to the root, updating node statistics along the way
-  #backPropagate(node: MCTSNode | null, wins: number, heuristicScore: number) {
+  #backPropagate(node: MCTSNode | null, wins: number) {
     const currentNode = node
     if (!currentNode) {
       return
@@ -410,7 +382,6 @@ export class MCTS {
 
     currentNode.visits += 1
     currentNode.wins += wins
-    currentNode.heuristicScore += heuristicScore
-    this.#backPropagate(currentNode.parent, wins, heuristicScore)
+    this.#backPropagate(currentNode.parent, wins)
   }
 }
