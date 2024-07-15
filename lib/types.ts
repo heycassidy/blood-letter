@@ -1,3 +1,4 @@
+import { GameActionKind } from '../context/GameContextReducer'
 import Letter from '../lib/Letter'
 import Player from '../lib/Player'
 
@@ -109,4 +110,5 @@ export enum DroppableKind {
 export interface MCTSMove {
   name: string
   execute: () => GameState
+  actionKind: GameActionKind
 }
