@@ -1,3 +1,4 @@
+import { alea } from 'seedrandom'
 import { produce } from 'immer'
 import {
   GameState,
@@ -132,13 +133,20 @@ export const gameContextReducer = produce(
 
     if (!activePlayer) return
 
+    if (type !== GameActionKind.Set) {
+      draft.players.forEach((player) => {
+        player.seed = player.seed + alea(`${player.seed}`)()
+      })
+    }
+
     switch (type) {
       case GameActionKind.Set: {
         return payload.state
       }
 
       case GameActionKind.RestartGame: {
-        return { ...payload.state, gameCount: draft.gameCount + 1 }
+        draft.gameCount += 1
+        return
       }
 
       case GameActionKind.EndTurn: {

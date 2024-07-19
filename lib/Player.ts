@@ -1,5 +1,4 @@
 import { immerable } from 'immer'
-
 import { UUID, PlayerOptions, PlayerClassificationKind } from '../lib/types'
 import Letter from './Letter'
 import { nanoid } from 'nanoid'
@@ -13,12 +12,13 @@ import { sumItemProperty, concatItemProperty } from './helpers'
 import { wordList } from './words'
 
 class Player implements PlayerOptions {
-  [immerable] = true // Option 1
+  [immerable] = true
 
   readonly id: UUID
   readonly name: string
   readonly classification: PlayerClassificationKind
 
+  seed: number
   health: number
   rack: Letter[]
   pool: Letter[]
@@ -30,6 +30,7 @@ class Player implements PlayerOptions {
     this.id = options.id ?? nanoid(10)
     this.name = options.name
     this.classification = options.classification
+    this.seed = options.startingSeed ?? Math.random()
 
     this.health = options.health ?? initialHealth
     this.battleVictories = options.battleVictories ?? 0
@@ -86,7 +87,7 @@ class Player implements PlayerOptions {
     const poolTier = getPoolTier(round, poolTierMap)
     const poolCapacity = getPoolCapacity(round, poolCapacityMap)
 
-    return getRandomPoolLetters(alphabet, poolTier, poolCapacity)
+    return getRandomPoolLetters(alphabet, poolTier, poolCapacity, this.seed)
   }
 }
 

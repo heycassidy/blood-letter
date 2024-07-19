@@ -1,3 +1,6 @@
+import { randomInt } from 'd3-random'
+import { alea } from 'seedrandom'
+
 import { UUID } from './types'
 
 export const itemIsInRange = (item: number, start = 0, stop = 10): boolean =>
@@ -6,11 +9,35 @@ export const itemIsInRange = (item: number, start = 0, stop = 10): boolean =>
 export const integerRange = (start = 0, stop = 10): number[] =>
   [...Array(stop + start - 1)].map((_, i) => i + start)
 
-export const randomItems = <T>(items: T[], amount: number): T[] =>
-  [...Array(amount)].map(() => randomItem(items))
+export const seededRandomInteger = (props: {
+  min: number
+  max: number
+  seed: number
+}) => {
+  const { min, max, seed } = props
 
-export const randomItem = <T>(items: T[]): T =>
-  items[Math.floor(Math.random() * items.length)]
+  const source = alea(`${seed}`)
+
+  return randomInt.source(source)(min, max)()
+}
+
+export const randomItem = <T>(items: T[], seed?: number): T => {
+  if (seed) {
+    return items[seededRandomInteger({ min: 0, max: items.length, seed })]
+  } else {
+    return items[Math.floor(Math.random() * items.length)]
+  }
+}
+
+export const randomItems = <T>(
+  items: T[],
+  amount: number,
+  seed?: number
+): T[] => {
+  return [...Array(amount)].map((_, i) =>
+    randomItem(items, seed ? seed + i : undefined)
+  )
+}
 
 export const assignIds = <T>(items: T[], id: UUID | (() => UUID)): T[] =>
   items.map((item) => ({

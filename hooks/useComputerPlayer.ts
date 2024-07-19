@@ -8,7 +8,7 @@ const useComputerPlayer = () => {
 
   function runComputerPlayer(initialState: GameState) {
     const game = new MCTSGame(initialState)
-    const computerPlayer = new MCTS(game, initialState.activePlayerId, 500)
+    const computerPlayer = new MCTS(game, initialState.activePlayerId, 1500)
 
     console.log('Computer player: ', initialState.activePlayerId)
     game.state = computerPlayer.playTurn()

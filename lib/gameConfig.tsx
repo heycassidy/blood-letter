@@ -145,13 +145,14 @@ export const getPoolCapacity = (
 export const getRandomPoolLetters = (
   letters: Letter[],
   tier: number,
-  amount: number
+  amount: number,
+  randomSeed?: number
 ): Letter[] => {
   const tierAndBelowLetters = letters.filter((letter) =>
     itemIsInRange(letter.tier, 1, tier)
   )
 
-  return randomItems(tierAndBelowLetters, amount).map((letter) => {
+  return randomItems(tierAndBelowLetters, amount, randomSeed).map((letter) => {
     const { name, tier, value } = letter
     return new Letter({ name, tier, value, origin: LetterOriginKind.Pool })
   })

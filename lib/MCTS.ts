@@ -310,9 +310,20 @@ export class MCTS {
       return this.game.endTurn(this.game.state)
     }
 
-    const nextNode = this.#selectBestChild(node)
+    const nextNode = [...node.children.values()].reduce(
+      (bestChild, currentChild) => {
+        const bestChildScore = bestChild.wins
+        const currentChildScore = currentChild.wins
 
-    console.log(nextNode.move.name)
+        if (currentChildScore > bestChildScore) {
+          return currentChild
+        }
+
+        return bestChild
+      }
+    )
+
+    console.log(nextNode.move.name, nextNode.wins)
 
     if (nextNode.move.name === 'end-turn') {
       return this.game.playMove(nextNode.move)

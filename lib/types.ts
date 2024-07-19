@@ -59,6 +59,7 @@ export interface PlayerOptions {
   id?: UUID
   name: string
   classification: PlayerClassificationKind
+  startingSeed?: number
   health?: number
   battleVictories?: number
   rack?: Letter[]

@@ -139,19 +139,18 @@ export const GameContextProvider = ({ children }: PropsWithChildren) => {
     const players: Map<UUID, Player> = new Map()
 
     Array.from({ length: numberOfPlayers }).map((_, i) => {
-      let player
+      const playerName = `Player ${i + 1} ${
+        gameMode === GameModeKind.AgainstComputer && i !== 0 ? '(computer)' : ''
+      }`
+      const playerClassification =
+        gameMode === GameModeKind.AgainstComputer && i !== 0
+          ? PlayerClassificationKind.Computer
+          : PlayerClassificationKind.Human
 
-      if (gameMode === GameModeKind.AgainstComputer && i !== 0) {
-        player = new Player({
-          name: `Player ${i + 1} (computer)`,
-          classification: PlayerClassificationKind.Computer,
-        })
-      } else {
-        player = new Player({
-          name: `Player ${i + 1}`,
-          classification: PlayerClassificationKind.Human,
-        })
-      }
+      const player = new Player({
+        name: playerName,
+        classification: playerClassification,
+      })
 
       players.set(player.id, player)
     })
