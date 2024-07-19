@@ -110,6 +110,7 @@ export enum DroppableKind {
 
 export interface MCTSMove {
   name: string
+  weight: number
   execute: () => GameState
   actionKind: GameActionKind
 }

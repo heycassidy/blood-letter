@@ -29,6 +29,23 @@ export const randomItem = <T>(items: T[], seed?: number): T => {
   }
 }
 
+export const weightedRandomItem = <T extends { weight: number }>(
+  items: T[],
+  seed?: number
+): T => {
+  const sumOfWeights = sumItemProperty(items, 'weight')
+  let weights: number[] = []
+
+  for (const [index, item] of items.entries()) {
+    const m = Math.round((item.weight / sumOfWeights) * 100)
+    weights = [...weights, ...Array(m).fill(index)]
+  }
+
+  const weightedRandomIndex = randomItem(weights, seed)
+
+  return items[weightedRandomIndex]
+}
+
 export const randomItems = <T>(
   items: T[],
   amount: number,

@@ -1,4 +1,4 @@
-import { randomItem } from '../lib/helpers'
+import { randomItem, weightedRandomItem } from '../lib/helpers'
 import { produce } from 'immer'
 import Letter from './Letter'
 import { MCTSMove, GameState, PhaseKind, UUID } from './types'
@@ -50,6 +50,10 @@ export class MCTSGame {
     return randomItem([...this.moves.values()])
   }
 
+  get randomWeightedMove(): MCTSMove {
+    return weightedRandomItem([...this.moves.values()])
+  }
+
   get moves(): Map<string, MCTSMove> {
     const moves: Map<string, MCTSMove> = new Map<string, MCTSMove>()
     const { rack, pool, gold } = this.state
@@ -62,6 +66,7 @@ export class MCTSGame {
 
         moves.set(name, {
           name,
+          weight: 80 + letter.value,
           execute: () => this.buyLetter(letter, this.state),
           actionKind: GameActionKind.BuyLetter,
         })
@@ -78,6 +83,7 @@ export class MCTSGame {
           )}-to-${toLetter.name}-at-${rack.indexOf(toLetter)}`
           moves.set(name, {
             name,
+            weight: 70,
             execute: () =>
               this.moveLetterInRack(fromLetter, toLetter, this.state),
             actionKind: GameActionKind.MoveLetterInRack,
@@ -90,6 +96,7 @@ export class MCTSGame {
       const name = 'refresh-pool'
       moves.set(name, {
         name,
+        weight: 50,
         execute: () => this.refreshPool(this.state),
         actionKind: GameActionKind.RefreshPool,
       })
@@ -102,6 +109,7 @@ export class MCTSGame {
         const name = `thaw-letter-${letter.name}-at-${i}`
         moves.set(name, {
           name,
+          weight: 60 + letter.value,
           execute: () => this.thawLetter(letter, this.state),
           actionKind: GameActionKind.ThawLetter,
         })
@@ -114,6 +122,7 @@ export class MCTSGame {
         const name = `freeze-letter-${letter.name}-at-${i}`
         moves.set(name, {
           name,
+          weight: 40 + letter.value,
           execute: () => this.freezeLetter(letter, this.state),
           actionKind: GameActionKind.FreezeLetter,
         })
@@ -125,6 +134,7 @@ export class MCTSGame {
 
       moves.set(name, {
         name,
+        weight: 20 - letter.value,
         execute: () => this.sellLetter(letter, this.state),
         actionKind: GameActionKind.SellLetter,
       })
@@ -133,6 +143,7 @@ export class MCTSGame {
     // End Turn
     moves.set('end-turn', {
       name: 'end-turn',
+      weight: 5,
       execute: () => this.endTurn(this.state),
       actionKind: GameActionKind.EndTurn,
     })
@@ -149,6 +160,7 @@ export class MCTSGame {
   get noOpMove() {
     return {
       name: 'no-op',
+      weight: 0,
       execute: () => this.state,
       actionKind: GameActionKind.Set,
     }
@@ -363,8 +375,7 @@ export class MCTS {
 
   // Phase 2: Attaches a random new node to the provided node and returns the new node
   #expand(node: MCTSNode): MCTSNode {
-    // const move = this.#selectRandomUnexploredMove(node)
-    const move = this.#selectNextUnexploredMove(node)
+    const move = this.#selectRandomUnexploredMove(node)
     node.unexploredMoves.delete(move.name)
 
     this.game.simulateMove(move)
@@ -375,18 +386,8 @@ export class MCTS {
     return newNode
   }
 
-  #selectNextUnexploredMove(node: MCTSNode): MCTSMove {
-    const nextMove = [...node.unexploredMoves.values()][0]
-
-    if (node.children.has(nextMove.name)) {
-      return this.#selectNextUnexploredMove(node)
-    }
-
-    return nextMove
-  }
-
   #selectRandomUnexploredMove(node: MCTSNode): MCTSMove {
-    const randomMove = randomItem([...node.unexploredMoves.values()])
+    const randomMove = weightedRandomItem([...node.unexploredMoves.values()])
 
     if (node.children.has(randomMove.name)) {
       return this.#selectRandomUnexploredMove(node)
@@ -397,7 +398,6 @@ export class MCTS {
 
   // Phase 3: Play out the game until the game is over
   #simulate() {
-    // console.log('Simulate')
     while (!this.game.isOver) {
       this.game.simulateRandomMove()
     }
