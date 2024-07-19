@@ -23,6 +23,8 @@ export enum GameActionKind {
   BuyLetter,
   SellLetter,
   ToggleFreeze,
+  FreezeLetter,
+  ThawLetter,
   SpendGold,
   SelectLetter,
   DeselectLetter,
@@ -60,6 +62,14 @@ interface SellLetterAction {
 }
 interface ToggleFreezeAction {
   type: GameActionKind.ToggleFreeze
+  payload: { letter: Letter }
+}
+interface FreezeLetterAction {
+  type: GameActionKind.FreezeLetter
+  payload: { letter: Letter }
+}
+interface ThawLetterAction {
+  type: GameActionKind.ThawLetter
   payload: { letter: Letter }
 }
 interface SpendGold {
@@ -106,6 +116,8 @@ export type GameContextAction =
   | BuyLetterAction
   | SellLetterAction
   | ToggleFreezeAction
+  | FreezeLetterAction
+  | ThawLetterAction
   | SpendGold
   | SelectLetterAction
   | DeselectLetterAction
@@ -264,6 +276,38 @@ export const gameContextReducer = produce(
           draft.pool[index] = new Letter({
             ...draft.pool[index],
             frozen: !draft.pool[index].frozen,
+          })
+        }
+
+        draft.selectedLetter = null
+        activePlayer.pool = draft.pool
+        return
+      }
+      case GameActionKind.FreezeLetter: {
+        const index = draft.pool.findIndex(
+          (letter) => letter.id === payload.letter.id
+        )
+
+        if (index !== -1) {
+          draft.pool[index] = new Letter({
+            ...draft.pool[index],
+            frozen: true,
+          })
+        }
+
+        draft.selectedLetter = null
+        activePlayer.pool = draft.pool
+        return
+      }
+      case GameActionKind.ThawLetter: {
+        const index = draft.pool.findIndex(
+          (letter) => letter.id === payload.letter.id
+        )
+
+        if (index !== -1) {
+          draft.pool[index] = new Letter({
+            ...draft.pool[index],
+            frozen: false,
           })
         }
 
