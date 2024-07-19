@@ -48,6 +48,7 @@ export type AlphabetCharacter =
   | 'z'
 
 export interface LetterOptions {
+  id?: UUID
   name: AlphabetCharacter
   tier: number
   value: number
@@ -111,6 +112,6 @@ export enum DroppableKind {
 export interface MCTSMove {
   name: string
   weight: number
-  execute: () => GameState
+  execute: (state: GameState) => GameState
   actionKind: GameActionKind
 }

@@ -10,22 +10,21 @@ import { nanoid } from 'nanoid'
 class Letter implements LetterOptions {
   [immerable] = true
 
-  id: UUID = nanoid(10)
-
+  readonly id: UUID
   readonly name: AlphabetCharacter
   readonly tier: number
   readonly value: number
-  frozen?: boolean = false
+
+  frozen?: boolean
   origin?: LetterOriginKind
 
   constructor(options: Readonly<LetterOptions>) {
+    this.id = options.id ?? nanoid(10)
     this.name = options.name
     this.tier = options.tier
     this.value = options.value
-    this.frozen = options.frozen
+    this.frozen = options.frozen ?? false
     this.origin = options.origin
-
-    // this.doSomething()
   }
 }
 

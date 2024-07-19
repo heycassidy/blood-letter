@@ -236,13 +236,13 @@ export const gameContextReducer = produce(
         if (draft.rack.length >= rackCapacity) return
         if (draft.gold < letterBuyCost) return
 
+        const insertionIndex = index ?? draft.rack.length
+
+        const { id, name, tier, value } = letter
         draft.rack.splice(
-          index ?? draft.rack.length,
+          insertionIndex,
           0,
-          new Letter({
-            ...letter,
-            origin: LetterOriginKind.Rack,
-          })
+          new Letter({ id, name, tier, value, origin: LetterOriginKind.Rack })
         )
 
         draft.pool = draft.pool.filter(
@@ -273,10 +273,7 @@ export const gameContextReducer = produce(
         )
 
         if (index !== -1) {
-          draft.pool[index] = new Letter({
-            ...draft.pool[index],
-            frozen: !draft.pool[index].frozen,
-          })
+          draft.pool[index].frozen = !draft.pool[index].frozen
         }
 
         draft.selectedLetter = null
@@ -289,10 +286,7 @@ export const gameContextReducer = produce(
         )
 
         if (index !== -1) {
-          draft.pool[index] = new Letter({
-            ...draft.pool[index],
-            frozen: true,
-          })
+          draft.pool[index].frozen = true
         }
 
         draft.selectedLetter = null
@@ -305,10 +299,7 @@ export const gameContextReducer = produce(
         )
 
         if (index !== -1) {
-          draft.pool[index] = new Letter({
-            ...draft.pool[index],
-            frozen: false,
-          })
+          draft.pool[index].frozen = false
         }
 
         draft.selectedLetter = null

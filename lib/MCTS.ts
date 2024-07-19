@@ -1,6 +1,7 @@
 import { randomItem, weightedRandomItem } from '../lib/helpers'
 import { produce } from 'immer'
 import Letter from './Letter'
+import Player from './Player'
 import { MCTSMove, GameState, PhaseKind, UUID } from './types'
 import {
   gameContextReducer,
@@ -16,7 +17,8 @@ export class MCTSGame {
   }
 
   simulateMove(move: MCTSMove): GameState {
-    this.state = move.execute()
+    this.state = move.execute(this.state)
+    return this.state
 
     // Computers players don't need to care about Battle Phase
     if (this.isBattlePhase) {
@@ -31,7 +33,7 @@ export class MCTSGame {
   }
 
   playMove(move: MCTSMove): GameState {
-    return move.execute()
+    return move.execute(this.state)
   }
 
   get isBattlePhase(): boolean {
@@ -66,12 +68,24 @@ export class MCTSGame {
 
         moves.set(name, {
           name,
-          weight: 80 + letter.value,
-          execute: () => this.buyLetter(letter, this.state),
+          weight: 100,
+          execute: (state) => this.buyLetter(letter, state),
           actionKind: GameActionKind.BuyLetter,
         })
       })
     }
+
+    // Sell Moves
+    rack.forEach((letter, i) => {
+      const name = `sell-letter-${letter.name}-at-${i}`
+
+      moves.set(name, {
+        name,
+        weight: 100,
+        execute: (state) => this.sellLetter(letter, state),
+        actionKind: GameActionKind.SellLetter,
+      })
+    })
 
     // Re-arrange Moves
     rack.forEach((fromLetter) => {
@@ -83,9 +97,9 @@ export class MCTSGame {
           )}-to-${toLetter.name}-at-${rack.indexOf(toLetter)}`
           moves.set(name, {
             name,
-            weight: 70,
-            execute: () =>
-              this.moveLetterInRack(fromLetter, toLetter, this.state),
+            weight: 160,
+            execute: (state) =>
+              this.moveLetterInRack(fromLetter, toLetter, state),
             actionKind: GameActionKind.MoveLetterInRack,
           })
         })
@@ -96,24 +110,11 @@ export class MCTSGame {
       const name = 'refresh-pool'
       moves.set(name, {
         name,
-        weight: 50,
-        execute: () => this.refreshPool(this.state),
+        weight: 160,
+        execute: (state) => this.refreshPool(state),
         actionKind: GameActionKind.RefreshPool,
       })
     }
-
-    // Thaw Moves
-    pool
-      .filter((letter) => letter.frozen)
-      .forEach((letter, i) => {
-        const name = `thaw-letter-${letter.name}-at-${i}`
-        moves.set(name, {
-          name,
-          weight: 60 + letter.value,
-          execute: () => this.thawLetter(letter, this.state),
-          actionKind: GameActionKind.ThawLetter,
-        })
-      })
 
     // Freeze Moves
     pool
@@ -122,29 +123,30 @@ export class MCTSGame {
         const name = `freeze-letter-${letter.name}-at-${i}`
         moves.set(name, {
           name,
-          weight: 40 + letter.value,
-          execute: () => this.freezeLetter(letter, this.state),
+          weight: 20,
+          execute: (state) => this.freezeLetter(letter, state),
           actionKind: GameActionKind.FreezeLetter,
         })
       })
 
-    // Sell Moves
-    rack.forEach((letter, i) => {
-      const name = `sell-letter-${letter.name}-at-${i}`
-
-      moves.set(name, {
-        name,
-        weight: 20 - letter.value,
-        execute: () => this.sellLetter(letter, this.state),
-        actionKind: GameActionKind.SellLetter,
+    // Thaw Moves
+    pool
+      .filter((letter) => letter.frozen)
+      .forEach((letter, i) => {
+        const name = `thaw-letter-${letter.name}-at-${i}`
+        moves.set(name, {
+          name,
+          weight: 20,
+          execute: (state) => this.thawLetter(letter, state),
+          actionKind: GameActionKind.ThawLetter,
+        })
       })
-    })
 
     // End Turn
     moves.set('end-turn', {
       name: 'end-turn',
-      weight: 5,
-      execute: () => this.endTurn(this.state),
+      weight: 20,
+      execute: (state) => this.endTurn(state),
       actionKind: GameActionKind.EndTurn,
     })
 
@@ -227,7 +229,7 @@ export class MCTSNode {
   unexploredMoves: Map<string, MCTSMove>
   children: Map<string, MCTSNode>
   visits: number
-  wins: number
+  reward: number
 
   constructor(
     parent: MCTSNode | null,
@@ -239,7 +241,7 @@ export class MCTSNode {
     this.move = move
     this.unexploredMoves = moves
     this.visits = 0
-    this.wins = 0
+    this.reward = 0
   }
 
   activePlayerScore(gameState: GameState) {
@@ -249,7 +251,7 @@ export class MCTSNode {
   // Used to balance between selecting optimal nodes and exploring new areas of the tree
   computeNodeScore(explorationConstant: number) {
     return (
-      this.wins / this.visits +
+      this.reward / this.visits +
       explorationConstant *
         Math.sqrt(Math.log(this?.parent?.visits ?? 0) / this.visits)
     )
@@ -279,6 +281,10 @@ export class MCTS {
     const originalState = this.game.state
     const root = new MCTSNode(null, this.game.noOpMove, this.game.moves)
 
+    let mostWins = -Infinity
+
+    console.log(this.game.state.pool.map((letter) => letter.name))
+
     // Build stats
     console.log('building stats...')
     for (let i = 0; i < this.iterations; i++) {
@@ -286,28 +292,30 @@ export class MCTS {
 
       // Phase 1: Select
       const selectedNode = this.#select(root)
-      if (this.game.isOver && this.game.winnerId !== this.playerId) {
-        if (selectedNode.parent) {
-          selectedNode.parent.wins = -Infinity
-        }
-      }
 
       // Phase 2: Expand
       const expandedNode = this.#expand(selectedNode)
 
       // Phase 3: Simulate
       console.log('simulating game...')
-      this.#simulate()
+      const [simulationWinner, simulationWins] = this.#simulate()
 
-      // Phase 4: Back Propagate
-      let wins = -1
-      if (!this.game.winnerId) {
-        wins = 0
-      } else if (this.game.winnerId === this.playerId) {
-        wins = 1
+      // Logging
+      if (simulationWins > mostWins) {
+        mostWins = simulationWins
+
+        console.table(
+          [...this.game.state.players.values()].map((player) => ({
+            name: player.name,
+            score: player.totalScore,
+            word: player.rackWord,
+          }))
+        )
+        // console.log([simulationWinner.rackWord, simulationWins])
       }
 
-      this.#backPropagate(expandedNode, wins)
+      // Phase 4: Back Propagate
+      this.#backPropagate(expandedNode, simulationWins)
     }
 
     // Play Turn
@@ -324,8 +332,8 @@ export class MCTS {
 
     const nextNode = [...node.children.values()].reduce(
       (bestChild, currentChild) => {
-        const bestChildScore = bestChild.wins
-        const currentChildScore = currentChild.wins
+        const bestChildScore = bestChild.reward
+        const currentChildScore = currentChild.reward
 
         if (currentChildScore > bestChildScore) {
           return currentChild
@@ -335,7 +343,7 @@ export class MCTS {
       }
     )
 
-    console.log(nextNode.move.name, nextNode.wins)
+    console.log(nextNode.move.name)
 
     if (nextNode.move.name === 'end-turn') {
       return this.game.playMove(nextNode.move)
@@ -396,20 +404,50 @@ export class MCTS {
     return randomMove
   }
 
-  // Phase 3: Play out the game until the game is over
-  #simulate() {
-    while (!this.game.isOver) {
-      this.game.simulateRandomMove()
+  // Phase 3: Instead of full playouts, use abstracted simulation inspired by this paper
+  // http://www.gameaipro.com/GameAIPro3/GameAIPro3_Chapter28_Pitfalls_and_Solutions_When_Using_Monte_Carlo_Tree_Search_for_Strategy_and_Tactical_Games.pdf
+  #simulate(): [Player, number] {
+    const simulatedWinner = [...this.game.state.players.values()].reduce(
+      (previousPlayer, player) => {
+        if (player.totalScore > previousPlayer.totalScore) {
+          return player
+        }
+
+        return previousPlayer
+      }
+    )
+
+    const { min, max } = [...this.game.state.players.values()].reduce(
+      (acc, player) => {
+        const num = player.totalScore
+
+        return {
+          min: num < acc.min ? num : acc.min,
+          max: num > acc.max ? num : acc.max,
+        }
+      },
+      { min: Infinity, max: -Infinity }
+    )
+
+    const scoreDifference = Math.abs(max - min)
+
+    let reward = 0
+    if (simulatedWinner.id === this.playerId) {
+      reward = scoreDifference
+    } else {
+      reward = scoreDifference * -1
     }
+
+    return [simulatedWinner, reward]
   }
 
   // Phase 4: Iterate back up the tree from the provided node to the root, updating node statistics along the way
-  #backPropagate(node: MCTSNode, wins: number) {
+  #backPropagate(node: MCTSNode, reward: number) {
     node.visits += 1
-    node.wins += wins
+    node.reward += reward
 
     if (node.parent) {
-      this.#backPropagate(node.parent, wins)
+      this.#backPropagate(node.parent, reward)
     }
   }
 }
