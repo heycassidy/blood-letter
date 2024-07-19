@@ -68,41 +68,6 @@ export class MCTSGame {
       })
     }
 
-    // Sell Moves
-    rack.forEach((letter, i) => {
-      const name = `sell-letter-${letter.name}-at-${i}`
-
-      moves.set(name, {
-        name,
-        execute: () => this.sellLetter(letter, this.state),
-        actionKind: GameActionKind.SellLetter,
-      })
-    })
-
-    // Freeze Moves
-    pool
-      .filter((letter) => !letter.frozen)
-      .forEach((letter, i) => {
-        const name = `freeze-letter-${letter.name}-at-${i}`
-        moves.set(name, {
-          name,
-          execute: () => this.freezeLetter(letter, this.state),
-          actionKind: GameActionKind.ToggleFreeze,
-        })
-      })
-
-    // Thaw Moves
-    pool
-      .filter((letter) => letter.frozen)
-      .forEach((letter, i) => {
-        const name = `thaw-letter-${letter.name}-at-${i}`
-        moves.set(name, {
-          name,
-          execute: () => this.thawLetter(letter, this.state),
-          actionKind: GameActionKind.ToggleFreeze,
-        })
-      })
-
     // Re-arrange Moves
     rack.forEach((fromLetter) => {
       rack
@@ -129,6 +94,41 @@ export class MCTSGame {
         actionKind: GameActionKind.RefreshPool,
       })
     }
+
+    // Thaw Moves
+    pool
+      .filter((letter) => letter.frozen)
+      .forEach((letter, i) => {
+        const name = `thaw-letter-${letter.name}-at-${i}`
+        moves.set(name, {
+          name,
+          execute: () => this.thawLetter(letter, this.state),
+          actionKind: GameActionKind.ThawLetter,
+        })
+      })
+
+    // Freeze Moves
+    pool
+      .filter((letter) => !letter.frozen)
+      .forEach((letter, i) => {
+        const name = `freeze-letter-${letter.name}-at-${i}`
+        moves.set(name, {
+          name,
+          execute: () => this.freezeLetter(letter, this.state),
+          actionKind: GameActionKind.FreezeLetter,
+        })
+      })
+
+    // Sell Moves
+    rack.forEach((letter, i) => {
+      const name = `sell-letter-${letter.name}-at-${i}`
+
+      moves.set(name, {
+        name,
+        execute: () => this.sellLetter(letter, this.state),
+        actionKind: GameActionKind.SellLetter,
+      })
+    })
 
     // End Turn
     moves.set('end-turn', {
@@ -363,7 +363,8 @@ export class MCTS {
 
   // Phase 2: Attaches a random new node to the provided node and returns the new node
   #expand(node: MCTSNode): MCTSNode {
-    const move = this.#selectRandomUnexploredMove(node)
+    // const move = this.#selectRandomUnexploredMove(node)
+    const move = this.#selectNextUnexploredMove(node)
     node.unexploredMoves.delete(move.name)
 
     this.game.simulateMove(move)
@@ -372,6 +373,16 @@ export class MCTS {
     node.children.set(move.name, newNode)
 
     return newNode
+  }
+
+  #selectNextUnexploredMove(node: MCTSNode): MCTSMove {
+    const nextMove = [...node.unexploredMoves.values()][0]
+
+    if (node.children.has(nextMove.name)) {
+      return this.#selectNextUnexploredMove(node)
+    }
+
+    return nextMove
   }
 
   #selectRandomUnexploredMove(node: MCTSNode): MCTSMove {
