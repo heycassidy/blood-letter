@@ -11,14 +11,7 @@ import useComputerPlayer from '../hooks/useComputerPlayer'
 
 const Home: NextPage = () => {
   const gameState = useGameContext()
-  const {
-    phase,
-    gameOver,
-    gameWinnerId,
-    restartGame,
-    players,
-    activePlayerId,
-  } = gameState
+  const { phase, gameOver, gameWinnerId, players, activePlayerId } = gameState
   const [runComputerPlayer] = useComputerPlayer()
   const activePlayer = players.get(activePlayerId)
   const gameWinner = players.get(gameWinnerId ?? '')
@@ -62,10 +55,6 @@ const Home: NextPage = () => {
             <BattlePhase />
           </>
         )}
-
-        <div className="global-controls">
-          <button onClick={restartGame}>Restart Game</button>
-        </div>
       </Layout>
     </div>
   )

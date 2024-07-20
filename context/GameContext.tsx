@@ -173,16 +173,7 @@ export const GameContextProvider = ({ children }: PropsWithChildren) => {
       gold: initialGold,
       selectedLetter: null,
       draggingLetter: null,
-
-      restartGame,
     }
-  }
-
-  function restartGame(): void {
-    dispatch({
-      type: GameActionKind.RestartGame,
-      payload: { state: initGameState() },
-    })
   }
 
   // DnD-Kit Handlers:

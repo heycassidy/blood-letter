@@ -10,7 +10,12 @@ import {
 import Letter from '../lib/Letter'
 import { cyclicalNext } from '../lib/helpers'
 import { arrayMove } from '@dnd-kit/sortable'
-import { gameConfig, getHealthCost, getBattleWinner } from '../lib/gameConfig'
+import {
+  gameConfig,
+  getHealthCost,
+  getBattleWinner,
+  getRefreshedPool,
+} from '../lib/gameConfig'
 
 export enum GameActionKind {
   Set,
@@ -172,9 +177,15 @@ export const gameContextReducer = produce(
         const battleOver =
           draft.activePlayerId === [...draft.players.keys()].at(-1)
 
+        const newPool = getRefreshedPool(
+          nextPlayer.pool,
+          draft.round,
+          nextPlayer.seed
+        )
+
         // Other plays still have yet to take their turns
         if (!battleOver && nextPlayer) {
-          nextPlayer.refreshPool(draft.round)
+          nextPlayer.pool = newPool
           draft.rack = nextPlayer.rack
           draft.pool = nextPlayer.pool
           draft.gold = initialGold
@@ -219,7 +230,13 @@ export const gameContextReducer = produce(
         const firstPlayer = [...draft.players.values()][0]
         const newRound = draft.round + 1
 
-        firstPlayer.refreshPool(newRound)
+        const newPool = getRefreshedPool(
+          firstPlayer.pool,
+          newRound,
+          firstPlayer.seed
+        )
+
+        firstPlayer.pool = newPool
 
         draft.gold = initialGold
         draft.rack = firstPlayer.rack
@@ -395,7 +412,13 @@ export const gameContextReducer = produce(
       case GameActionKind.RefreshPool: {
         if (draft.gold < poolRefreshCost) return draft
 
-        activePlayer.refreshPool(draft.round)
+        const newPool = getRefreshedPool(
+          activePlayer.pool,
+          draft.round,
+          activePlayer.seed
+        )
+
+        activePlayer.pool = newPool
         draft.gold = draft.gold - poolRefreshCost
         draft.pool = activePlayer.pool
         return

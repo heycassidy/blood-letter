@@ -158,6 +158,28 @@ export const getRandomPoolLetters = (
   })
 }
 
+export const getPoolForRound = (
+  round: number,
+  randomSeed?: number
+): Letter[] => {
+  const { alphabet, poolTierMap, poolCapacityMap } = gameConfig
+
+  const poolTier = getPoolTier(round, poolTierMap)
+  const poolCapacity = getPoolCapacity(round, poolCapacityMap)
+
+  return getRandomPoolLetters(alphabet, poolTier, poolCapacity, randomSeed)
+}
+
+export const getRefreshedPool = (
+  pool: Letter[],
+  round: number,
+  randomSeed?: number
+): Letter[] => {
+  return getPoolForRound(round, randomSeed).map((letter, index) => {
+    return pool[index]?.frozen ? pool[index] : letter
+  })
+}
+
 export const getHealthCost = (
   round: number,
   healthCostMap: gameConfig['healthCostMap']

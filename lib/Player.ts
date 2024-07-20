@@ -2,14 +2,11 @@ import { immerable } from 'immer'
 import { UUID, PlayerOptions, PlayerClassificationKind } from '../lib/types'
 import Letter from './Letter'
 import { nanoid } from 'nanoid'
-import {
-  gameConfig,
-  getPoolTier,
-  getPoolCapacity,
-  getRandomPoolLetters,
-} from '../lib/gameConfig'
+import { gameConfig, getPoolForRound } from '../lib/gameConfig'
 import { sumItemProperty, concatItemProperty } from './helpers'
 import { wordList } from './words'
+
+const { initialRound, initialHealth } = gameConfig
 
 class Player implements PlayerOptions {
   [immerable] = true
@@ -25,8 +22,6 @@ class Player implements PlayerOptions {
   battleVictories: number
 
   constructor(options: Readonly<PlayerOptions>) {
-    const { initialRound, initialHealth } = gameConfig
-
     this.id = options.id ?? nanoid(10)
     this.name = options.name
     this.classification = options.classification
@@ -35,7 +30,7 @@ class Player implements PlayerOptions {
     this.health = options.health ?? initialHealth
     this.battleVictories = options.battleVictories ?? 0
     this.rack = options.rack ?? []
-    this.pool = options.pool ?? this.getPoolForRound(initialRound)
+    this.pool = options.pool ?? getPoolForRound(initialRound)
   }
 
   clone() {
@@ -47,13 +42,6 @@ class Player implements PlayerOptions {
       battleVictories: this.battleVictories,
       rack: this.rack,
       pool: this.pool,
-    })
-  }
-
-  // Randomizes pool according to current round while preserving frozen letters
-  refreshPool(round: number): void {
-    this.pool = this.getPoolForRound(round).map((letter, index) => {
-      return this.pool[index]?.frozen ? this.pool[index] : letter
     })
   }
 
@@ -79,15 +67,6 @@ class Player implements PlayerOptions {
 
   get totalScore(): number {
     return this.rackScore + this.wordBonus
-  }
-
-  getPoolForRound(round: number): Letter[] {
-    const { alphabet, poolTierMap, poolCapacityMap } = gameConfig
-
-    const poolTier = getPoolTier(round, poolTierMap)
-    const poolCapacity = getPoolCapacity(round, poolCapacityMap)
-
-    return getRandomPoolLetters(alphabet, poolTier, poolCapacity, this.seed)
   }
 }
 

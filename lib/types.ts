@@ -94,8 +94,6 @@ export interface GameState {
   gold: number
   selectedLetter: Letter | null
   draggingLetter: Letter | null
-
-  restartGame: () => void
 }
 
 export enum LetterOriginKind {
