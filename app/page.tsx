@@ -1,29 +1,43 @@
+'use client'
+
+import { enableMapSet } from 'immer'
+
 import type { NextPage } from 'next'
 import { useEffect } from 'react'
 import Head from 'next/head'
 import Layout from '../components/Layout'
 import BuildPhase from '../components/BuildPhase'
 import BattlePhase from '../components/BattlePhase'
-import { useGameContext } from '../context/GameContext'
-import { PhaseKind, PlayerClassificationKind } from '../lib/types'
+import { useGameContext, useGameDispatchContext } from '../context/GameContext'
+import { PhaseKind } from '../lib/types'
 import { css } from '../stitches.config'
 import useComputerPlayer from '../hooks/useComputerPlayer'
+import { GameActionKind } from '../context/GameContextReducer'
+import { globalStyles } from '../styles/globals'
+
+globalStyles()
+enableMapSet()
 
 const Home: NextPage = () => {
   const gameState = useGameContext()
+  const dispatch = useGameDispatchContext()
   const { phase, gameOver, gameWinnerId, players, activePlayerId } = gameState
-  const [runComputerPlayer] = useComputerPlayer()
-  const activePlayer = players.get(activePlayerId)
+  const [computerPlayerTurnState, computerPlayerTakingTurn] =
+    useComputerPlayer(gameState)
   const gameWinner = players.get(gameWinnerId ?? '')
 
   useEffect(() => {
-    if (
-      activePlayer &&
-      activePlayer.classification === PlayerClassificationKind.Computer
-    ) {
-      runComputerPlayer(gameState)
+    console.log('COMPUTER PLAYER TAKING TURN: ', computerPlayerTakingTurn)
+  }, [computerPlayerTakingTurn])
+
+  useEffect(() => {
+    if (computerPlayerTurnState) {
+      dispatch({
+        type: GameActionKind.Set,
+        payload: { state: computerPlayerTurnState },
+      })
     }
-  }, [activePlayerId])
+  }, [computerPlayerTurnState])
 
   return (
     <div className={styles()}>
