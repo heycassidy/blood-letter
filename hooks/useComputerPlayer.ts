@@ -1,27 +1,37 @@
+'use client'
+
 import { useGameDispatchContext } from '../context/GameContext'
-import { GameState } from '../lib/types'
+import { GameState, PlayerClassificationKind } from '../lib/types'
 import { GameActionKind } from '../context/GameContextReducer'
 import { MCTSGame, MCTS } from '../lib/MCTS'
+import { useEffect } from 'react'
 
-const useComputerPlayer = () => {
+const useComputerPlayer = (state: GameState) => {
   const dispatch = useGameDispatchContext()
 
-  function runComputerPlayer(initialState: GameState) {
+  useEffect(() => {
+    const { players, activePlayerId } = state
+    const activePlayer = players.get(activePlayerId)
+
+    if (
+      activePlayer &&
+      activePlayer.classification === PlayerClassificationKind.Computer
+    ) {
+      runComputerPlayer(state)
+    }
+  }, [state.activePlayerId])
+
+  async function runComputerPlayer(initialState: GameState) {
+    // workerRef.current?.postMessage(initialState)
     const game = new MCTSGame(initialState)
-    const computerPlayer = new MCTS(game, initialState.activePlayerId, 8000)
-
-    console.log('Computer player: ', initialState.activePlayerId)
+    const computerPlayer = new MCTS(game, initialState.activePlayerId, 20000)
     game.state = computerPlayer.playTurn()
-
-    console.log('BATTLE OVER: ', game.state)
 
     dispatch({
       type: GameActionKind.Set,
       payload: { state: game.state },
     })
   }
-
-  return [runComputerPlayer]
 }
 
 export default useComputerPlayer

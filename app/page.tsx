@@ -3,16 +3,14 @@
 import { enableMapSet } from 'immer'
 
 import type { NextPage } from 'next'
-import { useEffect } from 'react'
 import Head from 'next/head'
 import Layout from '../components/Layout'
 import BuildPhase from '../components/BuildPhase'
 import BattlePhase from '../components/BattlePhase'
-import { useGameContext, useGameDispatchContext } from '../context/GameContext'
+import { useGameContext } from '../context/GameContext'
 import { PhaseKind } from '../lib/types'
 import { css } from '../stitches.config'
 import useComputerPlayer from '../hooks/useComputerPlayer'
-import { GameActionKind } from '../context/GameContextReducer'
 import { globalStyles } from '../styles/globals'
 
 globalStyles()
@@ -20,24 +18,10 @@ enableMapSet()
 
 const Home: NextPage = () => {
   const gameState = useGameContext()
-  const dispatch = useGameDispatchContext()
-  const { phase, gameOver, gameWinnerId, players, activePlayerId } = gameState
-  const [computerPlayerTurnState, computerPlayerTakingTurn] =
-    useComputerPlayer(gameState)
+  const { phase, gameOver, gameWinnerId, players } = gameState
   const gameWinner = players.get(gameWinnerId ?? '')
 
-  useEffect(() => {
-    console.log('COMPUTER PLAYER TAKING TURN: ', computerPlayerTakingTurn)
-  }, [computerPlayerTakingTurn])
-
-  useEffect(() => {
-    if (computerPlayerTurnState) {
-      dispatch({
-        type: GameActionKind.Set,
-        payload: { state: computerPlayerTurnState },
-      })
-    }
-  }, [computerPlayerTurnState])
+  useComputerPlayer(gameState)
 
   return (
     <div className={styles()}>
