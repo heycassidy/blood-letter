@@ -5,9 +5,10 @@ import InfoList from '../atoms/InfoList'
 import { GameActionKind } from '../context/GameContextReducer'
 
 const BattlePhase = () => {
-  const { players, battleWinnerId } = useGameContext()
+  const { players, battleWinnerIndex } = useGameContext()
   const dispatch = useGameDispatchContext()
-  const battleWinner = players.get(battleWinnerId ?? '')
+  const battleWinner =
+    battleWinnerIndex !== undefined ? players[battleWinnerIndex] : undefined
 
   return (
     <div className={styles()}>

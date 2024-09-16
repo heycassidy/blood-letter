@@ -17,14 +17,21 @@ const BuildPhase = () => {
     poolCapacityMap,
   } = gameConfig
   const gameState = useGameContext()
-  const { round, players, activePlayerId, rack, pool, gold, selectedLetter } =
-    gameState
+  const {
+    round,
+    players,
+    activePlayerIndex,
+    rack,
+    pool,
+    gold,
+    selectedLetter,
+  } = gameState
   const dispatch = useGameDispatchContext()
 
   const highestPoolTier = getPoolTier(round, poolTierMap)
   const poolAmount = getPoolCapacity(round, poolCapacityMap)
 
-  const activePlayer = players.get(activePlayerId)
+  const activePlayer = players[activePlayerIndex]
 
   // Typescript thinks Map.get() can return undefined in this case even though we know it won't
   if (!activePlayer) return <></>

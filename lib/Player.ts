@@ -1,4 +1,3 @@
-import { immerable } from 'immer'
 import { UUID, PlayerOptions, PlayerClassificationKind } from '../lib/types'
 import Letter from './Letter'
 import { nanoid } from 'nanoid'
@@ -9,8 +8,6 @@ import { wordList } from './words'
 const { initialRound, initialHealth } = gameConfig
 
 class Player implements PlayerOptions {
-  [immerable] = true
-
   readonly id: UUID
   readonly name: string
   readonly classification: PlayerClassificationKind

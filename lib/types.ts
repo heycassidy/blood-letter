@@ -79,10 +79,10 @@ export interface LetterTierMap {
 }
 
 export interface GameState {
-  players: Map<UUID, Player>
-  activePlayerId: UUID
-  battleWinnerId: UUID | undefined
-  gameWinnerId: UUID | undefined
+  players: Player[]
+  activePlayerIndex: number
+  battleWinnerIndex: number | undefined
+  gameWinnerIndex: number | undefined
   round: number
   phase: PhaseKind
   gameOver: boolean

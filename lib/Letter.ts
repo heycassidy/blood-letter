@@ -1,4 +1,3 @@
-import { immerable } from 'immer'
 import {
   UUID,
   LetterOptions,
@@ -8,8 +7,6 @@ import {
 import { nanoid } from 'nanoid'
 
 class Letter implements LetterOptions {
-  [immerable] = true
-
   readonly id: UUID
   readonly name: AlphabetCharacter
   readonly tier: number

@@ -31,7 +31,6 @@ import {
   PlayerClassificationKind,
   GameModeKind,
   DroppableKind,
-  UUID,
 } from '../lib/types'
 import Letter from '../lib/Letter'
 import Player from '../lib/Player'
@@ -135,10 +134,10 @@ export const GameContextProvider = ({ children }: PropsWithChildren) => {
   )
 
   function initGameState(): GameState {
-    const gameMode = GameModeKind.AgainstComputer
-    // const gameMode: GameModeKind = GameModeKind.PassToPlay
+    // const gameMode = GameModeKind.AgainstComputer
+    const gameMode: GameModeKind = GameModeKind.PassToPlay
 
-    const players: Map<UUID, Player> = new Map()
+    const players: Player[] = []
 
     Array.from({ length: numberOfPlayers }).map((_, i) => {
       const playerName = `Player ${i + 1} ${
@@ -154,16 +153,16 @@ export const GameContextProvider = ({ children }: PropsWithChildren) => {
         classification: playerClassification,
       })
 
-      players.set(player.id, player)
+      players.push(player)
     })
 
-    const firstPlayer = [...players.values()][0]
+    const firstPlayer = players[0]
 
     return {
       players,
-      activePlayerId: firstPlayer.id,
-      battleWinnerId: undefined,
-      gameWinnerId: undefined,
+      activePlayerIndex: 0,
+      battleWinnerIndex: undefined,
+      gameWinnerIndex: undefined,
       round: initialRound,
       phase: initialPhase,
       gameOver: false,

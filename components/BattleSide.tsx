@@ -8,8 +8,9 @@ import InfoList from '../atoms/InfoList'
 
 const BattleSide = ({ player }: { player: Player }) => {
   const { rackCapacity, healthCostMap } = gameConfig
-  const { round, players, battleWinnerId } = useGameContext()
-  const battleWinner = players.get(battleWinnerId ?? '')
+  const { round, players, battleWinnerIndex } = useGameContext()
+  const battleWinner =
+    battleWinnerIndex !== undefined ? players[battleWinnerIndex] : undefined
 
   return (
     <div className={styles()}>

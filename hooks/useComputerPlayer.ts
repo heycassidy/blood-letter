@@ -10,8 +10,8 @@ const useComputerPlayer = (state: GameState) => {
   const dispatch = useGameDispatchContext()
 
   useEffect(() => {
-    const { players, activePlayerId } = state
-    const activePlayer = players.get(activePlayerId)
+    const { players, activePlayerIndex } = state
+    const activePlayer = players[activePlayerIndex]
 
     if (
       activePlayer &&
@@ -19,12 +19,12 @@ const useComputerPlayer = (state: GameState) => {
     ) {
       runComputerPlayer(state)
     }
-  }, [state.activePlayerId])
+  }, [state.activePlayerIndex])
 
   async function runComputerPlayer(initialState: GameState) {
     // workerRef.current?.postMessage(initialState)
     const game = new MCTSGame(initialState)
-    const computerPlayer = new MCTS(game, initialState.activePlayerId, 20000)
+    const computerPlayer = new MCTS(game, initialState.activePlayerIndex, 20000)
     game.state = computerPlayer.playTurn()
 
     dispatch({

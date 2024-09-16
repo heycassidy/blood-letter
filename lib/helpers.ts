@@ -62,6 +62,7 @@ export const assignIds = <T>(items: T[], id: UUID | (() => UUID)): T[] =>
     id: typeof id === 'string' || typeof id === 'number' ? id : id(),
   }))
 
+// returns the next item in an array and the first item if the current item is the last
 export const cyclicalNext = <Item>(items: Item[], currentItem: Item): Item => {
   const currentIndex = items.indexOf(currentItem)
   const nextIndex = (currentIndex + 1) % items.length

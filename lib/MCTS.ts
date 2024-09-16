@@ -1,5 +1,5 @@
 import { randomItem, weightedRandomItem } from '../lib/helpers'
-import { produce } from 'immer'
+import { create } from 'mutative'
 import Letter from './Letter'
 import Player from './Player'
 import { MCTSMove, GameState, PhaseKind, UUID } from './types'
@@ -45,7 +45,7 @@ export class MCTSGame {
   }
 
   get winnerId(): UUID | false {
-    return this.state.gameWinnerId ?? false
+    return this.state.gameWinnerIndex ?? false
   }
 
   get randomMove(): MCTSMove {
@@ -154,7 +154,7 @@ export class MCTSGame {
   }
 
   cloneState(state: GameState): GameState {
-    return produce(state, (draft) => {
+    return create(state, (draft) => {
       return draft
     })
   }
@@ -245,7 +245,7 @@ export class MCTSNode {
   }
 
   activePlayerScore(gameState: GameState) {
-    return gameState.players.get(gameState.activePlayerId)?.totalScore
+    return gameState.players[gameState.activePlayerIndex]?.totalScore
   }
 
   // Used to balance between selecting optimal nodes and exploring new areas of the tree

@@ -1,7 +1,5 @@
 'use client'
 
-import { enableMapSet } from 'immer'
-
 import type { NextPage } from 'next'
 import Head from 'next/head'
 import Layout from '../components/Layout'
@@ -14,12 +12,12 @@ import useComputerPlayer from '../hooks/useComputerPlayer'
 import { globalStyles } from '../styles/globals'
 
 globalStyles()
-enableMapSet()
 
 const Home: NextPage = () => {
   const gameState = useGameContext()
-  const { phase, gameOver, gameWinnerId, players } = gameState
-  const gameWinner = players.get(gameWinnerId ?? '')
+  const { phase, gameOver, gameWinnerIndex, players } = gameState
+  const gameWinner =
+    gameWinnerIndex !== undefined ? players[gameWinnerIndex] : undefined
 
   useComputerPlayer(gameState)
 
