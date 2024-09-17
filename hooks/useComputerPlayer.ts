@@ -1,11 +1,12 @@
 import { useGameDispatchContext } from '../context/GameContext'
 import { GameState, PlayerClassificationKind } from '../lib/types'
 import { GameActionKind } from '../context/GameContextReducer'
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { playComputerTurn } from '../app/actions'
 
 const useComputerPlayer = (state: GameState) => {
   const dispatch = useGameDispatchContext()
+  const [thinking, setThinking] = useState(false)
 
   useEffect(() => {
     const { players, activePlayerIndex } = state
@@ -20,15 +21,17 @@ const useComputerPlayer = (state: GameState) => {
   }, [state.activePlayerIndex])
 
   async function runComputerPlayer(initialState: GameState) {
-    const completedComputerTurnState = await playComputerTurn(initialState)
-
-    console.log(completedComputerTurnState)
+    setThinking(true)
+    const completedState = await playComputerTurn(initialState)
+    setThinking(false)
 
     dispatch({
       type: GameActionKind.Set,
-      payload: { state: completedComputerTurnState },
+      payload: { state: completedState },
     })
   }
+
+  return [thinking]
 }
 
 export default useComputerPlayer

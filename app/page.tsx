@@ -19,7 +19,7 @@ const Home: NextPage = () => {
   const gameWinner =
     gameWinnerIndex !== undefined ? players[gameWinnerIndex] : undefined
 
-  useComputerPlayer(gameState)
+  const [thinking] = useComputerPlayer(gameState)
 
   return (
     <div className={styles()}>
@@ -49,6 +49,12 @@ const Home: NextPage = () => {
           <>
             <h3>Battle Phase</h3>
             <BattlePhase />
+          </>
+        )}
+
+        {thinking && (
+          <>
+            <p>Computer is thinking...</p>
           </>
         )}
       </Layout>

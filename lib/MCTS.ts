@@ -296,7 +296,7 @@ export class MCTS {
       const expandedNode = this.#expand(selectedNode)
 
       // Phase 3: Simulate
-      console.log('simulating game...')
+      // console.log('simulating game...')
       const [simulationWinner, simulationWins] = this.#simulate()
 
       // Logging
@@ -319,7 +319,7 @@ export class MCTS {
 
     // Play Turn
     this.game.state = originalState
-    console.log('playing turn: ', this.playerId, this.game.state)
+    // console.log('playing turn: ', this.playerId, this.game.state)
     return this.#playTurnMove(root)
   }
 
