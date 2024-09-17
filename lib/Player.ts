@@ -1,6 +1,6 @@
 import { nanoid } from 'nanoid'
 import { gameConfig, getPoolForRound } from '../lib/gameConfig'
-import { sumItemProperty, concatItemProperty } from './helpers'
+import { sumItemProperty, concatItemProperty } from './utils'
 import { wordList } from './words'
 import { Player, PlayerOptions } from '../lib/types'
 

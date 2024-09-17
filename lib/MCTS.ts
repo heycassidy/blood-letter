@@ -1,4 +1,4 @@
-import { randomItem, weightedRandomItem } from '../lib/helpers'
+import { randomItem, weightedRandomItem } from './utils'
 import { create } from 'mutative'
 import { getTotalScore, getRackWord } from './Player'
 import { MCTSMove, GameState, PhaseKind, UUID, Player, Letter } from './types'

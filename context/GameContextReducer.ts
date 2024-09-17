@@ -12,7 +12,7 @@ import {
   Player,
 } from '../lib/types'
 import { createLetter } from '../lib/Letter'
-import { arrayMove } from '../lib/helpers'
+import { arrayMove } from '../lib/utils'
 import {
   gameConfig,
   getHealthCost,

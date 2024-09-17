@@ -7,11 +7,7 @@ import {
 } from './types'
 import { getTotalScore } from './Player'
 import { createLetter } from './Letter'
-import {
-  randomItems,
-  getFromNumericMapWithMax,
-  itemIsInRange,
-} from '../lib/helpers'
+import { randomItems, getFromNumericMapWithMax, itemIsInRange } from './utils'
 
 const alphabet: Letter[] = [
   createLetter({ name: 'e', tier: 1, value: 1 }),
