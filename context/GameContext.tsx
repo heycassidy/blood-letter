@@ -72,7 +72,6 @@ export const GameContextProvider = ({ children }: PropsWithChildren) => {
   const {
     initialRound,
     initialPhase,
-    initialGold,
     numberOfPlayers,
     rackCapacity,
     letterBuyCost,
@@ -99,7 +98,9 @@ export const GameContextProvider = ({ children }: PropsWithChildren) => {
       const letter = active?.data?.current?.letter
       const letterOrigin = letter?.origin
 
-      const rackIds = state.rack.map(({ id }) => id)
+      const rackIds = state.players[state.activePlayerIndex].rack.map(
+        ({ id }) => id
+      )
 
       const rackCollisions = pointerWithin({
         ...args,
@@ -132,7 +133,7 @@ export const GameContextProvider = ({ children }: PropsWithChildren) => {
 
       return rectIntersection(args)
     },
-    [state.rack, state.draggingLetter]
+    [state.players[state.activePlayerIndex].rack, state.draggingLetter]
   )
 
   function initGameState(): GameState {
@@ -157,8 +158,6 @@ export const GameContextProvider = ({ children }: PropsWithChildren) => {
       players.push(player)
     })
 
-    const firstPlayer = players[0]
-
     return {
       players,
       activePlayerIndex: 0,
@@ -170,10 +169,6 @@ export const GameContextProvider = ({ children }: PropsWithChildren) => {
       gameCount: 1,
       gameMode: defaultGameMode,
       gameInProgress: false,
-
-      rack: firstPlayer.rack,
-      pool: firstPlayer.pool,
-      gold: initialGold,
       selectedLetter: null,
       draggingLetter: null,
     }
@@ -206,7 +201,9 @@ export const GameContextProvider = ({ children }: PropsWithChildren) => {
       return
     }
 
-    const rackIds = state.rack.map(({ id }) => id)
+    const rackIds = state.players[state.activePlayerIndex].rack.map(
+      ({ id }) => id
+    )
 
     if (
       letterOrigin === LetterOriginKind.Pool &&
@@ -261,7 +258,9 @@ export const GameContextProvider = ({ children }: PropsWithChildren) => {
     const letter = active?.data?.current?.letter
     const overLetter = over?.data?.current?.letter
     const letterOrigin = letter?.origin
-    const rackIds = state.rack.map(({ id }) => id)
+    const rackIds = state.players[state.activePlayerIndex].rack.map(
+      ({ id }) => id
+    )
 
     if (
       overId &&
@@ -299,8 +298,9 @@ export const GameContextProvider = ({ children }: PropsWithChildren) => {
 
     if (
       letterOrigin === LetterOriginKind.Pool &&
-      (clonedState.rack.length >= rackCapacity ||
-        clonedState.gold < letterBuyCost)
+      (clonedState.players[clonedState.activePlayerIndex].rack.length >=
+        rackCapacity ||
+        clonedState.players[clonedState.activePlayerIndex].gold < letterBuyCost)
     ) {
       console.log('cancelled')
       return true

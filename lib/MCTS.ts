@@ -10,9 +10,11 @@ import { gameConfig } from './gameConfig'
 
 export class MCTSGame {
   state: GameState
+  playerIndex: number
 
-  constructor(initialState: GameState) {
+  constructor(initialState: GameState, playerIndex: number) {
     this.state = initialState
+    this.playerIndex = playerIndex
   }
 
   simulateMove(move: MCTSMove): GameState {
@@ -57,7 +59,7 @@ export class MCTSGame {
 
   get moves(): Map<string, MCTSMove> {
     const moves: Map<string, MCTSMove> = new Map<string, MCTSMove>()
-    const { rack, pool, gold } = this.state
+    const { rack, pool, gold } = this.state.players[this.playerIndex]
     const { letterBuyCost, rackCapacity, poolRefreshCost } = gameConfig
 
     // Buy Moves
@@ -168,56 +170,88 @@ export class MCTSGame {
   }
 
   buyLetter(letter: Letter, state: GameState) {
-    return gameContextReducer(state, {
-      type: GameActionKind.BuyLetter,
-      payload: { letter },
-    })
+    return gameContextReducer(
+      state,
+      {
+        type: GameActionKind.BuyLetter,
+        payload: { letter },
+      },
+      this.playerIndex
+    )
   }
 
   sellLetter(letter: Letter, state: GameState) {
-    return gameContextReducer(state, {
-      type: GameActionKind.SellLetter,
-      payload: { letter },
-    })
+    return gameContextReducer(
+      state,
+      {
+        type: GameActionKind.SellLetter,
+        payload: { letter },
+      },
+      this.playerIndex
+    )
   }
 
   freezeLetter(letter: Letter, state: GameState) {
-    return gameContextReducer(state, {
-      type: GameActionKind.ToggleFreeze,
-      payload: { letter },
-    })
+    return gameContextReducer(
+      state,
+      {
+        type: GameActionKind.ToggleFreeze,
+        payload: { letter },
+      },
+      this.playerIndex
+    )
   }
 
   thawLetter(letter: Letter, state: GameState) {
-    return gameContextReducer(state, {
-      type: GameActionKind.ToggleFreeze,
-      payload: { letter },
-    })
+    return gameContextReducer(
+      state,
+      {
+        type: GameActionKind.ToggleFreeze,
+        payload: { letter },
+      },
+      this.playerIndex
+    )
   }
 
   moveLetterInRack(letter: Letter, overLetter: Letter, state: GameState) {
-    return gameContextReducer(state, {
-      type: GameActionKind.MoveLetterInRack,
-      payload: { letterId: letter.id, overId: overLetter.id },
-    })
+    return gameContextReducer(
+      state,
+      {
+        type: GameActionKind.MoveLetterInRack,
+        payload: { letterId: letter.id, overId: overLetter.id },
+      },
+      this.playerIndex
+    )
   }
 
   refreshPool(state: GameState) {
-    return gameContextReducer(state, {
-      type: GameActionKind.RefreshPool,
-    })
+    return gameContextReducer(
+      state,
+      {
+        type: GameActionKind.RefreshPool,
+      },
+      this.playerIndex
+    )
   }
 
   endTurn(state: GameState) {
-    return gameContextReducer(state, {
-      type: GameActionKind.EndTurn,
-    })
+    return gameContextReducer(
+      state,
+      {
+        type: GameActionKind.EndTurn,
+      },
+      this.playerIndex
+    )
   }
 
   incrementRound(state: GameState) {
-    return gameContextReducer(state, {
-      type: GameActionKind.IncrementRound,
-    })
+    return gameContextReducer(
+      state,
+      {
+        type: GameActionKind.IncrementRound,
+      },
+      this.playerIndex
+    )
   }
 }
 
@@ -243,10 +277,6 @@ export class MCTSNode {
     this.reward = 0
   }
 
-  activePlayerScore(gameState: GameState) {
-    return getTotalScore(gameState.players[gameState.activePlayerIndex])
-  }
-
   // Used to balance between selecting optimal nodes and exploring new areas of the tree
   computeNodeScore(explorationConstant: number) {
     return (
@@ -260,29 +290,32 @@ export class MCTSNode {
 // Heavily adapted from https://github.com/SethPipho/monte-carlo-tree-search-js
 export class MCTS {
   game: MCTSGame
-  playerId: UUID
+  playerIndex: number
   iterations: number
   exploration: number
 
   constructor(
     game: MCTSGame,
-    playerId: UUID,
+    playerIndex: number,
     iterations?: number,
     exploration?: number
   ) {
     this.game = game
-    this.playerId = playerId
+    this.playerIndex = playerIndex
     this.iterations = iterations ?? 500
     this.exploration = exploration ?? 1.41
   }
 
   public playTurn(): GameState {
     const originalState = this.game.state
+    console.log(
+      this.game.state.players[this.playerIndex].pool.map(
+        (letter) => letter.name
+      )
+    )
     const root = new MCTSNode(null, this.game.noOpMove, this.game.moves)
 
     let mostWins = -Infinity
-
-    console.log(this.game.state.pool.map((letter) => letter.name))
 
     // Build stats
     console.log('building stats...')
@@ -304,7 +337,7 @@ export class MCTS {
         mostWins = simulationWins
 
         console.table(
-          [...this.game.state.players.values()].map((player) => ({
+          this.game.state.players.map((player) => ({
             name: player.name,
             score: getTotalScore(player),
             word: getRackWord(player),
@@ -406,7 +439,7 @@ export class MCTS {
   // Phase 3: Instead of full playouts, use abstracted simulation inspired by this paper
   // http://www.gameaipro.com/GameAIPro3/GameAIPro3_Chapter28_Pitfalls_and_Solutions_When_Using_Monte_Carlo_Tree_Search_for_Strategy_and_Tactical_Games.pdf
   #simulate(): [Player, number] {
-    const simulatedWinner = [...this.game.state.players.values()].reduce(
+    const simulatedWinner = this.game.state.players.reduce(
       (previousPlayer, player) => {
         if (getTotalScore(player) > getTotalScore(previousPlayer)) {
           return player
@@ -416,7 +449,7 @@ export class MCTS {
       }
     )
 
-    const { min, max } = [...this.game.state.players.values()].reduce(
+    const { min, max } = this.game.state.players.reduce(
       (acc, player) => {
         const num = getTotalScore(player)
 
@@ -431,7 +464,7 @@ export class MCTS {
     const scoreDifference = Math.abs(max - min)
 
     let reward = 0
-    if (simulatedWinner.id === this.playerId) {
+    if (this.game.state.players.indexOf(simulatedWinner) === this.playerIndex) {
       reward = scoreDifference
     } else {
       reward = scoreDifference * -1

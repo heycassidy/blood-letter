@@ -204,3 +204,26 @@ export const getBattleWinner = (players: Player[]): Player | null =>
     }
     return acc
   }, null)
+
+export const getGameWinner = (players: Player[]): Player | null => {
+  const { healthToLose, battleVictoriesToWin } = gameConfig
+
+  const winner = getBattleWinner(players)
+
+  if (!winner) {
+    return null
+  }
+
+  const gameOver = players.some((player) => {
+    return (
+      player.health <= healthToLose ||
+      player.battleVictories >= battleVictoriesToWin
+    )
+  })
+
+  if (gameOver) {
+    return winner
+  }
+
+  return null
+}

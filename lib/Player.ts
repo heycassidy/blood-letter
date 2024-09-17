@@ -4,7 +4,7 @@ import { sumItemProperty, concatItemProperty } from './helpers'
 import { wordList } from './words'
 import { Player, PlayerOptions } from '../lib/types'
 
-const { initialRound, initialHealth } = gameConfig
+const { initialRound, initialHealth, initialGold } = gameConfig
 
 // Function to create a Player object
 function createPlayer(options: Readonly<PlayerOptions>): Player {
@@ -17,6 +17,8 @@ function createPlayer(options: Readonly<PlayerOptions>): Player {
     battleVictories: options.battleVictories ?? 0,
     rack: options.rack ?? [],
     pool: options.pool ?? getPoolForRound(initialRound),
+    gold: options.gold ?? initialGold,
+    playedTurn: options.playedTurn ?? false,
   }
 }
 

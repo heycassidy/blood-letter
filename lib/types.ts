@@ -67,10 +67,6 @@ export interface GameState {
   gameCount: number
   gameMode: GameModeKind.AgainstComputer | GameModeKind.PassToPlay
   gameInProgress: boolean
-
-  rack: Letter[]
-  pool: Letter[]
-  gold: number
   selectedLetter: Letter | null
   draggingLetter: Letter | null
 }
@@ -119,7 +115,9 @@ export interface Player {
   health: number
   rack: Letter[]
   pool: Letter[]
+  gold: number
   battleVictories: number
+  playedTurn: boolean
 }
 
 export interface PlayerOptions {
@@ -130,5 +128,7 @@ export interface PlayerOptions {
   health?: number
   rack?: Letter[]
   pool?: Letter[]
+  gold?: number
   battleVictories?: number
+  playedTurn?: boolean
 }

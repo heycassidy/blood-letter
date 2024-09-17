@@ -1,5 +1,5 @@
 import { useGameDispatchContext } from '../context/GameContext'
-import { GameState, PlayerClassificationKind } from '../lib/types'
+import { GameModeKind, GameState } from '../lib/types'
 import { GameActionKind } from '../context/GameContextReducer'
 import { useEffect, useState } from 'react'
 import { playComputerTurn } from '../app/actions'
@@ -9,25 +9,23 @@ const useComputerPlayer = (state: GameState) => {
   const [thinking, setThinking] = useState(false)
 
   useEffect(() => {
-    const { players, activePlayerIndex } = state
-    const activePlayer = players[activePlayerIndex]
+    const { gameInProgress, gameMode } = state
 
-    if (
-      activePlayer &&
-      activePlayer.classification === PlayerClassificationKind.Computer
-    ) {
+    if (gameInProgress && gameMode === GameModeKind.AgainstComputer) {
       runComputerPlayer(state)
     }
-  }, [state.activePlayerIndex])
+  }, [state.gameInProgress, state.round])
 
   async function runComputerPlayer(initialState: GameState) {
     setThinking(true)
-    const completedState = await playComputerTurn(initialState)
+    const { computerPlayer, computerPlayerIndex } = await playComputerTurn(
+      initialState
+    )
     setThinking(false)
 
     dispatch({
-      type: GameActionKind.Set,
-      payload: { state: completedState },
+      type: GameActionKind.EndTurn,
+      payload: { computerPlayer, computerPlayerIndex },
     })
   }
 

@@ -1,5 +1,5 @@
 import { alea } from 'seedrandom'
-import { create, rawReturn } from 'mutative'
+import { create, rawReturn, current } from 'mutative'
 import {
   GameState,
   PhaseKind,
@@ -9,18 +9,21 @@ import {
   Letter,
   GameModeKind,
   PlayerClassificationKind,
+  Player,
 } from '../lib/types'
 import { createLetter } from '../lib/Letter'
-import { cyclicalNext, arrayMove } from '../lib/helpers'
+import { arrayMove } from '../lib/helpers'
 import {
   gameConfig,
   getHealthCost,
   getBattleWinner,
   getRefreshedPool,
+  getGameWinner,
 } from '../lib/gameConfig'
 
 export enum GameActionKind {
   Set,
+  ReturnFromComputerPlayer,
 
   RestartGame,
   StartGame,
@@ -54,7 +57,7 @@ interface StartGameAction {
 }
 interface EndTurnAction {
   type: GameActionKind.EndTurn
-  payload?: undefined
+  payload?: { computerPlayer: Player; computerPlayerIndex: number }
 }
 interface IncrementRoundAction {
   type: GameActionKind.IncrementRound
@@ -146,20 +149,21 @@ const {
   rackCapacity,
   letterBuyCost,
   letterSellValue,
-  battleVictoriesToWin,
-  healthToLose,
   poolRefreshCost,
 } = gameConfig
 
 export const gameContextReducer = (
   state: GameState,
-  action: GameContextAction
+  action: GameContextAction,
+  playerIndexOverride?: number
 ) => {
   return create(state, (draft) => {
     const { type, payload } = action
-    const activePlayer = draft.players[draft.activePlayerIndex]
 
-    if (!activePlayer) return
+    const playerIndex =
+      playerIndexOverride !== undefined
+        ? playerIndexOverride
+        : draft.activePlayerIndex
 
     if (type !== GameActionKind.Set) {
       draft.players.forEach((player) => {
@@ -201,61 +205,96 @@ export const gameContextReducer = (
       }
 
       case GameActionKind.EndTurn: {
-        const winner = getBattleWinner(draft.players)
-        const losers = draft.players.filter(({ id }) => id !== winner?.id)
-        const nextPlayer = cyclicalNext(draft.players, activePlayer)
+        if (payload !== undefined) {
+          const { computerPlayer, computerPlayerIndex } = payload
 
-        const battleOver = draft.activePlayerIndex === draft.players.length - 1
+          draft.players[computerPlayerIndex].rack = computerPlayer.rack
+          draft.players[computerPlayerIndex].pool = computerPlayer.pool
+          draft.players[computerPlayerIndex].gold = computerPlayer.gold
+          draft.players[computerPlayerIndex].playedTurn =
+            computerPlayer.playedTurn
+        } else {
+          draft.players[playerIndex].playedTurn = true
+        }
 
-        const newPool = getRefreshedPool(
-          nextPlayer.pool,
-          draft.round,
-          nextPlayer.seed
-        )
+        let players = current(draft).players
 
-        // Other plays still have yet to take their turns
-        if (!battleOver && nextPlayer) {
-          nextPlayer.pool = newPool
-          draft.rack = nextPlayer.rack
-          draft.pool = nextPlayer.pool
-          draft.gold = initialGold
-          draft.activePlayerIndex = draft.players.indexOf(nextPlayer)
+        // A. Some players haven't taken their turn...
+        if (draft.players.some((player) => !player.playedTurn)) {
+          const nextPlayer = players.filter((player) => !player.playedTurn)[0]
+          const nextPlayerIndex = players.indexOf(nextPlayer)
+
+          // If the active player hasn't finished their turn, do nothing
+          // "activePlayer" is primarily for UI
+          // Usually this means the computer finished their turn while the human is still thinking
+          if (nextPlayerIndex === draft.activePlayerIndex) {
+            return
+          }
+
+          draft.activePlayerIndex = nextPlayerIndex
+          draft.players[nextPlayerIndex].pool = getRefreshedPool(
+            nextPlayer.pool,
+            draft.round,
+            nextPlayer.seed
+          )
+          draft.players[nextPlayerIndex].gold = initialGold
+
           return
         }
 
-        // Battle Over, all players have taken their turns
-        if (winner) {
-          winner.battleVictories = winner.battleVictories + 1
+        players = current(draft).players
+        const gameWinner = getGameWinner(players)
+        const battleWinner = getBattleWinner(players)
 
-          losers.forEach((loser) => {
-            loser.health =
-              loser.health -
-              getHealthCost(draft.round, gameConfig.healthCostMap)
-          })
-        }
-
-        // Game winner is battle winner when any player's lose or win condition is met
-        const gameOver =
-          winner &&
-          draft.players.some((player) => {
-            return (
-              player.health <= healthToLose ||
-              player.battleVictories >= battleVictoriesToWin
-            )
-          })
-
-        if (gameOver) {
+        // B1. Game is over...
+        if (gameWinner && battleWinner) {
           draft.gameOver = true
-          draft.gameWinnerIndex = draft.players.indexOf(winner)
+
+          // Tell the game the index of which player won the game
+          draft.gameWinnerIndex = players.indexOf(gameWinner)
+
           return
+
+          // setDraftForGameOver
         }
 
-        // At this point all players have taken their turns, but the game is not over, so we show battle results
-        draft.phase = PhaseKind.Battle
-        draft.battleWinnerIndex = winner
-          ? draft.players.indexOf(winner)
-          : undefined
-        return
+        // B2. Battle is over, but no game winner yet...
+        if (battleWinner && !gameWinner) {
+          // Give the battle winner a victory
+          draft.players[players.indexOf(battleWinner)].battleVictories =
+            battleWinner.battleVictories + 1
+
+          // Deduct health for every player that lost the battle
+          draft.players
+            .filter(({ id }) => id !== battleWinner?.id)
+            .forEach((loser) => {
+              loser.health =
+                loser.health -
+                getHealthCost(draft.round, gameConfig.healthCostMap)
+            })
+
+          // Set the game phase
+          draft.phase = PhaseKind.Battle
+
+          // Tell the game the index of which player won the battle
+          draft.battleWinnerIndex = players.indexOf(battleWinner)
+
+          return
+
+          // setDraftForBattleOver
+        }
+
+        // B3. We've got a draw...
+        if (!battleWinner && !gameWinner) {
+          // Set the game phase
+          draft.phase = PhaseKind.Battle
+
+          draft.battleWinnerIndex = undefined
+
+          return
+
+          // setDraftForDraw
+        }
       }
 
       case GameActionKind.IncrementRound: {
@@ -268,11 +307,10 @@ export const gameContextReducer = (
           firstPlayer.seed
         )
 
-        firstPlayer.pool = newPool
+        draft.players.forEach((player) => (player.playedTurn = false))
 
-        draft.gold = initialGold
-        draft.rack = firstPlayer.rack
-        draft.pool = firstPlayer.pool
+        firstPlayer.pool = newPool
+        firstPlayer.gold = initialGold
         draft.round = newRound
         draft.activePlayerIndex = 0
         draft.phase = PhaseKind.Build
@@ -282,13 +320,13 @@ export const gameContextReducer = (
       case GameActionKind.BuyLetter: {
         const { index, letter } = payload
 
-        if (draft.rack.length >= rackCapacity) return
-        if (draft.gold < letterBuyCost) return
+        if (draft.players[playerIndex].rack.length >= rackCapacity) return
+        if (draft.players[playerIndex].gold < letterBuyCost) return
 
-        const insertionIndex = index ?? draft.rack.length
+        const insertionIndex = index ?? draft.players[playerIndex].rack.length
 
         const { id, name, tier, value } = letter
-        draft.rack.splice(
+        draft.players[playerIndex].rack.splice(
           insertionIndex,
           0,
           createLetter({
@@ -300,70 +338,68 @@ export const gameContextReducer = (
           })
         )
 
-        draft.pool = draft.pool.filter(
-          (letter) => letter.id !== payload.letter.id
-        )
-
-        activePlayer.rack = draft.rack
-        activePlayer.pool = draft.pool
+        draft.players[playerIndex].pool = draft.players[
+          playerIndex
+        ].pool.filter((letter) => letter.id !== payload.letter.id)
 
         draft.selectedLetter = null
-        draft.gold = draft.gold - letterBuyCost
+        draft.players[playerIndex].gold =
+          draft.players[playerIndex].gold - letterBuyCost
         return
       }
 
       case GameActionKind.SellLetter: {
-        draft.rack = draft.rack.filter(
-          (letter) => letter.id !== payload.letter.id
-        )
+        draft.players[playerIndex].rack = draft.players[
+          playerIndex
+        ].rack.filter((letter) => letter.id !== payload.letter.id)
+
         draft.selectedLetter = null
-        draft.gold = draft.gold + letterSellValue
-        activePlayer.rack = draft.rack
+        draft.players[playerIndex].gold =
+          draft.players[playerIndex].gold + letterSellValue
         return
       }
 
       case GameActionKind.ToggleFreeze: {
-        const index = draft.pool.findIndex(
+        const index = draft.players[playerIndex].pool.findIndex(
           (letter) => letter.id === payload.letter.id
         )
 
         if (index !== -1) {
-          draft.pool[index].frozen = !draft.pool[index].frozen
+          draft.players[playerIndex].pool[index].frozen =
+            !draft.players[playerIndex].pool[index].frozen
         }
 
         draft.selectedLetter = null
-        activePlayer.pool = draft.pool
         return
       }
       case GameActionKind.FreezeLetter: {
-        const index = draft.pool.findIndex(
+        const index = draft.players[playerIndex].pool.findIndex(
           (letter) => letter.id === payload.letter.id
         )
 
         if (index !== -1) {
-          draft.pool[index].frozen = true
+          draft.players[playerIndex].pool[index].frozen = true
         }
 
         draft.selectedLetter = null
-        activePlayer.pool = draft.pool
         return
       }
       case GameActionKind.ThawLetter: {
-        const index = draft.pool.findIndex(
+        const index = draft.players[playerIndex].pool.findIndex(
           (letter) => letter.id === payload.letter.id
         )
 
         if (index !== -1) {
-          draft.pool[index].frozen = false
+          draft.players[playerIndex].pool[index].frozen = false
         }
 
         draft.selectedLetter = null
-        activePlayer.pool = draft.pool
         return
       }
 
       case GameActionKind.SpendGold: {
-        draft.gold = draft.gold - payload.amount
+        draft.players[playerIndex].gold =
+          draft.players[playerIndex].gold - payload.amount
         return
       }
 
@@ -385,80 +421,84 @@ export const gameContextReducer = (
       case GameActionKind.DragLetterToRack: {
         const { overId, letterId } = payload
 
-        const letter = [...draft.rack, ...draft.pool].find(
-          ({ id }) => id === letterId
-        )
+        const letter = [
+          ...draft.players[playerIndex].rack,
+          ...draft.players[playerIndex].pool,
+        ].find(({ id }) => id === letterId)
 
         if (letter === undefined) return
 
-        const rackIds = draft.rack.map(({ id }) => id)
+        const rackIds = draft.players[playerIndex].rack.map(({ id }) => id)
         const newIndex =
           overId === DroppableKind.Rack
             ? rackIds.length
             : rackIds.indexOf(overId)
 
         draft.selectedLetter = null
-        draft.pool = draft.pool.filter(({ id }) => letterId !== id)
-        draft.rack.splice(newIndex, 0, letter)
-        activePlayer.pool = draft.pool
-        activePlayer.rack = draft.rack
+        draft.players[playerIndex].pool = draft.players[
+          playerIndex
+        ].pool.filter(({ id }) => letterId !== id)
+        draft.players[playerIndex].rack.splice(newIndex, 0, letter)
         return
       }
 
       case GameActionKind.MoveLetterInRack: {
         const { overId, letterId } = payload
 
-        const rackIds = draft.rack.map(({ id }) => id)
+        const rackIds = draft.players[playerIndex].rack.map(({ id }) => id)
 
         const oldIndex = rackIds.indexOf(letterId)
         const newIndex = rackIds.indexOf(overId)
 
-        draft.rack = arrayMove(draft.rack, oldIndex, newIndex)
-        activePlayer.rack = draft.rack
+        draft.players[playerIndex].rack = arrayMove(
+          draft.players[playerIndex].rack,
+          oldIndex,
+          newIndex
+        )
         return
       }
 
       case GameActionKind.RemoveLetterFromRack: {
         const { letterId } = payload
 
-        const letter = draft.rack.find(({ id }) => id === letterId)
+        const letter = draft.players[playerIndex].rack.find(
+          ({ id }) => id === letterId
+        )
         if (letter === undefined) return draft
 
-        const newIndex = draft.pool.length + 1
+        const newIndex = draft.players[playerIndex].pool.length + 1
 
-        draft.pool.splice(newIndex, 0, letter)
-        draft.rack = draft.rack.filter(({ id }) => letterId !== id)
+        draft.players[playerIndex].pool.splice(newIndex, 0, letter)
+        draft.players[playerIndex].rack = draft.players[
+          playerIndex
+        ].rack.filter(({ id }) => letterId !== id)
 
-        activePlayer.pool = draft.pool
-        activePlayer.rack = draft.rack
         return
       }
 
       case GameActionKind.SetLetterOrigins: {
-        for (const letter of draft.rack) {
+        for (const letter of draft.players[playerIndex].rack) {
           letter.origin = LetterOriginKind.Rack
         }
-        for (const letter of draft.pool) {
+        for (const letter of draft.players[playerIndex].pool) {
           letter.origin = LetterOriginKind.Pool
         }
 
-        activePlayer.rack = draft.rack
-        activePlayer.pool = draft.pool
         return
       }
 
       case GameActionKind.RefreshPool: {
-        if (draft.gold < poolRefreshCost) return draft
+        if (draft.players[playerIndex].gold < poolRefreshCost) return draft
 
         const newPool = getRefreshedPool(
-          activePlayer.pool,
+          draft.players[playerIndex].pool,
           draft.round,
-          activePlayer.seed
+          draft.players[playerIndex].seed
         )
 
-        activePlayer.pool = newPool
-        draft.gold = draft.gold - poolRefreshCost
-        draft.pool = activePlayer.pool
+        draft.players[playerIndex].gold =
+          draft.players[playerIndex].gold - poolRefreshCost
+        draft.players[playerIndex].pool = newPool
         return
       }
 
