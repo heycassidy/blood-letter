@@ -1,4 +1,5 @@
-import { gameConfig, getPoolTier, getPoolCapacity } from '../lib/gameConfig'
+import { gameConfig } from '../lib/gameConfig'
+import { getPoolTier, getPoolCapacity } from '../lib/helpers'
 import { css } from '../stitches.config'
 import Pool from './Pool'
 import Rack from './Rack'

@@ -13,13 +13,13 @@ import {
 } from '../lib/types'
 import { createLetter } from '../lib/Letter'
 import { arrayMove } from '../lib/utils'
+import { gameConfig } from '../lib/gameConfig'
 import {
-  gameConfig,
   getHealthCost,
   getBattleWinner,
   getRefreshedPool,
   getGameWinner,
-} from '../lib/gameConfig'
+} from '../lib/helpers'
 
 export enum GameActionKind {
   Set,

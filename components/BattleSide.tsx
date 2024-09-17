@@ -1,4 +1,5 @@
-import { gameConfig, getHealthCost } from '../lib/gameConfig'
+import { gameConfig } from '../lib/gameConfig'
+import { getHealthCost } from '../lib/helpers'
 import { Player } from '../lib/types'
 import { css } from '../stitches.config'
 import LetterList from './LetterList'
