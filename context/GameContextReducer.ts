@@ -9,8 +9,7 @@ import {
   Letter,
 } from '../lib/types'
 import { createLetter } from '../lib/Letter'
-import { cyclicalNext } from '../lib/helpers'
-import { arrayMove } from '@dnd-kit/sortable'
+import { cyclicalNext, arrayMove } from '../lib/helpers'
 import {
   gameConfig,
   getHealthCost,

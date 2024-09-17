@@ -1,8 +1,8 @@
 import { useGameDispatchContext } from '../context/GameContext'
 import { GameState, PlayerClassificationKind } from '../lib/types'
 import { GameActionKind } from '../context/GameContextReducer'
-import { MCTSGame, MCTS } from '../lib/MCTS'
 import { useEffect } from 'react'
+import { playComputerTurn } from '../app/actions'
 
 const useComputerPlayer = (state: GameState) => {
   const dispatch = useGameDispatchContext()
@@ -20,13 +20,13 @@ const useComputerPlayer = (state: GameState) => {
   }, [state.activePlayerIndex])
 
   async function runComputerPlayer(initialState: GameState) {
-    const game = new MCTSGame(initialState)
-    const computerPlayer = new MCTS(game, initialState.activePlayerIndex, 20000)
-    game.state = computerPlayer.playTurn()
+    const completedComputerTurnState = await playComputerTurn(initialState)
+
+    console.log(completedComputerTurnState)
 
     dispatch({
       type: GameActionKind.Set,
-      payload: { state: game.state },
+      payload: { state: completedComputerTurnState },
     })
   }
 }
