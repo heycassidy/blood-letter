@@ -1,70 +1,50 @@
-import { UUID, PlayerOptions, PlayerClassificationKind } from '../lib/types'
-import Letter from './Letter'
 import { nanoid } from 'nanoid'
 import { gameConfig, getPoolForRound } from '../lib/gameConfig'
 import { sumItemProperty, concatItemProperty } from './helpers'
 import { wordList } from './words'
+import { Player, PlayerOptions } from '../lib/types'
 
 const { initialRound, initialHealth } = gameConfig
 
-class Player implements PlayerOptions {
-  readonly id: UUID
-  readonly name: string
-  readonly classification: PlayerClassificationKind
-
-  seed: number
-  health: number
-  rack: Letter[]
-  pool: Letter[]
-  battleVictories: number
-
-  constructor(options: Readonly<PlayerOptions>) {
-    this.id = options.id ?? nanoid(10)
-    this.name = options.name
-    this.classification = options.classification
-    this.seed = options.startingSeed ?? Math.random()
-
-    this.health = options.health ?? initialHealth
-    this.battleVictories = options.battleVictories ?? 0
-    this.rack = options.rack ?? []
-    this.pool = options.pool ?? getPoolForRound(initialRound)
-  }
-
-  clone() {
-    return new Player({
-      id: this.id,
-      name: this.name,
-      classification: this.classification,
-      health: this.health,
-      battleVictories: this.battleVictories,
-      rack: this.rack,
-      pool: this.pool,
-    })
-  }
-
-  get rackWord(): string {
-    return concatItemProperty(
-      this.rack.map((letter) => ({ name: letter.name })),
-      'name'
-    )
-  }
-
-  get rackScore(): number {
-    return sumItemProperty(
-      this.rack.map((letter) => ({ value: letter.value })),
-      'value'
-    )
-  }
-
-  get wordBonus(): number {
-    return wordList.includes(this.rackWord)
-      ? gameConfig.wordBonusComputation(this.rackWord.length)
-      : 0
-  }
-
-  get totalScore(): number {
-    return this.rackScore + this.wordBonus
+// Function to create a Player object
+function createPlayer(options: Readonly<PlayerOptions>): Player {
+  return {
+    id: options.id ?? nanoid(10),
+    name: options.name,
+    classification: options.classification,
+    seed: options.startingSeed ?? Math.random(),
+    health: options.health ?? initialHealth,
+    battleVictories: options.battleVictories ?? 0,
+    rack: options.rack ?? [],
+    pool: options.pool ?? getPoolForRound(initialRound),
   }
 }
 
-export default Player
+function getRackWord(player: Player): string {
+  return concatItemProperty(
+    player.rack.map((letter) => ({ name: letter.name })),
+    'name'
+  )
+}
+
+function getRackScore(player: Player): number {
+  return sumItemProperty(
+    player.rack.map((letter) => ({ value: letter.value })),
+    'value'
+  )
+}
+
+function getWordBonus(player: Player): number {
+  const rackWord = getRackWord(player)
+  return wordList.includes(rackWord)
+    ? gameConfig.wordBonusComputation(rackWord.length)
+    : 0
+}
+
+function getTotalScore(player: Player): number {
+  const rackScore = getRackScore(player)
+  const wordBonus = getWordBonus(player)
+  return rackScore + wordBonus
+}
+
+export { createPlayer, getRackWord, getRackScore, getWordBonus, getTotalScore }

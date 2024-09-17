@@ -1,6 +1,4 @@
 import { GameActionKind } from '../context/GameContextReducer'
-import Letter from '../lib/Letter'
-import Player from '../lib/Player'
 
 export type UUID = string | number
 
@@ -47,26 +45,6 @@ export type AlphabetCharacter =
   | 'y'
   | 'z'
 
-export interface LetterOptions {
-  id?: UUID
-  name: AlphabetCharacter
-  tier: number
-  value: number
-  frozen?: boolean
-  origin?: LetterOriginKind
-}
-
-export interface PlayerOptions {
-  id?: UUID
-  name: string
-  classification: PlayerClassificationKind
-  startingSeed?: number
-  health?: number
-  battleVictories?: number
-  rack?: Letter[]
-  pool?: Letter[]
-}
-
 export interface LetterCardProps {
   letter: Letter
   dragging?: boolean
@@ -112,4 +90,44 @@ export interface MCTSMove {
   weight: number
   execute: (state: GameState) => GameState
   actionKind: GameActionKind
+}
+
+export interface Letter {
+  id: UUID
+  name: AlphabetCharacter
+  tier: number
+  value: number
+  frozen?: boolean
+  origin?: LetterOriginKind
+}
+
+export interface LetterOptions {
+  id?: UUID
+  name: AlphabetCharacter
+  tier: number
+  value: number
+  frozen?: boolean
+  origin?: LetterOriginKind
+}
+
+export interface Player {
+  id: UUID
+  name: string
+  classification: PlayerClassificationKind
+  seed: number
+  health: number
+  rack: Letter[]
+  pool: Letter[]
+  battleVictories: number
+}
+
+export interface PlayerOptions {
+  id?: UUID
+  name: string
+  classification: PlayerClassificationKind
+  startingSeed?: number
+  health?: number
+  rack?: Letter[]
+  pool?: Letter[]
+  battleVictories?: number
 }

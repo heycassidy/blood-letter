@@ -1,5 +1,3 @@
-'use client'
-
 import { useGameDispatchContext } from '../context/GameContext'
 import { GameState, PlayerClassificationKind } from '../lib/types'
 import { GameActionKind } from '../context/GameContextReducer'
@@ -22,7 +20,6 @@ const useComputerPlayer = (state: GameState) => {
   }, [state.activePlayerIndex])
 
   async function runComputerPlayer(initialState: GameState) {
-    // workerRef.current?.postMessage(initialState)
     const game = new MCTSGame(initialState)
     const computerPlayer = new MCTS(game, initialState.activePlayerIndex, 20000)
     game.state = computerPlayer.playTurn()

@@ -31,9 +31,10 @@ import {
   PlayerClassificationKind,
   GameModeKind,
   DroppableKind,
+  Player,
+  Letter,
 } from '../lib/types'
-import Letter from '../lib/Letter'
-import Player from '../lib/Player'
+import { createPlayer } from '../lib/Player'
 import { gameConfig } from '../lib/gameConfig'
 import LetterCard from '../components/LetterCard'
 import {
@@ -134,8 +135,8 @@ export const GameContextProvider = ({ children }: PropsWithChildren) => {
   )
 
   function initGameState(): GameState {
-    // const gameMode = GameModeKind.AgainstComputer
-    const gameMode: GameModeKind = GameModeKind.PassToPlay
+    const gameMode = GameModeKind.AgainstComputer
+    // const gameMode: GameModeKind = GameModeKind.PassToPlay
 
     const players: Player[] = []
 
@@ -148,7 +149,7 @@ export const GameContextProvider = ({ children }: PropsWithChildren) => {
           ? PlayerClassificationKind.Computer
           : PlayerClassificationKind.Human
 
-      const player = new Player({
+      const player = createPlayer({
         name: playerName,
         classification: playerClassification,
       })

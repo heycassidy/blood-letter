@@ -1,8 +1,7 @@
 import { randomItem, weightedRandomItem } from '../lib/helpers'
 import { create } from 'mutative'
-import Letter from './Letter'
-import Player from './Player'
-import { MCTSMove, GameState, PhaseKind, UUID } from './types'
+import { getTotalScore, getRackWord } from './Player'
+import { MCTSMove, GameState, PhaseKind, UUID, Player, Letter } from './types'
 import {
   gameContextReducer,
   GameActionKind,
@@ -245,7 +244,7 @@ export class MCTSNode {
   }
 
   activePlayerScore(gameState: GameState) {
-    return gameState.players[gameState.activePlayerIndex]?.totalScore
+    return getTotalScore(gameState.players[gameState.activePlayerIndex])
   }
 
   // Used to balance between selecting optimal nodes and exploring new areas of the tree
@@ -307,8 +306,8 @@ export class MCTS {
         console.table(
           [...this.game.state.players.values()].map((player) => ({
             name: player.name,
-            score: player.totalScore,
-            word: player.rackWord,
+            score: getTotalScore(player),
+            word: getRackWord(player),
           }))
         )
         // console.log([simulationWinner.rackWord, simulationWins])
@@ -409,7 +408,7 @@ export class MCTS {
   #simulate(): [Player, number] {
     const simulatedWinner = [...this.game.state.players.values()].reduce(
       (previousPlayer, player) => {
-        if (player.totalScore > previousPlayer.totalScore) {
+        if (getTotalScore(player) > getTotalScore(previousPlayer)) {
           return player
         }
 
@@ -419,7 +418,7 @@ export class MCTS {
 
     const { min, max } = [...this.game.state.players.values()].reduce(
       (acc, player) => {
-        const num = player.totalScore
+        const num = getTotalScore(player)
 
         return {
           min: num < acc.min ? num : acc.min,

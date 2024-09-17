@@ -1,6 +1,6 @@
-import { PhaseKind, LetterOriginKind } from './types'
-import Letter from './Letter'
-import Player from './Player'
+import { PhaseKind, LetterOriginKind, Player, Letter } from './types'
+import { getTotalScore } from './Player'
+import { createLetter } from './Letter'
 import {
   randomItems,
   getFromNumericMapWithMax,
@@ -8,37 +8,37 @@ import {
 } from '../lib/helpers'
 
 const alphabet: Letter[] = [
-  new Letter({ name: 'e', tier: 1, value: 1 }),
-  new Letter({ name: 't', tier: 1, value: 1 }),
-  new Letter({ name: 'a', tier: 1, value: 1 }),
-  new Letter({ name: 'i', tier: 1, value: 1 }),
-  new Letter({ name: 'o', tier: 1, value: 1 }),
-  new Letter({ name: 'n', tier: 1, value: 1 }),
+  createLetter({ name: 'e', tier: 1, value: 1 }),
+  createLetter({ name: 't', tier: 1, value: 1 }),
+  createLetter({ name: 'a', tier: 1, value: 1 }),
+  createLetter({ name: 'i', tier: 1, value: 1 }),
+  createLetter({ name: 'o', tier: 1, value: 1 }),
+  createLetter({ name: 'n', tier: 1, value: 1 }),
 
-  new Letter({ name: 's', tier: 2, value: 4 }),
-  new Letter({ name: 'h', tier: 2, value: 4 }),
-  new Letter({ name: 'r', tier: 2, value: 4 }),
-  new Letter({ name: 'd', tier: 2, value: 4 }),
+  createLetter({ name: 's', tier: 2, value: 4 }),
+  createLetter({ name: 'h', tier: 2, value: 4 }),
+  createLetter({ name: 'r', tier: 2, value: 4 }),
+  createLetter({ name: 'd', tier: 2, value: 4 }),
 
-  new Letter({ name: 'l', tier: 3, value: 9 }),
-  new Letter({ name: 'c', tier: 3, value: 9 }),
-  new Letter({ name: 'u', tier: 3, value: 9 }),
-  new Letter({ name: 'm', tier: 3, value: 9 }),
+  createLetter({ name: 'l', tier: 3, value: 9 }),
+  createLetter({ name: 'c', tier: 3, value: 9 }),
+  createLetter({ name: 'u', tier: 3, value: 9 }),
+  createLetter({ name: 'm', tier: 3, value: 9 }),
 
-  new Letter({ name: 'w', tier: 4, value: 16 }),
-  new Letter({ name: 'f', tier: 4, value: 16 }),
-  new Letter({ name: 'g', tier: 4, value: 16 }),
-  new Letter({ name: 'y', tier: 4, value: 16 }),
+  createLetter({ name: 'w', tier: 4, value: 16 }),
+  createLetter({ name: 'f', tier: 4, value: 16 }),
+  createLetter({ name: 'g', tier: 4, value: 16 }),
+  createLetter({ name: 'y', tier: 4, value: 16 }),
 
-  new Letter({ name: 'p', tier: 5, value: 25 }),
-  new Letter({ name: 'b', tier: 5, value: 25 }),
-  new Letter({ name: 'v', tier: 5, value: 25 }),
-  new Letter({ name: 'k', tier: 5, value: 25 }),
+  createLetter({ name: 'p', tier: 5, value: 25 }),
+  createLetter({ name: 'b', tier: 5, value: 25 }),
+  createLetter({ name: 'v', tier: 5, value: 25 }),
+  createLetter({ name: 'k', tier: 5, value: 25 }),
 
-  new Letter({ name: 'j', tier: 6, value: 36 }),
-  new Letter({ name: 'x', tier: 6, value: 36 }),
-  new Letter({ name: 'q', tier: 6, value: 36 }),
-  new Letter({ name: 'z', tier: 6, value: 36 }),
+  createLetter({ name: 'j', tier: 6, value: 36 }),
+  createLetter({ name: 'x', tier: 6, value: 36 }),
+  createLetter({ name: 'q', tier: 6, value: 36 }),
+  createLetter({ name: 'z', tier: 6, value: 36 }),
 ]
 
 interface gameConfig {
@@ -154,7 +154,7 @@ export const getRandomPoolLetters = (
 
   return randomItems(tierAndBelowLetters, amount, randomSeed).map((letter) => {
     const { name, tier, value } = letter
-    return new Letter({ name, tier, value, origin: LetterOriginKind.Pool })
+    return createLetter({ name, tier, value, origin: LetterOriginKind.Pool })
   })
 }
 
@@ -189,9 +189,9 @@ export const getHealthCost = (
 
 export const getBattleWinner = (players: Player[]): Player | null =>
   players.reduce((acc: Player | null, player: Player): Player | null => {
-    if (!acc || player.totalScore > acc.totalScore) {
+    if (!acc || getTotalScore(player) > getTotalScore(acc)) {
       return player
-    } else if (player.totalScore === acc.totalScore) {
+    } else if (getTotalScore(player) === getTotalScore(acc)) {
       return null
     }
     return acc
