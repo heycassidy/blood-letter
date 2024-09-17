@@ -1,4 +1,10 @@
-import { PhaseKind, LetterOriginKind, Player, Letter } from './types'
+import {
+  PhaseKind,
+  LetterOriginKind,
+  Player,
+  Letter,
+  GameModeKind,
+} from './types'
 import { getTotalScore } from './Player'
 import { createLetter } from './Letter'
 import {
@@ -50,6 +56,7 @@ interface gameConfig {
   healthToLose: number
   battleVictoriesToWin: number
   numberOfPlayers: number
+  defaultGameMode: GameModeKind
 
   letterBuyCost: number
   letterSellValue: number
@@ -73,6 +80,7 @@ export const gameConfig: Readonly<gameConfig> = {
   healthToLose: 0,
   battleVictoriesToWin: 10,
   numberOfPlayers: 2,
+  defaultGameMode: GameModeKind.AgainstComputer,
 
   letterBuyCost: 3,
   letterSellValue: 2,

@@ -1,5 +1,5 @@
 import { useGameContext, useGameDispatchContext } from '../context/GameContext'
-import Letter from '../lib/Letter'
+import { Letter } from '../lib/types'
 import { GameActionKind } from '../context/GameContextReducer'
 
 const useSelectableLetterCard = (letter: Letter, enabled?: boolean) => {

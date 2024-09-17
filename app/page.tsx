@@ -5,6 +5,7 @@ import Head from 'next/head'
 import Layout from '../components/Layout'
 import BuildPhase from '../components/BuildPhase'
 import BattlePhase from '../components/BattlePhase'
+import StartScreen from '../components/StartScreen'
 import { useGameContext } from '../context/GameContext'
 import { PhaseKind } from '../lib/types'
 import { css } from '../stitches.config'
@@ -15,7 +16,7 @@ globalStyles()
 
 const Home: NextPage = () => {
   const gameState = useGameContext()
-  const { phase, gameOver, gameWinnerIndex, players } = gameState
+  const { phase, gameStarted, gameOver, gameWinnerIndex, players } = gameState
   const gameWinner =
     gameWinnerIndex !== undefined ? players[gameWinnerIndex] : undefined
 
@@ -30,7 +31,9 @@ const Home: NextPage = () => {
       <h1 style={{ margin: 0, flexBasis: '100%' }}>Blood Letter</h1>
 
       <Layout>
-        {gameOver && gameWinner && (
+        {!gameStarted && <StartScreen />}
+
+        {gameOver && gameStarted && gameWinner && (
           <>
             <h2 style={{ margin: 0, flexBasis: '100%' }}>
               {gameWinner.name} wins!
@@ -38,14 +41,14 @@ const Home: NextPage = () => {
           </>
         )}
 
-        {!gameOver && phase === PhaseKind.Build && (
+        {gameStarted && !gameOver && phase === PhaseKind.Build && (
           <>
             <h3>Build Phase</h3>
             <BuildPhase />
           </>
         )}
 
-        {!gameOver && phase === PhaseKind.Battle && (
+        {gameStarted && !gameOver && phase === PhaseKind.Battle && (
           <>
             <h3>Battle Phase</h3>
             <BattlePhase />

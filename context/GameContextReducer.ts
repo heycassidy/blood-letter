@@ -7,6 +7,8 @@ import {
   UUID,
   DroppableKind,
   Letter,
+  GameModeKind,
+  PlayerClassificationKind,
 } from '../lib/types'
 import { createLetter } from '../lib/Letter'
 import { cyclicalNext, arrayMove } from '../lib/helpers'
@@ -21,6 +23,7 @@ export enum GameActionKind {
   Set,
 
   RestartGame,
+  StartGame,
 
   EndTurn,
   IncrementRound,
@@ -44,6 +47,10 @@ export enum GameActionKind {
 interface RestartGameAction {
   type: GameActionKind.RestartGame
   payload: { state: GameState }
+}
+interface StartGameAction {
+  type: GameActionKind.StartGame
+  payload: { gameMode: GameModeKind }
 }
 interface EndTurnAction {
   type: GameActionKind.EndTurn
@@ -115,6 +122,7 @@ interface RefreshPoolAction {
 }
 export type GameContextAction =
   | RestartGameAction
+  | StartGameAction
   | EndTurnAction
   | IncrementRoundAction
   | SetAction
@@ -166,6 +174,29 @@ export const gameContextReducer = (
 
       case GameActionKind.RestartGame: {
         draft.gameCount += 1
+        return
+      }
+
+      case GameActionKind.StartGame: {
+        draft.gameStarted = true
+        draft.gameMode = payload.gameMode
+
+        if (payload.gameMode === GameModeKind.AgainstComputer) {
+          draft.players[0].name = 'Player 1'
+          draft.players[0].classification = PlayerClassificationKind.Human
+
+          draft.players[1].name = 'Player 2 (Computer)'
+          draft.players[1].classification = PlayerClassificationKind.Computer
+        }
+
+        if (payload.gameMode === GameModeKind.PassToPlay) {
+          draft.players[0].name = 'Player 1'
+          draft.players[0].classification = PlayerClassificationKind.Human
+
+          draft.players[1].name = 'Player 2'
+          draft.players[1].classification = PlayerClassificationKind.Human
+        }
+
         return
       }
 

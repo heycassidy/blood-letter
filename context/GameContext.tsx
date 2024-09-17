@@ -76,6 +76,7 @@ export const GameContextProvider = ({ children }: PropsWithChildren) => {
     numberOfPlayers,
     rackCapacity,
     letterBuyCost,
+    defaultGameMode,
   } = gameConfig
 
   const [state, dispatch] = useReducer(gameContextReducer, null, initGameState)
@@ -135,17 +136,16 @@ export const GameContextProvider = ({ children }: PropsWithChildren) => {
   )
 
   function initGameState(): GameState {
-    const gameMode = GameModeKind.AgainstComputer
-    // const gameMode: GameModeKind = GameModeKind.PassToPlay
-
     const players: Player[] = []
 
     Array.from({ length: numberOfPlayers }).map((_, i) => {
       const playerName = `Player ${i + 1} ${
-        gameMode === GameModeKind.AgainstComputer && i !== 0 ? '(computer)' : ''
+        defaultGameMode === GameModeKind.AgainstComputer && i !== 0
+          ? '(computer)'
+          : ''
       }`
       const playerClassification =
-        gameMode === GameModeKind.AgainstComputer && i !== 0
+        defaultGameMode === GameModeKind.AgainstComputer && i !== 0
           ? PlayerClassificationKind.Computer
           : PlayerClassificationKind.Human
 
@@ -168,7 +168,8 @@ export const GameContextProvider = ({ children }: PropsWithChildren) => {
       phase: initialPhase,
       gameOver: false,
       gameCount: 1,
-      gameMode,
+      gameMode: defaultGameMode,
+      gameStarted: false,
 
       rack: firstPlayer.rack,
       pool: firstPlayer.pool,
