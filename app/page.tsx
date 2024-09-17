@@ -16,7 +16,8 @@ globalStyles()
 
 const Home: NextPage = () => {
   const gameState = useGameContext()
-  const { phase, gameStarted, gameOver, gameWinnerIndex, players } = gameState
+  const { phase, gameInProgress, gameOver, gameWinnerIndex, players } =
+    gameState
   const gameWinner =
     gameWinnerIndex !== undefined ? players[gameWinnerIndex] : undefined
 
@@ -31,9 +32,9 @@ const Home: NextPage = () => {
       <h1 style={{ margin: 0, flexBasis: '100%' }}>Blood Letter</h1>
 
       <Layout>
-        {!gameStarted && <StartScreen />}
+        {!gameInProgress && <StartScreen />}
 
-        {gameOver && gameStarted && gameWinner && (
+        {gameOver && gameInProgress && gameWinner && (
           <>
             <h2 style={{ margin: 0, flexBasis: '100%' }}>
               {gameWinner.name} wins!
@@ -41,14 +42,14 @@ const Home: NextPage = () => {
           </>
         )}
 
-        {gameStarted && !gameOver && phase === PhaseKind.Build && (
+        {gameInProgress && !gameOver && phase === PhaseKind.Build && (
           <>
             <h3>Build Phase</h3>
             <BuildPhase />
           </>
         )}
 
-        {gameStarted && !gameOver && phase === PhaseKind.Battle && (
+        {gameInProgress && !gameOver && phase === PhaseKind.Battle && (
           <>
             <h3>Battle Phase</h3>
             <BattlePhase />

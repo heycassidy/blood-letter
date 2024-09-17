@@ -66,7 +66,7 @@ export interface GameState {
   gameOver: boolean
   gameCount: number
   gameMode: GameModeKind.AgainstComputer | GameModeKind.PassToPlay
-  gameStarted: boolean
+  gameInProgress: boolean
 
   rack: Letter[]
   pool: Letter[]

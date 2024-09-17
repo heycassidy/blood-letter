@@ -178,7 +178,7 @@ export const gameContextReducer = (
       }
 
       case GameActionKind.StartGame: {
-        draft.gameStarted = true
+        draft.gameInProgress = true
         draft.gameMode = payload.gameMode
 
         if (payload.gameMode === GameModeKind.AgainstComputer) {
