@@ -29,7 +29,7 @@ const useComputerPlayer = (state: GameState) => {
     })
   }
 
-  return [thinking]
+  return thinking
 }
 
 export default useComputerPlayer

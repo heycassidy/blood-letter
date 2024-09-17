@@ -7,7 +7,7 @@ import BuildPhase from '../components/BuildPhase'
 import BattlePhase from '../components/BattlePhase'
 import StartScreen from '../components/StartScreen'
 import { useGameContext } from '../context/GameContext'
-import { PhaseKind } from '../lib/types'
+import { PhaseKind, PlayerClassificationKind } from '../lib/types'
 import { css } from '../stitches.config'
 import useComputerPlayer from '../hooks/useComputerPlayer'
 import { globalStyles } from '../styles/globals'
@@ -16,12 +16,19 @@ globalStyles()
 
 const Home: NextPage = () => {
   const gameState = useGameContext()
-  const { phase, gameInProgress, gameOver, gameWinnerIndex, players } =
-    gameState
+  const {
+    phase,
+    gameInProgress,
+    gameOver,
+    gameWinnerIndex,
+    players,
+    activePlayerIndex,
+  } = gameState
   const gameWinner =
     gameWinnerIndex !== undefined ? players[gameWinnerIndex] : undefined
 
-  const [thinking] = useComputerPlayer(gameState)
+  const activePlayerClassification = players[activePlayerIndex].classification
+  const computerPlayerIsThinking = useComputerPlayer(gameState)
 
   return (
     <div className={styles()}>
@@ -42,12 +49,15 @@ const Home: NextPage = () => {
           </>
         )}
 
-        {gameInProgress && !gameOver && phase === PhaseKind.Build && (
-          <>
-            <h3>Build Phase</h3>
-            <BuildPhase />
-          </>
-        )}
+        {gameInProgress &&
+          !gameOver &&
+          phase === PhaseKind.Build &&
+          activePlayerClassification === PlayerClassificationKind.Human && (
+            <>
+              <h3>Build Phase</h3>
+              <BuildPhase />
+            </>
+          )}
 
         {gameInProgress && !gameOver && phase === PhaseKind.Battle && (
           <>
@@ -56,11 +66,12 @@ const Home: NextPage = () => {
           </>
         )}
 
-        {thinking && (
-          <>
-            <p>Computer is thinking...</p>
-          </>
-        )}
+        {computerPlayerIsThinking &&
+          activePlayerClassification === PlayerClassificationKind.Computer && (
+            <>
+              <p>Computer is thinking...</p>
+            </>
+          )}
       </Layout>
     </div>
   )
