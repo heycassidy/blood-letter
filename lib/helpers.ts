@@ -1,46 +1,97 @@
-import { UUID } from './types'
+import { Letter, LetterOriginKind, Player } from './types'
+import { gameConfig } from './gameConfig'
+import { getFromNumericMapWithMax, itemIsInRange, randomItems } from './utils'
+import { createLetter } from './Letter'
+import { getTotalScore } from './Player'
 
-export const itemIsInRange = (item: number, start = 0, stop = 10): boolean =>
-  integerRange(start, stop).includes(item)
-
-export const integerRange = (start = 0, stop = 10): number[] =>
-  [...Array(stop + start - 1)].map((_, i) => i + start)
-
-export const randomItems = <T>(items: T[], amount: number): T[] =>
-  [...Array(amount)].map(() => items[Math.floor(Math.random() * items.length)])
-
-export const assignIds = <T>(items: T[], id: UUID | (() => UUID)): T[] =>
-  items.map((item) => ({
-    ...item,
-    id: typeof id === 'string' || typeof id === 'number' ? id : id(),
-  }))
-
-export const cyclicalNext = <Item>(items: Item[], currentItem: Item): Item => {
-  const currentIndex = items.indexOf(currentItem)
-  const nextIndex = (currentIndex + 1) % items.length
-
-  return items[nextIndex]
+export const getPoolTier = (
+  round: number,
+  poolTierMap: typeof gameConfig['poolTierMap']
+): number => {
+  return getFromNumericMapWithMax(poolTierMap, round)
 }
 
-export const getFromNumericMapWithMax = <T>(
-  map: { [key in number | 'max']: T },
-  item: number | 'max'
-): T => map[item in map ? item : 'max']
+export const getPoolCapacity = (
+  round: number,
+  poolCapacityMap: typeof gameConfig['poolCapacityMap']
+): number => {
+  return getFromNumericMapWithMax(poolCapacityMap, round)
+}
 
-export const sumItemProperty = (
-  items: { [key in symbol]: number }[],
-  property: string
-): number =>
-  items.reduce(
-    (sum: number, item: { [key: string]: number }) => sum + item[property],
-    0
+export const getRandomPoolLetters = (
+  letters: Letter[],
+  tier: number,
+  amount: number,
+  randomSeed?: number
+): Letter[] => {
+  const tierAndBelowLetters = letters.filter((letter) =>
+    itemIsInRange(letter.tier, 1, tier)
   )
 
-export const concatItemProperty = (
-  items: { [key in symbol]: string }[],
-  field: string
-): string =>
-  items.reduce(
-    (str: string, item: { [key: string]: string }) => `${str}${item[field]}`,
-    ''
-  )
+  return randomItems(tierAndBelowLetters, amount, randomSeed).map((letter) => {
+    const { name, tier, value } = letter
+    return createLetter({ name, tier, value, origin: LetterOriginKind.Pool })
+  })
+}
+
+export const getPoolForRound = (
+  round: number,
+  randomSeed?: number
+): Letter[] => {
+  const { alphabet, poolTierMap, poolCapacityMap } = gameConfig
+
+  const poolTier = getPoolTier(round, poolTierMap)
+  const poolCapacity = getPoolCapacity(round, poolCapacityMap)
+
+  return getRandomPoolLetters(alphabet, poolTier, poolCapacity, randomSeed)
+}
+
+export const getRefreshedPool = (
+  pool: Letter[],
+  round: number,
+  randomSeed?: number
+): Letter[] => {
+  return getPoolForRound(round, randomSeed).map((letter, index) => {
+    return pool[index]?.frozen ? pool[index] : letter
+  })
+}
+
+export const getHealthCost = (
+  round: number,
+  healthCostMap: typeof gameConfig['healthCostMap']
+): number => {
+  return getFromNumericMapWithMax(healthCostMap, round)
+}
+
+export const getBattleWinner = (players: Player[]): Player | null =>
+  players.reduce((acc: Player | null, player: Player): Player | null => {
+    if (!acc || getTotalScore(player) > getTotalScore(acc)) {
+      return player
+    } else if (getTotalScore(player) === getTotalScore(acc)) {
+      return null
+    }
+    return acc
+  }, null)
+
+export const getGameWinner = (players: Player[]): Player | null => {
+  const { healthToLose, battleVictoriesToWin } = gameConfig
+
+  const winner = getBattleWinner(players)
+
+  if (!winner) {
+    return null
+  }
+
+  const gameOver = players.some((player) => {
+    return (
+      player.health <= healthToLose ||
+      player.battleVictories >= battleVictoriesToWin
+    )
+  })
+
+  if (gameOver) {
+    return winner
+  }
+
+  return null
+}

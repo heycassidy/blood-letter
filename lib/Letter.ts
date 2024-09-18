@@ -1,33 +1,28 @@
-import {
-  UUID,
-  LetterOptions,
-  AlphabetCharacter,
-  LetterOriginKind,
-} from '../lib/types'
 import { nanoid } from 'nanoid'
+import { Letter, LetterOptions } from '../lib/types'
 
-class Letter implements LetterOptions {
-  id: UUID = nanoid(10)
-
-  readonly name: AlphabetCharacter
-  readonly tier: number
-  readonly value: number
-  frozen?: boolean = false
-  origin?: LetterOriginKind
-
-  constructor(options: Readonly<LetterOptions>) {
-    this.name = options.name
-    this.tier = options.tier
-    this.value = options.value
-    this.frozen = options.frozen
-    this.origin = options.origin
-
-    // this.doSomething()
-  }
-
-  doSomething(): void {
-    console.log('something')
+// Function to create a Letter object
+function createLetter(options: Readonly<LetterOptions>): Letter {
+  return {
+    id: options.id ?? nanoid(10),
+    name: options.name,
+    tier: options.tier,
+    value: options.value,
+    frozen: options.frozen ?? false,
+    origin: options.origin,
   }
 }
 
-export default Letter
+// Function to clone the Letter object
+function cloneLetter(letter: Letter): Letter {
+  return createLetter({
+    id: letter.id,
+    name: letter.name,
+    tier: letter.tier,
+    value: letter.value,
+    frozen: letter.frozen,
+    origin: letter.origin,
+  })
+}
+
+export { createLetter, cloneLetter }

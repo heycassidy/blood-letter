@@ -1,32 +1,35 @@
-import { useContext } from 'react'
-import { GameConfigContext } from '../context/GameConfigContext'
-import type { Player } from '../lib/types'
+import { gameConfig } from '../lib/gameConfig'
+import { getHealthCost } from '../lib/helpers'
+import { Player } from '../lib/types'
 import { css } from '../stitches.config'
 import LetterList from './LetterList'
 import LetterCard from './LetterCard'
 import { useGameContext } from '../context/GameContext'
 import InfoList from '../atoms/InfoList'
+import { getRackScore, getWordBonus, getTotalScore } from '../lib/Player'
 
 const BattleSide = ({ player }: { player: Player }) => {
-  const { rackCapacity } = useContext(GameConfigContext)
-  const { round, battleWinner, getHealthCost } = useGameContext()
+  const { rackCapacity, healthCostMap } = gameConfig
+  const { round, players, battleWinnerIndex } = useGameContext()
+  const battleWinner =
+    battleWinnerIndex !== undefined ? players[battleWinnerIndex] : undefined
 
   return (
     <div className={styles()}>
       <InfoList>
         <span>{player.name}</span>
-        <span>Letters: {player.rackScore}</span>
-        {player.wordBonus > 0 ? (
-          <span>Word Bonus: {player.wordBonus}</span>
+        <span>Letters: {getRackScore(player)}</span>
+        {getWordBonus(player) > 0 ? (
+          <span>Word Bonus: {getWordBonus(player)}</span>
         ) : (
           <span>Not in word list</span>
         )}
-        <strong>Total: {player.roundScore}</strong>
+        <strong>Total: {getTotalScore(player)}</strong>
         {battleWinner && battleWinner.id === player.id && (
           <strong>Winner</strong>
         )}
         {battleWinner && battleWinner.id !== player.id && (
-          <span>Health: -{getHealthCost(round)}</span>
+          <span>Health: -{getHealthCost(round, healthCostMap)}</span>
         )}
       </InfoList>
 
