@@ -1,7 +1,8 @@
+import { SingleBar } from 'cli-progress'
 import { randomItem, weightedRandomItem } from './utils'
 import { create } from 'mutative'
-import { getTotalScore, getRackWord } from './Player'
-import { MCTSMove, GameState, PhaseKind, UUID, Player, Letter } from './types'
+import { getTotalScore } from './Player'
+import { MCTSMove, GameState, PhaseKind, UUID, Letter } from './types'
 import {
   gameContextReducer,
   GameActionKind,
@@ -69,7 +70,7 @@ export class MCTSGame {
 
         moves.set(name, {
           name,
-          weight: 100,
+          weight: 1,
           execute: (state) => this.buyLetter(letter, state),
           actionKind: GameActionKind.BuyLetter,
         })
@@ -82,7 +83,7 @@ export class MCTSGame {
 
       moves.set(name, {
         name,
-        weight: 100,
+        weight: 1,
         execute: (state) => this.sellLetter(letter, state),
         actionKind: GameActionKind.SellLetter,
       })
@@ -98,7 +99,7 @@ export class MCTSGame {
           )}-to-${toLetter.name}-at-${rack.indexOf(toLetter)}`
           moves.set(name, {
             name,
-            weight: 160,
+            weight: 1,
             execute: (state) =>
               this.moveLetterInRack(fromLetter, toLetter, state),
             actionKind: GameActionKind.MoveLetterInRack,
@@ -111,7 +112,7 @@ export class MCTSGame {
       const name = 'refresh-pool'
       moves.set(name, {
         name,
-        weight: 160,
+        weight: 1,
         execute: (state) => this.refreshPool(state),
         actionKind: GameActionKind.RefreshPool,
       })
@@ -124,7 +125,7 @@ export class MCTSGame {
         const name = `freeze-letter-${letter.name}-at-${i}`
         moves.set(name, {
           name,
-          weight: 20,
+          weight: 1,
           execute: (state) => this.freezeLetter(letter, state),
           actionKind: GameActionKind.FreezeLetter,
         })
@@ -137,7 +138,7 @@ export class MCTSGame {
         const name = `thaw-letter-${letter.name}-at-${i}`
         moves.set(name, {
           name,
-          weight: 20,
+          weight: 1,
           execute: (state) => this.thawLetter(letter, state),
           actionKind: GameActionKind.ThawLetter,
         })
@@ -146,7 +147,7 @@ export class MCTSGame {
     // End Turn
     moves.set('end-turn', {
       name: 'end-turn',
-      weight: 20,
+      weight: 1,
       execute: (state) => this.endTurn(state),
       actionKind: GameActionKind.EndTurn,
     })
@@ -163,7 +164,7 @@ export class MCTSGame {
   get noOpMove() {
     return {
       name: 'no-op',
-      weight: 0,
+      weight: 1,
       execute: () => this.state,
       actionKind: GameActionKind.Set,
     }
@@ -308,18 +309,20 @@ export class MCTS {
 
   public playTurn(): GameState {
     const originalState = this.game.state
-    console.log(
-      this.game.state.players[this.playerIndex].pool.map(
-        (letter) => letter.name
-      )
-    )
     const root = new MCTSNode(null, this.game.noOpMove, this.game.moves)
 
-    let mostWins = -Infinity
+    let highestAchievedScore = 1
+
+    const progressBar = new SingleBar({
+      format:
+        'Building stats... [{bar}] {percentage}% | ETA: {eta}s | {value}/{total}',
+      stopOnComplete: true,
+    })
 
     // Build stats
-    console.log('building stats...')
+    progressBar.start(this.iterations, 0)
     for (let i = 0; i < this.iterations; i++) {
+      progressBar.increment()
       this.game.state = this.game.cloneState(originalState)
 
       // Phase 1: Select
@@ -330,24 +333,15 @@ export class MCTS {
 
       // Phase 3: Simulate
       // console.log('simulating game...')
-      const [simulationWinner, simulationWins] = this.#simulate()
+      const [reward, computerPlayerScore] = this.#simulate(highestAchievedScore)
 
       // Logging
-      if (simulationWins > mostWins) {
-        mostWins = simulationWins
-
-        console.table(
-          this.game.state.players.map((player) => ({
-            name: player.name,
-            score: getTotalScore(player),
-            word: getRackWord(player),
-          }))
-        )
-        // console.log([simulationWinner.rackWord, simulationWins])
+      if (computerPlayerScore > highestAchievedScore) {
+        highestAchievedScore = computerPlayerScore
       }
 
       // Phase 4: Back Propagate
-      this.#backPropagate(expandedNode, simulationWins)
+      this.#backPropagate(expandedNode, reward)
     }
 
     // Play Turn
@@ -375,7 +369,15 @@ export class MCTS {
       }
     )
 
-    console.log(nextNode.move.name)
+    console.table(
+      [...node.children.values()].map((node) => ({
+        name: node.move.name,
+        reward: node.reward,
+        visits: node.visits,
+      }))
+    )
+
+    console.log('chosen move: ', nextNode.move.name, nextNode.reward)
 
     if (nextNode.move.name === 'end-turn') {
       return this.game.playMove(nextNode.move)
@@ -438,7 +440,9 @@ export class MCTS {
 
   // Phase 3: Instead of full playouts, use abstracted simulation inspired by this paper
   // http://www.gameaipro.com/GameAIPro3/GameAIPro3_Chapter28_Pitfalls_and_Solutions_When_Using_Monte_Carlo_Tree_Search_for_Strategy_and_Tactical_Games.pdf
-  #simulate(): [Player, number] {
+  #simulate(highestAchievedScore: number): [number, number] {
+    const playerScore = getTotalScore(this.game.state.players[this.playerIndex])
+
     const simulatedWinner = this.game.state.players.reduce(
       (previousPlayer, player) => {
         if (getTotalScore(player) > getTotalScore(previousPlayer)) {
@@ -447,6 +451,10 @@ export class MCTS {
 
         return previousPlayer
       }
+    )
+
+    const simulatedWinnerIndex = this.game.state.players.findIndex(
+      (player) => player.id === simulatedWinner.id
     )
 
     const { min, max } = this.game.state.players.reduce(
@@ -461,16 +469,25 @@ export class MCTS {
       { min: Infinity, max: -Infinity }
     )
 
-    const scoreDifference = Math.abs(max - min)
-
-    let reward = 0
-    if (this.game.state.players.indexOf(simulatedWinner) === this.playerIndex) {
-      reward = scoreDifference
-    } else {
-      reward = scoreDifference * -1
+    let scoreDifference = Math.abs(max - min)
+    if (simulatedWinnerIndex !== this.playerIndex) {
+      scoreDifference = scoreDifference * -1
     }
 
-    return [simulatedWinner, reward]
+    const reward = this.#normalizedReward(scoreDifference, highestAchievedScore)
+
+    return [reward, playerScore]
+  }
+
+  #normalizedReward(scoreDifference: number, maxScore: number) {
+    // If a player played 6 tier 6 letters and got a word, their score would be 432
+
+    // For now, we get maxScore from outside, which is the highest achieved score thus far
+    // In the future, maybe we figure out a reasonable max score based on the current available letters
+    const maxScoreDiff = maxScore
+    const minScoreDiff = -1 * maxScoreDiff
+
+    return (scoreDifference - minScoreDiff) / (maxScoreDiff - minScoreDiff)
   }
 
   // Phase 4: Iterate back up the tree from the provided node to the root, updating node statistics along the way
