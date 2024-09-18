@@ -1,7 +1,6 @@
 import { useState } from 'react'
 import { useIsomorphicLayoutEffect } from '../hooks/useIsomorphicLayoutEffect'
-import { DroppableKind } from '../lib/types'
-import Letter from '../lib/Letter'
+import { DroppableKind, Letter } from '../lib/types'
 import { css } from '../stitches.config'
 import LetterList from './LetterList'
 import {
