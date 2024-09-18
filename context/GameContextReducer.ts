@@ -298,19 +298,14 @@ export const gameContextReducer = (
       }
 
       case GameActionKind.IncrementRound: {
-        const firstPlayer = draft.players[0]
         const newRound = draft.round + 1
 
-        const newPool = getRefreshedPool(
-          firstPlayer.pool,
-          newRound,
-          firstPlayer.seed
-        )
+        draft.players.forEach((player) => {
+          player.playedTurn = false
+          player.gold = initialGold
+          player.pool = getRefreshedPool(player.pool, newRound, player.seed)
+        })
 
-        draft.players.forEach((player) => (player.playedTurn = false))
-
-        firstPlayer.pool = newPool
-        firstPlayer.gold = initialGold
         draft.round = newRound
         draft.activePlayerIndex = 0
         draft.phase = PhaseKind.Build
