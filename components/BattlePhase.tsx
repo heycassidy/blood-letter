@@ -5,7 +5,7 @@ import InfoList from '../atoms/InfoList'
 import { GameActionKind } from '../context/GameContextReducer'
 
 const BattlePhase = () => {
-  const { players, battleWinnerIndex } = useGameContext()
+  const { players, battleWinnerIndex, gameOver } = useGameContext()
   const dispatch = useGameDispatchContext()
   const battleWinner =
     battleWinnerIndex !== undefined ? players[battleWinnerIndex] : undefined
@@ -24,15 +24,17 @@ const BattlePhase = () => {
         ))}
       </div>
 
-      <button
-        onClick={() => {
-          dispatch({
-            type: GameActionKind.IncrementRound,
-          })
-        }}
-      >
-        Next Round
-      </button>
+      {!gameOver && (
+        <button
+          onClick={() => {
+            dispatch({
+              type: GameActionKind.IncrementRound,
+            })
+          }}
+        >
+          Next Round
+        </button>
+      )}
     </div>
   )
 }

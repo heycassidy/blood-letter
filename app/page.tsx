@@ -46,6 +46,7 @@ const Home: NextPage = () => {
             <h2 style={{ margin: 0, flexBasis: '100%' }}>
               {gameWinner.name} wins!
             </h2>
+            <BattlePhase />
           </>
         )}
 
