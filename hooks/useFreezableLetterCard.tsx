@@ -1,4 +1,4 @@
-import Letter from '../lib/Letter'
+import { Letter } from '../lib/types'
 
 const useFreezableLetterCard = (letter: Letter, enabled?: boolean) => {
   if (!enabled) {
