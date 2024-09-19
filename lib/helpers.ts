@@ -3,6 +3,9 @@ import { gameConfig } from './gameConfig'
 import { getFromNumericMapWithMax, itemIsInRange, randomItems } from './utils'
 import { createLetter } from './Letter'
 import { getTotalScore } from './Player'
+import { wordList } from './words'
+
+export const wordsSet: Set<string> = new Set<string>(wordList)
 
 export const getPoolTier = (
   round: number,

@@ -1,8 +1,7 @@
 import { nanoid } from 'nanoid'
 import { gameConfig } from '../lib/gameConfig'
 import { sumItemProperty, concatItemProperty } from './utils'
-import { getPoolForRound } from './helpers'
-import { wordList } from './words'
+import { getPoolForRound, wordsSet } from './helpers'
 import { Player, PlayerOptions } from '../lib/types'
 
 const { initialRound, initialHealth, initialGold } = gameConfig
@@ -39,7 +38,7 @@ function getRackScore(player: Player): number {
 
 function getWordBonus(player: Player): number {
   const rackWord = getRackWord(player)
-  return wordList.has(rackWord)
+  return wordsSet.has(rackWord)
     ? gameConfig.wordBonusComputation(rackWord.length)
     : 0
 }
