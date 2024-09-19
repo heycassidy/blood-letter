@@ -440,7 +440,7 @@ export class MCTS {
 
   // Phase 3: Instead of full playouts, use abstracted simulation inspired by this paper
   // http://www.gameaipro.com/GameAIPro3/GameAIPro3_Chapter28_Pitfalls_and_Solutions_When_Using_Monte_Carlo_Tree_Search_for_Strategy_and_Tactical_Games.pdf
-  #simulate(highestAchievedScore: number): [number, number] {
+  #simulate(maxScore: number): [number, number] {
     const playerScore = getTotalScore(this.game.state.players[this.playerIndex])
 
     const simulatedWinner = this.game.state.players.reduce(
@@ -474,7 +474,7 @@ export class MCTS {
       scoreDifference = scoreDifference * -1
     }
 
-    const reward = this.#normalizedReward(scoreDifference, highestAchievedScore)
+    const reward = this.#normalizedReward(scoreDifference, maxScore)
 
     return [reward, playerScore]
   }
@@ -482,8 +482,6 @@ export class MCTS {
   #normalizedReward(scoreDifference: number, maxScore: number) {
     // If a player played 6 tier 6 letters and got a word, their score would be 432
 
-    // For now, we get maxScore from outside, which is the highest achieved score thus far
-    // In the future, maybe we figure out a reasonable max score based on the current available letters
     const maxScoreDiff = maxScore
     const minScoreDiff = -1 * maxScoreDiff
 
