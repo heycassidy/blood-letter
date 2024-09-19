@@ -12,6 +12,8 @@ import { gameConfig } from './gameConfig'
 export class MCTSGame {
   state: GameState
   playerIndex: number
+  private cachedMoves: Map<string, MCTSMove> | null = null // Cached moves map
+  private cachedState: GameState | null = null // Cached state for move recalculation
 
   constructor(initialState: GameState, playerIndex: number) {
     this.state = initialState
@@ -20,7 +22,7 @@ export class MCTSGame {
 
   simulateMove(move: MCTSMove): GameState {
     this.state = move.execute(this.state)
-    return this.state
+    this.cachedMoves = null // Invalidate cache when state changes
 
     // Computers players don't need to care about Battle Phase
     if (this.isBattlePhase) {
@@ -35,6 +37,7 @@ export class MCTSGame {
   }
 
   playMove(move: MCTSMove): GameState {
+    this.cachedMoves = null // Invalidate cache
     return move.execute(this.state)
   }
 
@@ -59,6 +62,11 @@ export class MCTSGame {
   }
 
   get moves(): Map<string, MCTSMove> {
+    if (this.cachedMoves && this.cachedState === this.state) {
+      // Return cached moves if state hasn't changed
+      return this.cachedMoves
+    }
+
     const moves: Map<string, MCTSMove> = new Map<string, MCTSMove>()
     const { rack, pool, gold } = this.state.players[this.playerIndex]
     const { letterBuyCost, rackCapacity, poolRefreshCost } = gameConfig
@@ -67,7 +75,6 @@ export class MCTSGame {
     if (gold >= letterBuyCost && rack.length < rackCapacity) {
       pool.forEach((letter, i) => {
         const name = `buy-letter-${letter.name}-at-${i}`
-
         moves.set(name, {
           name,
           weight: 1,
@@ -80,7 +87,6 @@ export class MCTSGame {
     // Sell Moves
     rack.forEach((letter, i) => {
       const name = `sell-letter-${letter.name}-at-${i}`
-
       moves.set(name, {
         name,
         weight: 1,
@@ -152,10 +158,18 @@ export class MCTSGame {
       actionKind: GameActionKind.EndTurn,
     })
 
+    // Cache moves and state
+    this.cachedMoves = moves
+    this.cachedState = this.state
+
     return moves
   }
 
   cloneState(state: GameState): GameState {
+    // Avoid cloning if state hasn't changed
+    if (state === this.state) {
+      return state
+    }
     return create(state, (draft) => {
       return draft
     })
@@ -256,7 +270,7 @@ export class MCTSGame {
   }
 }
 
-// Heavily adapted from https://github.com/SethPipho/monte-carlo-tree-search-js
+// Adapted from https://github.com/SethPipho/monte-carlo-tree-search-js
 export class MCTSNode {
   parent: MCTSNode | null
   move: MCTSMove
@@ -264,6 +278,7 @@ export class MCTSNode {
   children: Map<string, MCTSNode>
   visits: number
   reward: number
+  private bestChild: MCTSNode | null = null // Cache the best child
 
   constructor(
     parent: MCTSNode | null,
@@ -276,6 +291,26 @@ export class MCTSNode {
     this.unexploredMoves = moves
     this.visits = 0
     this.reward = 0
+  }
+
+  // Updates the cached best child dynamically
+  updateBestChild(explorationConstant: number) {
+    if (this.children.size === 0) {
+      this.bestChild = null
+      return
+    }
+
+    this.bestChild = [...this.children.values()].reduce((best, child) => {
+      const bestScore = best.computeNodeScore(explorationConstant)
+      const childScore = child.computeNodeScore(explorationConstant)
+
+      return childScore > bestScore ? child : best
+    })
+  }
+
+  // Gets the cached best child without re-sorting
+  getBestChild(): MCTSNode | null {
+    return this.bestChild
   }
 
   // Used to balance between selecting optimal nodes and exploring new areas of the tree
@@ -394,8 +429,15 @@ export class MCTS {
       return node
     }
 
-    const selectedNode = this.#selectBestChild(node)
+    // Early exit: If there's only one child, no need to select the best, just return it
+    if (node.children.size === 1) {
+      const [onlyChild] = node.children.values()
+      this.game.simulateMove(onlyChild.move)
+      return this.#select(onlyChild)
+    }
 
+    // Use the cached best child to continue
+    const selectedNode = this.#selectBestChild(node)
     this.game.simulateMove(selectedNode.move)
     return this.#select(selectedNode)
   }
@@ -403,20 +445,25 @@ export class MCTS {
   #selectBestChild(node: MCTSNode): MCTSNode {
     const explorationConstant = this.exploration
 
-    return [...node.children.values()].reduce((bestChild, currentChild) => {
-      const maxValue = bestChild.computeNodeScore(explorationConstant)
-      const currentValue = currentChild.computeNodeScore(explorationConstant)
+    // Update the best child cache (only recalculates if children have been modified)
+    node.updateBestChild(explorationConstant)
 
-      if (currentValue > maxValue) {
-        return currentChild
-      }
+    // Return the cached best child
+    const bestChild = node.getBestChild()
 
-      return bestChild
-    })
+    if (!bestChild) {
+      throw new Error('No valid child to select.')
+    }
+
+    return bestChild
   }
 
   // Phase 2: Attaches a random new node to the provided node and returns the new node
   #expand(node: MCTSNode): MCTSNode {
+    if (node.unexploredMoves.size === 0) {
+      return node
+    }
+
     const move = this.#selectRandomUnexploredMove(node)
     node.unexploredMoves.delete(move.name)
 
@@ -425,30 +472,37 @@ export class MCTS {
     const newNode = new MCTSNode(node, move, this.game.moves)
     node.children.set(move.name, newNode)
 
+    // Update the best child after adding a new node
+    node.updateBestChild(this.exploration)
+
     return newNode
   }
 
   #selectRandomUnexploredMove(node: MCTSNode): MCTSMove {
     const randomMove = weightedRandomItem([...node.unexploredMoves.values()])
 
-    if (node.children.has(randomMove.name)) {
-      return this.#selectRandomUnexploredMove(node)
+    // Early exit: Return the random move directly if it's not in the children map
+    if (!node.children.has(randomMove.name)) {
+      return randomMove
     }
 
-    return randomMove
+    return this.#selectRandomUnexploredMove(node)
   }
 
   // Phase 3: Instead of full playouts, use abstracted simulation inspired by this paper
   // http://www.gameaipro.com/GameAIPro3/GameAIPro3_Chapter28_Pitfalls_and_Solutions_When_Using_Monte_Carlo_Tree_Search_for_Strategy_and_Tactical_Games.pdf
   #simulate(maxScore: number): [number, number] {
-    const playerScore = getTotalScore(this.game.state.players[this.playerIndex])
+    // Cache the player scores to avoid repeated calls
+    const playerScores = this.game.state.players.map((player) =>
+      getTotalScore(player)
+    )
+    const playerScore = playerScores[this.playerIndex]
 
     const simulatedWinner = this.game.state.players.reduce(
       (previousPlayer, player) => {
         if (getTotalScore(player) > getTotalScore(previousPlayer)) {
           return player
         }
-
         return previousPlayer
       }
     )
@@ -457,25 +511,20 @@ export class MCTS {
       (player) => player.id === simulatedWinner.id
     )
 
-    const { min, max } = this.game.state.players.reduce(
-      (acc, player) => {
-        const num = getTotalScore(player)
-
-        return {
-          min: num < acc.min ? num : acc.min,
-          max: num > acc.max ? num : acc.max,
-        }
-      },
+    const { min, max } = playerScores.reduce(
+      (acc, score) => ({
+        min: Math.min(acc.min, score),
+        max: Math.max(acc.max, score),
+      }),
       { min: Infinity, max: -Infinity }
     )
 
     let scoreDifference = Math.abs(max - min)
     if (simulatedWinnerIndex !== this.playerIndex) {
-      scoreDifference = scoreDifference * -1
+      scoreDifference *= -1
     }
 
     const reward = this.#normalizedReward(scoreDifference, maxScore)
-
     return [reward, playerScore]
   }
 
