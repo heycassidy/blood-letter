@@ -8,6 +8,7 @@ import {
   GameActionKind,
 } from '../context/GameContextReducer'
 import { gameConfig } from './gameConfig'
+import { getPoolTier } from './helpers'
 
 export class MCTSGame {
   state: GameState
@@ -346,7 +347,12 @@ export class MCTS {
     const originalState = this.game.state
     const root = new MCTSNode(null, this.game.noOpMove, this.game.moves)
 
+    const { poolTierMap, bestScorePerTierMap } = gameConfig
+
     let highestAchievedScore = 1
+
+    const bestScoreForTier =
+      bestScorePerTierMap[getPoolTier(this.game.state.round, poolTierMap)]
 
     const progressBar = new SingleBar({
       format:
@@ -368,9 +374,8 @@ export class MCTS {
 
       // Phase 3: Simulate
       // console.log('simulating game...')
-      const [reward, computerPlayerScore] = this.#simulate(highestAchievedScore)
+      const [reward, computerPlayerScore] = this.#simulate(bestScoreForTier)
 
-      // Logging
       if (computerPlayerScore > highestAchievedScore) {
         highestAchievedScore = computerPlayerScore
       }

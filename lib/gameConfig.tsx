@@ -55,6 +55,7 @@ interface gameConfig {
   poolTierMap: { [key in number | 'max']: number }
   poolCapacityMap: { [key in number | 'max']: number }
   healthCostMap: { [key in number | 'max']: number }
+  bestScorePerTierMap: { [key in number]: number }
 
   wordBonusComputation: (wordLength: number) => number
 }
@@ -119,6 +120,16 @@ export const gameConfig: Readonly<gameConfig> = {
     9: 3,
     10: 3,
     max: 3,
+  },
+
+  // tier : best score
+  bestScorePerTierMap: {
+    1: 42, // tenant
+    2: 462, // sherds
+    3: 2970, // muumuu
+    4: 6806, // fluffy
+    5: 11990, // bubbly
+    6: 18360, // pizazz
   },
 
   wordBonusComputation: (wordLength) => wordLength ** 2,
