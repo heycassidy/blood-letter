@@ -6,7 +6,7 @@ import { MCTS, MCTSGame } from '../lib/MCTS'
 export async function playComputerTurn(initialState: GameState) {
   const computerPlayerIndex = 1
 
-  const iterations = 40000 + (initialState.round - 1) * 2000
+  const iterations = 30000 + (initialState.round - 1) * 1000
 
   // increase to increase exploration
   // decrease to increase exploitation
