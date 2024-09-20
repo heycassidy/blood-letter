@@ -57,7 +57,7 @@ interface gameConfig {
   healthCostMap: { [key in number | 'max']: number }
   bestScorePerTierMap: { [key in number]: number }
 
-  wordBonusComputation: (wordLength: number) => number
+  wordBonusComputation: (letterSum: number) => number
 }
 
 export const gameConfig: Readonly<gameConfig> = {
@@ -132,5 +132,5 @@ export const gameConfig: Readonly<gameConfig> = {
     6: 18360, // pizazz
   },
 
-  wordBonusComputation: (wordLength) => wordLength ** 2,
+  wordBonusComputation: (letterSum) => letterSum ** 2,
 }

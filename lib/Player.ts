@@ -38,9 +38,8 @@ function getRackScore(player: Player): number {
 
 function getWordBonus(player: Player): number {
   const rackWord = getRackWord(player)
-  return wordsSet.has(rackWord)
-    ? gameConfig.wordBonusComputation(rackWord.length)
-    : 0
+  const rackScore = getRackScore(player)
+  return wordsSet.has(rackWord) ? gameConfig.wordBonusComputation(rackScore) : 0
 }
 
 function getTotalScore(player: Player): number {
