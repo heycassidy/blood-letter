@@ -1,7 +1,8 @@
-import { css } from '../stitches.config'
+import { css } from '../styled-system/css'
 import { useGameContext, useGameDispatchContext } from '../context/GameContext'
 import BattleSide from './BattleSide'
 import InfoList from '../atoms/InfoList'
+import Button from '../atoms/Button'
 import { GameActionKind } from '../context/GameContextReducer'
 
 const BattlePhase = () => {
@@ -11,21 +12,21 @@ const BattlePhase = () => {
     battleWinnerIndex !== undefined ? players[battleWinnerIndex] : undefined
 
   return (
-    <div className={styles()}>
+    <div className={styles}>
       {!battleWinner && (
         <InfoList>
           <strong>Draw</strong>
         </InfoList>
       )}
 
-      <div className="matchup">
+      <div className={matchupStyles}>
         {Array.from(players.values()).map((player) => (
           <BattleSide player={player} key={player.id} />
         ))}
       </div>
 
       {!gameOver && (
-        <button
+        <Button
           onClick={() => {
             dispatch({
               type: GameActionKind.IncrementRound,
@@ -33,25 +34,26 @@ const BattlePhase = () => {
           }}
         >
           Next Round
-        </button>
+        </Button>
       )}
     </div>
   )
 }
 
 const styles = css({
-  gap: '1rem',
+  gap: '4',
   display: 'grid',
   justifyContent: 'start',
   justifyItems: 'start',
-  '.matchup': {
-    rowGap: '1rem',
-    columnGap: '2rem',
-    display: 'flex',
-    flexWrap: 'wrap',
-    justifyContent: 'start',
-    justifyItems: 'start',
-  },
+})
+
+const matchupStyles = css({
+  rowGap: '4',
+  columnGap: '6',
+  display: 'flex',
+  flexWrap: 'wrap',
+  justifyContent: 'start',
+  justifyItems: 'start',
 })
 
 export default BattlePhase

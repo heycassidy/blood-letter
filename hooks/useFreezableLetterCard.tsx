@@ -1,22 +1,24 @@
+import { ComponentPropsWithoutRef } from 'react'
 import { Letter } from '../lib/types'
 
-const useFreezableLetterCard = (letter: Letter, enabled?: boolean) => {
+const useFreezableLetterCard = (
+  letter: Letter,
+  enabled?: boolean
+): [boolean, ComponentPropsWithoutRef<any>] => {
+  let props: ComponentPropsWithoutRef<any> = {}
+  let frozen = false
+
   if (!enabled) {
-    return [{}, {}]
+    return [frozen, props]
   }
 
-  let styles = {}
+  frozen = letter?.frozen ?? false
 
-  if (letter.frozen) {
-    styles = {
-      color: '$blue750',
-      backgroundColor: '$blue50',
-      borderColor: '$blue600',
-      boxShadow: '0 0 2px 1px inset $colors$blue350',
-    }
+  if (frozen) {
+    props['data-frozen'] = ''
   }
 
-  return [styles]
+  return [frozen, props]
 }
 
 export default useFreezableLetterCard

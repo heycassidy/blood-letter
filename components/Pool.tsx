@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useIsomorphicLayoutEffect } from '../hooks/useIsomorphicLayoutEffect'
 import { DroppableKind, Letter } from '../lib/types'
-import { css } from '../stitches.config'
+import { css } from '../styled-system/css'
 import LetterList from './LetterList'
 import { DraggableLetterCard } from './DraggableLetterCard'
 import { useDroppable } from '@dnd-kit/core'
@@ -23,7 +23,7 @@ const Pool = ({ letters = [], amount }: Props) => {
   }, [letters])
 
   return (
-    <div className={styles()}>
+    <div className={styles}>
       <LetterList capacity={amount} ref={setNodeRef}>
         {poolLetters.map((letter) => (
           <DraggableLetterCard
@@ -40,11 +40,13 @@ const Pool = ({ letters = [], amount }: Props) => {
 }
 
 const styles = css({
-  border: '1px solid black',
-  backgroundColor: '$neutral175',
-  padding: '0.5rem',
+  borderStyle: 'solid',
+  borderWidth: '1px',
+  borderColor: 'gray.900',
+  backgroundColor: 'gray.200',
+  padding: '2',
   display: 'grid',
-  gap: '0.5rem',
+  gap: '2',
 })
 
 export default Pool

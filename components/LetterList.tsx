@@ -1,5 +1,6 @@
 import { ReactNode, forwardRef } from 'react'
-import { css } from '../stitches.config'
+import { css } from '../styled-system/css'
+import { SystemStyleObject } from '../styled-system/types'
 
 type Props = {
   children: ReactNode[]
@@ -11,23 +12,25 @@ type Ref = HTMLDivElement
 const LetterList = forwardRef<Ref, Props>((props, ref) => {
   const { children = [], capacity = 1 } = props
 
-  const propAwareStyles = {
-    gridTemplateColumns: `repeat(${capacity}, 3rem)`,
-  }
-
-  const listStyles = css(gridCSS, propAwareStyles, { position: 'relative' })
-  const backgroundStyles = css(gridCSS, propAwareStyles, {
-    position: 'absolute',
-  })
+  const listStyles = css(gridCSS, { position: 'relative' })
+  const backgroundStyles = css(gridCSS, { position: 'absolute' })
   const slotStyles = css(slotCSS)
 
   return (
-    <div ref={ref} className={listStyles()}>
+    <div
+      ref={ref}
+      className={listStyles}
+      style={
+        {
+          '--capacity': capacity,
+        } as React.CSSProperties
+      }
+    >
       {children}
 
-      <div className={backgroundStyles()}>
+      <div className={backgroundStyles}>
         {[...Array(capacity)].map((_, i) => (
-          <span className={slotStyles()} key={`empty-slot-${i}`}></span>
+          <span className={slotStyles} key={`empty-slot-${i}`}></span>
         ))}
       </div>
     </div>
@@ -35,19 +38,20 @@ const LetterList = forwardRef<Ref, Props>((props, ref) => {
 })
 LetterList.displayName = 'LetterList'
 
-const gridCSS = {
+const gridCSS: SystemStyleObject = {
   display: 'grid',
-  gridTemplateRows: '3rem',
+  gridTemplateRows: '[token(spacing.12)]',
+  gridTemplateColumns: '[repeat(var(--capacity), token(spacing.12))]',
   justifyContent: 'start',
   gridAutoFlow: 'column',
-  gap: '0.5rem',
+  gap: '2',
   boxSizing: 'content-box',
 }
 
-const slotCSS = {
-  backgroundColor: '$neutral275',
-  width: '3rem',
-  height: '3rem',
+const slotCSS: SystemStyleObject = {
+  backgroundColor: 'gray.300',
+  width: '12',
+  height: '12',
 }
 
 export default LetterList

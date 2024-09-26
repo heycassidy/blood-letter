@@ -1,41 +1,44 @@
 import { useGameContext, useGameDispatchContext } from '../context/GameContext'
 import { Letter } from '../lib/types'
 import { GameActionKind } from '../context/GameContextReducer'
+import { ComponentPropsWithoutRef } from 'react'
 
-const useSelectableLetterCard = (letter: Letter, enabled?: boolean) => {
+const useSelectableLetterCard = (
+  letter: Letter,
+  enabled?: boolean
+): [boolean, ComponentPropsWithoutRef<any>] => {
+  let selected = false
+  let props: ComponentPropsWithoutRef<any> = {}
+
   if (!enabled) {
-    return [{}, {}]
+    return [selected, props]
   }
 
   const { selectedLetter } = useGameContext()
   const dispatch = useGameDispatchContext()
 
-  const selected = selectedLetter?.id === letter.id
+  selected = selectedLetter?.id === letter.id
 
-  let styles = {}
+  props['aria-selected'] = selected.toString()
 
   if (selected) {
-    styles = {
-      borderWidth: '3px',
+    props.onClick = () => {
+      dispatch({
+        type: GameActionKind.DeselectLetter,
+      })
     }
   }
 
-  const props = {
-    onClick: () => {
-      if (selected) {
-        dispatch({
-          type: GameActionKind.DeselectLetter,
-        })
-      } else {
-        dispatch({
-          type: GameActionKind.SelectLetter,
-          payload: { letter },
-        })
-      }
-    },
+  if (!selected) {
+    props.onClick = () => {
+      dispatch({
+        type: GameActionKind.SelectLetter,
+        payload: { letter: letter },
+      })
+    }
   }
 
-  return [props, styles]
+  return [selected, props]
 }
 
 export default useSelectableLetterCard

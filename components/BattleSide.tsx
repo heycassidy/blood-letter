@@ -1,7 +1,7 @@
 import { gameConfig } from '../lib/gameConfig'
 import { getHealthCost } from '../lib/helpers'
 import { Player } from '../lib/types'
-import { css } from '../stitches.config'
+import { css } from '../styled-system/css'
 import LetterList from './LetterList'
 import LetterCard from './LetterCard'
 import { useGameContext } from '../context/GameContext'
@@ -15,7 +15,7 @@ const BattleSide = ({ player }: { player: Player }) => {
     battleWinnerIndex !== undefined ? players[battleWinnerIndex] : undefined
 
   return (
-    <div className={styles()}>
+    <div className={styles}>
       <InfoList>
         <span>{player.name}</span>
         <span>Letters: {getRackScore(player)}</span>
@@ -43,13 +43,15 @@ const BattleSide = ({ player }: { player: Player }) => {
 }
 
 const styles = css({
-  gap: '0.5rem',
-  padding: '0.5rem',
+  gap: '2',
+  padding: '2',
   display: 'grid',
   justifyContent: 'start',
   justifyItems: 'start',
-  border: '1px solid black',
-  backgroundColor: '$neutral175',
+  borderStyle: 'solid',
+  borderWidth: '1px',
+  borderColor: 'gray.900',
+  backgroundColor: 'gray.200',
 })
 
 export default BattleSide

@@ -20,6 +20,13 @@ export default defineConfig({
     extend: {},
   },
 
-  // The output directory for your css system
-  outdir: 'styled-system',
+  conditions: {
+    extend: {
+      frozen: '&[data-frozen]',
+    },
+  },
+
+  strictTokens: true,
+  strictPropertyValues: true,
+  jsxFramework: 'react',
 })
