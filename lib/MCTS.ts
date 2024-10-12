@@ -132,7 +132,7 @@ export class MCTSGame {
         const name = `freeze-letter-${letter.name}-at-${i}`
         moves.set(name, {
           name,
-          weight: 50,
+          weight: 10,
           execute: (state) => this.freezeLetter(letter, state),
           actionKind: GameActionKind.FreezeLetter,
         })
@@ -145,7 +145,7 @@ export class MCTSGame {
         const name = `thaw-letter-${letter.name}-at-${i}`
         moves.set(name, {
           name,
-          weight: 100,
+          weight: 10,
           execute: (state) => this.thawLetter(letter, state),
           actionKind: GameActionKind.ThawLetter,
         })
@@ -375,12 +375,16 @@ export class MCTS {
 
       // Phase 3: Simulate
       // console.log('simulating game...')
-      const [reward, computerPlayerScore] = this.#simulate(bestScoreForTier)
+      const [reward, computerPlayerScore] = this.#simulate(
+        // average of best possible score and highest achieved score
+        // If we only use best score, it's a bit too high
+        // and doesn't reward enough good — but not perfect — moves
+        (bestScoreForTier + highestAchievedScore) / 2
+      )
 
       if (computerPlayerScore > highestAchievedScore) {
         highestAchievedScore = computerPlayerScore
         highestAchieveState = this.game.cloneState(this.game.state)
-        // console.log(this.game.state.players[1].rack.map((l) => l.name))
       }
 
       // Phase 4: Back Propagate
