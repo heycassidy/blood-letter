@@ -111,7 +111,6 @@ const BuildPhase = () => {
         )}
 
         <Button
-          className={css({ marginLeft: 'auto' })}
           onClick={() => {
             dispatch({
               type: GameActionKind.EndTurn,
