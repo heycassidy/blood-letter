@@ -1,12 +1,13 @@
 import { gameConfig } from '../lib/gameConfig'
 import { getPoolTier, getPoolCapacity } from '../lib/helpers'
-import { css } from '../stitches.config'
+import { css } from '../styled-system/css'
 import Pool from './Pool'
 import Rack from './Rack'
 import InfoList from '../atoms/InfoList'
 import { useGameContext, useGameDispatchContext } from '../context/GameContext'
 import { LetterOriginKind } from '../lib/types'
 import { GameActionKind } from '../context/GameContextReducer'
+import Button from '../atoms/Button'
 
 const BuildPhase = () => {
   const {
@@ -30,7 +31,7 @@ const BuildPhase = () => {
   const { name: playerName, health, battleVictories } = activePlayer
 
   return (
-    <div className={styles()}>
+    <div className={styles}>
       <InfoList>
         <strong>{playerName}</strong>
         <span>Gold: {gold}</span>
@@ -47,8 +48,15 @@ const BuildPhase = () => {
 
       <Pool letters={pool} amount={poolAmount} />
 
-      <div className="button-row">
-        <button
+      <div
+        className={css({
+          display: 'flex',
+          flexWrap: 'wrap',
+          gap: '1',
+          justifySelf: 'stretch',
+        })}
+      >
+        <Button
           onClick={() => {
             dispatch({
               type: GameActionKind.RefreshPool,
@@ -56,13 +64,13 @@ const BuildPhase = () => {
           }}
         >
           Refresh pool ({poolRefreshCost})
-        </button>
+        </Button>
 
         {selectedLetter && (
           <>
             {selectedLetter.origin === LetterOriginKind.Pool &&
               gold >= letterBuyCost && (
-                <button
+                <Button
                   onClick={() =>
                     dispatch({
                       type: GameActionKind.BuyLetter,
@@ -71,11 +79,11 @@ const BuildPhase = () => {
                   }
                 >
                   Buy Letter ({letterBuyCost})
-                </button>
+                </Button>
               )}
 
             {selectedLetter.origin === LetterOriginKind.Pool && (
-              <button
+              <Button
                 onClick={() =>
                   dispatch({
                     type: GameActionKind.ToggleFreeze,
@@ -84,11 +92,11 @@ const BuildPhase = () => {
                 }
               >
                 {selectedLetter.frozen ? 'Unfreeze' : 'Freeze'}
-              </button>
+              </Button>
             )}
 
             {selectedLetter.origin === LetterOriginKind.Rack && (
-              <button
+              <Button
                 onClick={() =>
                   dispatch({
                     type: GameActionKind.SellLetter,
@@ -97,13 +105,13 @@ const BuildPhase = () => {
                 }
               >
                 Sell Letter ({letterSellValue})
-              </button>
+              </Button>
             )}
           </>
         )}
 
-        <button
-          style={{ marginLeft: 'auto' }}
+        <Button
+          className={css({ marginLeft: 'auto' })}
           onClick={() => {
             dispatch({
               type: GameActionKind.EndTurn,
@@ -111,23 +119,17 @@ const BuildPhase = () => {
           }}
         >
           End Turn
-        </button>
+        </Button>
       </div>
     </div>
   )
 }
 
 const styles = css({
-  rowGap: '1rem',
+  rowGap: '4',
   display: 'grid',
   justifyContent: 'start',
   justifyItems: 'start',
-  '.button-row': {
-    display: 'flex',
-    flexWrap: 'wrap',
-    gap: '0.25rem',
-    justifySelf: 'stretch',
-  },
 })
 
 export default BuildPhase

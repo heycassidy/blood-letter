@@ -9,14 +9,14 @@ export const wordsSet: Set<string> = new Set<string>(wordList)
 
 export const getPoolTier = (
   round: number,
-  poolTierMap: typeof gameConfig['poolTierMap']
+  poolTierMap: (typeof gameConfig)['poolTierMap']
 ): number => {
   return getFromNumericMapWithMax(poolTierMap, round)
 }
 
 export const getPoolCapacity = (
   round: number,
-  poolCapacityMap: typeof gameConfig['poolCapacityMap']
+  poolCapacityMap: (typeof gameConfig)['poolCapacityMap']
 ): number => {
   return getFromNumericMapWithMax(poolCapacityMap, round)
 }
@@ -61,7 +61,7 @@ export const getRefreshedPool = (
 
 export const getHealthCost = (
   round: number,
-  healthCostMap: typeof gameConfig['healthCostMap']
+  healthCostMap: (typeof gameConfig)['healthCostMap']
 ): number => {
   return getFromNumericMapWithMax(healthCostMap, round)
 }

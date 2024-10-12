@@ -4,5 +4,6 @@
   },
   "cSpell.words": [
     "MCTS"
-  ]
+  ],
+  "prettier.configPath": "prettier.config.js"
 }

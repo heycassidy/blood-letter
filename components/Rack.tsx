@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useIsomorphicLayoutEffect } from '../hooks/useIsomorphicLayoutEffect'
 import { DroppableKind, Letter } from '../lib/types'
-import { css } from '../stitches.config'
+import { css } from '../styled-system/css'
 import LetterList from './LetterList'
 import {
   SortableContext,
@@ -27,7 +27,7 @@ const Rack = ({ letters = [], capacity }: Props) => {
   }, [letters])
 
   return (
-    <div className={styles()}>
+    <div className={styles}>
       <SortableContext
         items={rackLetters}
         strategy={horizontalListSortingStrategy}
@@ -48,11 +48,11 @@ const Rack = ({ letters = [], capacity }: Props) => {
 }
 
 const styles = css({
-  border: '1px solid black',
-  backgroundColor: '$neutral175',
-  padding: '0.5rem',
+  border: '[1px solid black]',
+  backgroundColor: 'gray.200',
+  padding: '2',
   display: 'grid',
-  gap: '0.5rem',
+  gap: '2',
 })
 
 export default Rack

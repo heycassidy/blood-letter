@@ -1,14 +1,15 @@
-import { css } from '../stitches.config'
+import { css } from '../styled-system/css'
 import { useGameDispatchContext } from '../context/GameContext'
 import { GameModeKind } from '../lib/types'
 import { GameActionKind } from '../context/GameContextReducer'
+import Button from '../atoms/Button'
 
 const StartScreen = () => {
   const dispatch = useGameDispatchContext()
 
   return (
-    <div className={styles()}>
-      <button
+    <div className={styles}>
+      <Button
         onClick={() => {
           dispatch({
             type: GameActionKind.StartGame,
@@ -17,8 +18,8 @@ const StartScreen = () => {
         }}
       >
         Start Game vs Computer
-      </button>
-      <button
+      </Button>
+      <Button
         onClick={() => {
           dispatch({
             type: GameActionKind.StartGame,
@@ -27,22 +28,16 @@ const StartScreen = () => {
         }}
       >
         Start Game vs Human (Pass-to-Play)
-      </button>
+      </Button>
     </div>
   )
 }
 
 const styles = css({
-  rowGap: '1rem',
+  rowGap: '4',
   display: 'grid',
   justifyContent: 'start',
   justifyItems: 'start',
-  '.button-row': {
-    display: 'flex',
-    flexWrap: 'wrap',
-    gap: '0.25rem',
-    justifySelf: 'stretch',
-  },
 })
 
 export default StartScreen

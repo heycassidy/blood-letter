@@ -1,3 +1,4 @@
+import './index.css'
 import { GameContextProvider } from '../context/GameContext'
 
 export default function RootLayout({

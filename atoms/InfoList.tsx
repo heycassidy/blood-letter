@@ -1,4 +1,4 @@
-import { css } from '../stitches.config'
+import { css } from '../styled-system/css'
 import {
   FC,
   Children,
@@ -10,10 +10,12 @@ import {
 
 const InfoList: FC<PropsWithChildren> = ({ children }): JSX.Element => {
   return (
-    <div className={listStyles()}>
+    <div className={listStyles}>
       {Children.map(children, (child: ReactNode) => {
         if (isValidElement(child)) {
-          return cloneElement(child, { className: itemStyles() })
+          return cloneElement(child as React.ReactElement<any>, {
+            className: itemStyles,
+          })
         }
       })}
     </div>
@@ -23,13 +25,14 @@ const InfoList: FC<PropsWithChildren> = ({ children }): JSX.Element => {
 const listStyles = css({
   display: 'flex',
   flexWrap: 'wrap',
-  gap: '0.25rem',
+  gap: '1',
 })
 
 const itemStyles = css({
-  lineHeight: '1',
-  padding: '0.125rem 0.5rem',
-  background: '$neutral275',
+  lineHeight: 'tight',
+  paddingY: '0',
+  paddingX: '2',
+  background: 'gray.300',
 })
 
 export default InfoList
