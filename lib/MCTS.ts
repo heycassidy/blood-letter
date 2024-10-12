@@ -78,7 +78,7 @@ export class MCTSGame {
         const name = `buy-letter-${letter.name}-at-${i}`
         moves.set(name, {
           name,
-          weight: 1,
+          weight: 100,
           execute: (state) => this.buyLetter(letter, state),
           actionKind: GameActionKind.BuyLetter,
         })
@@ -90,7 +90,7 @@ export class MCTSGame {
       const name = `sell-letter-${letter.name}-at-${i}`
       moves.set(name, {
         name,
-        weight: 1,
+        weight: 50,
         execute: (state) => this.sellLetter(letter, state),
         actionKind: GameActionKind.SellLetter,
       })
@@ -106,7 +106,7 @@ export class MCTSGame {
           )}-to-${toLetter.name}-at-${rack.indexOf(toLetter)}`
           moves.set(name, {
             name,
-            weight: 1,
+            weight: 100,
             execute: (state) =>
               this.moveLetterInRack(fromLetter, toLetter, state),
             actionKind: GameActionKind.MoveLetterInRack,
@@ -119,7 +119,7 @@ export class MCTSGame {
       const name = 'refresh-pool'
       moves.set(name, {
         name,
-        weight: 1,
+        weight: 20,
         execute: (state) => this.refreshPool(state),
         actionKind: GameActionKind.RefreshPool,
       })
@@ -132,7 +132,7 @@ export class MCTSGame {
         const name = `freeze-letter-${letter.name}-at-${i}`
         moves.set(name, {
           name,
-          weight: 1,
+          weight: 50,
           execute: (state) => this.freezeLetter(letter, state),
           actionKind: GameActionKind.FreezeLetter,
         })
@@ -145,7 +145,7 @@ export class MCTSGame {
         const name = `thaw-letter-${letter.name}-at-${i}`
         moves.set(name, {
           name,
-          weight: 1,
+          weight: 100,
           execute: (state) => this.thawLetter(letter, state),
           actionKind: GameActionKind.ThawLetter,
         })
@@ -350,6 +350,7 @@ export class MCTS {
     const { poolTierMap, bestScorePerTierMap } = gameConfig
 
     let highestAchievedScore = 1
+    let highestAchieveState = originalState
 
     const bestScoreForTier =
       bestScorePerTierMap[getPoolTier(this.game.state.round, poolTierMap)]
@@ -378,16 +379,23 @@ export class MCTS {
 
       if (computerPlayerScore > highestAchievedScore) {
         highestAchievedScore = computerPlayerScore
+        highestAchieveState = this.game.cloneState(this.game.state)
+        // console.log(this.game.state.players[1].rack.map((l) => l.name))
       }
 
       // Phase 4: Back Propagate
       this.#backPropagate(expandedNode, reward)
     }
 
-    // Play Turn
+    // restore state to original state
     this.game.state = originalState
-    // console.log('playing turn: ', this.playerId, this.game.state)
-    return this.#playTurnMove(root)
+
+    // Play turn using moves with the highest reward
+    const endTurnState = this.#playTurnMove(root)
+
+    this.game.state = this.#getBestGameState(endTurnState, highestAchieveState)
+
+    return this.game.endTurn(this.game.state)
   }
 
   // a sequence of moves representing the build phase, similar to #select, but ends when the turn is over instead of when the game is over
@@ -407,14 +415,6 @@ export class MCTS {
 
         return bestChild
       }
-    )
-
-    console.table(
-      [...node.children.values()].map((node) => ({
-        name: node.move.name,
-        reward: node.reward,
-        visits: node.visits,
-      }))
     )
 
     console.log('chosen move: ', nextNode.move.name, nextNode.reward)
@@ -550,5 +550,21 @@ export class MCTS {
     if (node.parent) {
       this.#backPropagate(node.parent, reward)
     }
+  }
+
+  // Compares two game states and returns the best one for the computer player
+  #getBestGameState(a: GameState, b: GameState): GameState {
+    const aScore = this.#getGameStateScore(a)
+    const bScore = this.#getGameStateScore(b)
+
+    if (aScore > bScore) {
+      return a
+    }
+
+    return b
+  }
+
+  #getGameStateScore(state: GameState): number {
+    return getTotalScore(state.players[this.playerIndex])
   }
 }

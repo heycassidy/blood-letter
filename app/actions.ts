@@ -10,7 +10,7 @@ export async function playComputerTurn(initialState: GameState) {
 
   // increase to increase exploration
   // decrease to increase exploitation
-  const explorationConstant = 5
+  const explorationConstant = 1.41
 
   const game = new MCTSGame(initialState, computerPlayerIndex)
   const computerPlayer = new MCTS(
