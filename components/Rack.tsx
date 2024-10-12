@@ -48,7 +48,7 @@ const Rack = ({ letters = [], capacity }: Props) => {
 }
 
 const styles = css({
-  border: '1px solid black',
+  border: '[1px solid black]',
   backgroundColor: 'gray.200',
   padding: '2',
   display: 'grid',
