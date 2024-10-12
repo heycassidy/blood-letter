@@ -1,6 +1,6 @@
 import { Letter, LetterOriginKind, Player } from './types'
 import { gameConfig } from './gameConfig'
-import { getFromNumericMapWithMax, itemIsInRange, randomItems } from './utils'
+import { getFromNumericMapWithMax, weightedRandomItems } from './utils'
 import { createLetter } from './Letter'
 import { getTotalScore } from './Player'
 import { wordList } from './words'
@@ -27,12 +27,58 @@ export const getRandomPoolLetters = (
   amount: number,
   randomSeed?: number
 ): Letter[] => {
-  const tierAndBelowLetters = letters.filter((letter) =>
-    itemIsInRange(letter.tier, 1, tier)
+  const { alphabet } = gameConfig
+
+  const alphabetWithWeights = alphabet.map((letter) => {
+    if (letter.tier === tier || letter.tier < tier) {
+      return {
+        letter,
+        weight: 100,
+      }
+    }
+
+    if (letter.tier === tier + 1) {
+      return {
+        letter,
+        weight: 10,
+      }
+    }
+
+    if (letter.tier === tier + 2) {
+      return {
+        letter,
+        weight: 3,
+      }
+    }
+
+    if (letter.tier === tier + 3) {
+      return {
+        letter,
+        weight: 0.25,
+      }
+    }
+
+    if (letter.tier === tier + 4) {
+      return {
+        letter,
+        weight: 0.01,
+      }
+    }
+
+    return {
+      letter,
+      weight: 0,
+    }
+  })
+
+  const randomWeightedLetters = weightedRandomItems(
+    alphabetWithWeights,
+    amount,
+    randomSeed
   )
 
-  return randomItems(tierAndBelowLetters, amount, randomSeed).map((letter) => {
-    const { name, tier, value } = letter
+  return randomWeightedLetters.map((letterWithWeight) => {
+    const { name, tier, value } = letterWithWeight.letter
     return createLetter({ name, tier, value, origin: LetterOriginKind.Pool })
   })
 }

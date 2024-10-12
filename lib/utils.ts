@@ -55,6 +55,16 @@ export const randomItems = <T>(
   )
 }
 
+export const weightedRandomItems = <T extends { weight: number }>(
+  items: T[],
+  amount: number,
+  seed?: number
+): T[] => {
+  return [...Array(amount)].map((_, i) =>
+    weightedRandomItem(items, seed ? seed + i : undefined)
+  )
+}
+
 export const assignIds = <T>(items: T[], id: UUID | (() => UUID)): T[] =>
   items.map((item) => ({
     ...item,
