@@ -167,7 +167,7 @@ export const gameContextReducer = (
 
     if (type !== GameActionKind.Set) {
       draft.players.forEach((player) => {
-        player.seed = player.seed + alea(`${player.seed}`)()
+        player.seed = alea(`${player.seed}`)()
       })
     }
 
