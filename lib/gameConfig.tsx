@@ -75,7 +75,7 @@ export const gameConfig: Readonly<gameConfig> = {
   letterSellValue: 2,
   poolRefreshCost: 1,
 
-  rackCapacity: 6,
+  rackCapacity: 7,
 
   // round : pool tier
   poolTierMap: {
