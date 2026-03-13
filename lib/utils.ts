@@ -22,7 +22,7 @@ export const seededRandomInteger = (props: {
 
 export const randomItem = <T>(items: T[], seed?: number): T => {
   if (seed) {
-    return items[seededRandomInteger({ min: 0, max: items.length, seed })]
+    return items[seededRandomInteger({ min: 0, max: items.length, seed: seed })]
   } else {
     return items[Math.floor(Math.random() * items.length)]
   }

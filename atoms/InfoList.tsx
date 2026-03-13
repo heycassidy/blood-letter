@@ -8,7 +8,7 @@ import {
   isValidElement,
 } from 'react'
 
-const InfoList: FC<PropsWithChildren> = ({ children }): JSX.Element => {
+const InfoList: FC<PropsWithChildren> = ({ children }) => {
   return (
     <div className={listStyles}>
       {Children.map(children, (child: ReactNode) => {

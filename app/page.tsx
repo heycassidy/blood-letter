@@ -1,7 +1,6 @@
 'use client'
 
 import type { NextPage } from 'next'
-import Head from 'next/head'
 import Layout from '../components/Layout'
 import BuildPhase from '../components/BuildPhase'
 import BattlePhase from '../components/BattlePhase'
@@ -29,10 +28,6 @@ const Home: NextPage = () => {
 
   return (
     <div className={styles}>
-      <Head>
-        <title>Blood Letter</title>
-      </Head>
-
       <h1 className={css({ margin: '0', flexBasis: 'full' })}>Blood Letter</h1>
 
       <Layout>

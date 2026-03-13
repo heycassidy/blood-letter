@@ -3,7 +3,7 @@ import { FC, ComponentPropsWithoutRef } from 'react'
 
 type ButtonProps = ComponentPropsWithoutRef<'button'>
 
-const Button: FC<ButtonProps> = ({ children, ...rest }): JSX.Element => {
+const Button: FC<ButtonProps> = ({ children, ...rest }) => {
   return (
     <button className={styles} {...rest}>
       {children}

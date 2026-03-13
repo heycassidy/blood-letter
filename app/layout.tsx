@@ -1,5 +1,10 @@
 import './index.css'
 import { GameContextProvider } from '../context/GameContext'
+import type { Metadata } from 'next'
+
+export const metadata: Metadata = {
+  title: 'Blood Letter',
+}
 
 export default function RootLayout({
   children,

@@ -187,86 +187,78 @@ export class MCTSGame {
 
   buyLetter(letter: Letter, state: GameState) {
     return gameContextReducer(
-      state,
+      { ...state, activePlayerIndex: this.playerIndex },
       {
         type: GameActionKind.BuyLetter,
         payload: { letter },
-      },
-      this.playerIndex
+      }
     )
   }
 
   sellLetter(letter: Letter, state: GameState) {
     return gameContextReducer(
-      state,
+      { ...state, activePlayerIndex: this.playerIndex },
       {
         type: GameActionKind.SellLetter,
         payload: { letter },
-      },
-      this.playerIndex
+      }
     )
   }
 
   freezeLetter(letter: Letter, state: GameState) {
     return gameContextReducer(
-      state,
+      { ...state, activePlayerIndex: this.playerIndex },
       {
         type: GameActionKind.ToggleFreeze,
         payload: { letter },
-      },
-      this.playerIndex
+      }
     )
   }
 
   thawLetter(letter: Letter, state: GameState) {
     return gameContextReducer(
-      state,
+      { ...state, activePlayerIndex: this.playerIndex },
       {
         type: GameActionKind.ToggleFreeze,
         payload: { letter },
-      },
-      this.playerIndex
+      }
     )
   }
 
   moveLetterInRack(letter: Letter, overLetter: Letter, state: GameState) {
     return gameContextReducer(
-      state,
+      { ...state, activePlayerIndex: this.playerIndex },
       {
         type: GameActionKind.MoveLetterInRack,
         payload: { letterId: letter.id, overId: overLetter.id },
-      },
-      this.playerIndex
+      }
     )
   }
 
   refreshPool(state: GameState) {
     return gameContextReducer(
-      state,
+      { ...state, activePlayerIndex: this.playerIndex },
       {
         type: GameActionKind.RefreshPool,
-      },
-      this.playerIndex
+      }
     )
   }
 
   endTurn(state: GameState) {
     return gameContextReducer(
-      state,
+      { ...state, activePlayerIndex: this.playerIndex },
       {
         type: GameActionKind.EndTurn,
-      },
-      this.playerIndex
+      }
     )
   }
 
   incrementRound(state: GameState) {
     return gameContextReducer(
-      state,
+      { ...state, activePlayerIndex: this.playerIndex },
       {
         type: GameActionKind.IncrementRound,
-      },
-      this.playerIndex
+      }
     )
   }
 }

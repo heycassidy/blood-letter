@@ -163,16 +163,12 @@ const {
 
 export const gameContextReducer = (
   state: GameState,
-  action: GameContextAction,
-  playerIndexOverride?: number
+  action: GameContextAction
 ) => {
   return create(state, (draft) => {
     const { type, payload } = action
 
-    const playerIndex =
-      playerIndexOverride !== undefined
-        ? playerIndexOverride
-        : draft.activePlayerIndex
+    const playerIndex = draft.activePlayerIndex
 
     if (newSeedActions.has(type)) {
       draft.players.forEach((player) => {
