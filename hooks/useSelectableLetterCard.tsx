@@ -17,7 +17,7 @@ const useSelectableLetterCard = (
   const props: ComponentPropsWithoutRef<'div'> = {}
   const selected = selectedLetter?.id === letter.id
 
-  props['aria-selected'] = selected.toString()
+  props['aria-selected'] = selected
 
   if (selected) {
     props.onClick = () => {

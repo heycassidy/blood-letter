@@ -1,8 +1,5 @@
-import { useDroppable } from '@dnd-kit/core'
-import {
-  horizontalListSortingStrategy,
-  SortableContext,
-} from '@dnd-kit/sortable'
+import { useDroppable } from '@dnd-kit/react'
+import { pointerIntersection } from '@dnd-kit/collision'
 import { useState } from 'react'
 import { useIsomorphicLayoutEffect } from '../hooks/useIsomorphicLayoutEffect'
 import { DroppableKind, type Letter } from '../lib/types'
@@ -16,8 +13,9 @@ type Props = {
 }
 
 const Rack = ({ letters = [], capacity }: Props) => {
-  const { setNodeRef } = useDroppable({
+  const { ref } = useDroppable({
     id: DroppableKind.Rack,
+    collisionDetector: pointerIntersection,
   })
 
   const [rackLetters, setRackLetters] = useState<Letter[]>(letters)
@@ -28,21 +26,17 @@ const Rack = ({ letters = [], capacity }: Props) => {
 
   return (
     <div className={styles}>
-      <SortableContext
-        items={rackLetters}
-        strategy={horizontalListSortingStrategy}
-      >
-        <LetterList capacity={capacity} ref={setNodeRef}>
-          {rackLetters.map((letter) => (
-            <SortableLetterCard
-              id={letter.id}
-              key={letter.id}
-              letter={letter}
-              selectable
-            />
-          ))}
-        </LetterList>
-      </SortableContext>
+      <LetterList capacity={capacity} ref={ref}>
+        {rackLetters.map((letter, index) => (
+          <SortableLetterCard
+            id={letter.id}
+            key={letter.id}
+            index={index}
+            letter={letter}
+            selectable
+          />
+        ))}
+      </LetterList>
     </div>
   )
 }

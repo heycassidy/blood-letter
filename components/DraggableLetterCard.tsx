@@ -1,4 +1,4 @@
-import { useDraggable } from '@dnd-kit/core'
+import { useDraggable } from '@dnd-kit/react'
 import type { LetterCardProps, UUID } from '../lib/types'
 import LetterCard from './LetterCard'
 
@@ -9,24 +9,17 @@ interface Props {
 export const DraggableLetterCard = (props: Props & LetterCardProps) => {
   const { letter, id, ...rest } = props
 
-  const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
+  const { ref, isDragSource } = useDraggable({
     id,
     data: { letter, origin: letter.origin },
   })
 
-  const styles = {
-    touchAction: 'none',
-    cursor: 'pointer',
-  }
-
   return (
     <LetterCard
-      ref={setNodeRef}
-      {...attributes}
-      {...listeners}
-      style={styles}
+      ref={ref}
+      style={{ touchAction: 'none', cursor: 'pointer' }}
       letter={letter}
-      dragging={isDragging}
+      dragging={isDragSource}
       {...rest}
     />
   )

@@ -1,4 +1,4 @@
-import { useDroppable } from '@dnd-kit/core'
+import { useDroppable } from '@dnd-kit/react'
 import { useState } from 'react'
 import { useIsomorphicLayoutEffect } from '../hooks/useIsomorphicLayoutEffect'
 import { DroppableKind, type Letter } from '../lib/types'
@@ -12,7 +12,7 @@ type Props = {
 }
 
 const Pool = ({ letters = [], amount }: Props) => {
-  const { setNodeRef } = useDroppable({
+  const { ref } = useDroppable({
     id: DroppableKind.Pool,
   })
 
@@ -24,7 +24,7 @@ const Pool = ({ letters = [], amount }: Props) => {
 
   return (
     <div className={styles}>
-      <LetterList capacity={amount} ref={setNodeRef}>
+      <LetterList capacity={amount} ref={ref}>
         {poolLetters.map((letter) => (
           <DraggableLetterCard
             id={letter.id}

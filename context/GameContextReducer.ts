@@ -423,14 +423,16 @@ export const gameContextReducer = (
       case GameActionKind.DragLetterToRack: {
         const { overId, letterId } = payload
 
-        const letter = [
-          ...draft.players[playerIndex].rack,
-          ...draft.players[playerIndex].pool,
-        ].find(({ id }) => id === letterId)
+        const rackIds = draft.players[playerIndex].rack.map(({ id }) => id)
+
+        // Already in the rack — skip to avoid duplicates
+        if (rackIds.includes(letterId)) return
+
+        const letter = draft.players[playerIndex].pool.find(
+          ({ id }) => id === letterId
+        )
 
         if (letter === undefined) return
-
-        const rackIds = draft.players[playerIndex].rack.map(({ id }) => id)
         const newIndex =
           overId === DroppableKind.Rack
             ? rackIds.length
