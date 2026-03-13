@@ -1,5 +1,6 @@
 'use client'
 
+import { PointerActivationConstraints } from '@dnd-kit/dom'
 import {
   DragDropProvider,
   DragOverlay,
@@ -7,7 +8,6 @@ import {
   PointerSensor,
 } from '@dnd-kit/react'
 import { isSortable } from '@dnd-kit/react/sortable'
-import { PointerActivationConstraints } from '@dnd-kit/dom'
 import type React from 'react'
 import {
   createContext,
