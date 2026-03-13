@@ -144,6 +144,15 @@ export type GameContextAction =
   | MoveLetterInRackAction
   | SetLetterOrigins
 
+const newSeedActions = new Set([
+  GameActionKind.BuyLetter,
+  GameActionKind.SellLetter,
+  GameActionKind.RefreshPool,
+  GameActionKind.IncrementRound,
+  GameActionKind.EndTurn,
+  GameActionKind.RestartGame,
+])
+
 const {
   initialGold,
   rackCapacity,
@@ -165,7 +174,7 @@ export const gameContextReducer = (
         ? playerIndexOverride
         : draft.activePlayerIndex
 
-    if (type !== GameActionKind.Set) {
+    if (newSeedActions.has(type)) {
       draft.players.forEach((player) => {
         player.seed = alea(`${player.seed}`)()
       })

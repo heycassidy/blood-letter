@@ -8,15 +8,17 @@ const { initialRound, initialHealth, initialGold } = gameConfig
 
 // Function to create a Player object
 function createPlayer(options: Readonly<PlayerOptions>): Player {
+  const startingSeed = options.startingSeed ?? Math.random()
+
   return {
     id: options.id ?? nanoid(10),
     name: options.name,
     classification: options.classification,
-    seed: options.startingSeed ?? Math.random(),
+    seed: startingSeed,
     health: options.health ?? initialHealth,
     battleVictories: options.battleVictories ?? 0,
     rack: options.rack ?? [],
-    pool: options.pool ?? getPoolForRound(initialRound),
+    pool: options.pool ?? getPoolForRound(initialRound, startingSeed),
     gold: options.gold ?? initialGold,
     playedTurn: options.playedTurn ?? false,
   }

@@ -1,4 +1,10 @@
-import { defineConfig } from '@pandacss/dev'
+import { defineConfig, defineGlobalStyles } from '@pandacss/dev'
+
+const globalCss = defineGlobalStyles({
+  html: {
+    fontSize: 'clamp(1.125em,3vi,1.25em)',
+  },
+})
 
 export default defineConfig({
   // Whether to use css reset
@@ -14,6 +20,8 @@ export default defineConfig({
 
   // Files to exclude
   exclude: [],
+
+  globalCss,
 
   // Useful for theme customization
   theme: {
