@@ -7,9 +7,7 @@ import {
   PointerSensor,
 } from '@dnd-kit/react'
 import { isSortable } from '@dnd-kit/react/sortable'
-import {
-  PointerActivationConstraints,
-} from '@dnd-kit/dom'
+import { PointerActivationConstraints } from '@dnd-kit/dom'
 import type React from 'react'
 import {
   createContext,
@@ -224,7 +222,8 @@ export const GameContextProvider = ({ children }: PropsWithChildren) => {
             if (
               letterOrigin === LetterOriginKind.Pool &&
               clonedState &&
-              (!overId || overId === DroppableKind.Pool ||
+              (!overId ||
+                overId === DroppableKind.Pool ||
                 !(overId === DroppableKind.Rack || rackIds.includes(overId)))
             ) {
               dispatch({
@@ -245,7 +244,8 @@ export const GameContextProvider = ({ children }: PropsWithChildren) => {
               clonedState &&
               (clonedState.players[clonedState.activePlayerIndex].rack.length >=
                 rackCapacity ||
-                clonedState.players[clonedState.activePlayerIndex].gold < letterBuyCost)
+                clonedState.players[clonedState.activePlayerIndex].gold <
+                  letterBuyCost)
             ) {
               dispatch({
                 type: GameActionKind.Set,
@@ -285,8 +285,11 @@ export const GameContextProvider = ({ children }: PropsWithChildren) => {
                 dispatch({
                   type: GameActionKind.MoveLetterInRack,
                   payload: {
-                    letterId: state.players[state.activePlayerIndex].rack[initialIndex].id,
-                    overId: state.players[state.activePlayerIndex].rack[newIndex].id,
+                    letterId:
+                      state.players[state.activePlayerIndex].rack[initialIndex]
+                        .id,
+                    overId:
+                      state.players[state.activePlayerIndex].rack[newIndex].id,
                   },
                 })
               }
@@ -300,9 +303,7 @@ export const GameContextProvider = ({ children }: PropsWithChildren) => {
           {children}
           <DragOverlay>
             {(source) =>
-              source ? (
-                <LetterCard letter={source.data?.letter} />
-              ) : null
+              source ? <LetterCard letter={source.data?.letter} /> : null
             }
           </DragOverlay>
         </DragDropProvider>
