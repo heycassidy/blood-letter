@@ -1,8 +1,8 @@
-import { useGameDispatchContext } from '../context/GameContext'
-import { GameModeKind, GameState } from '../lib/types'
-import { GameActionKind } from '../context/GameContextReducer'
 import { useEffect, useState } from 'react'
 import { playComputerTurn } from '../app/actions'
+import { useGameDispatchContext } from '../context/GameContext'
+import { GameActionKind } from '../context/GameContextReducer'
+import { GameModeKind, type GameState } from '../lib/types'
 
 const useComputerPlayer = (state: GameState) => {
   const dispatch = useGameDispatchContext()
@@ -18,9 +18,8 @@ const useComputerPlayer = (state: GameState) => {
 
   async function runComputerPlayer(initialState: GameState) {
     setThinking(true)
-    const { computerPlayer, computerPlayerIndex } = await playComputerTurn(
-      initialState
-    )
+    const { computerPlayer, computerPlayerIndex } =
+      await playComputerTurn(initialState)
     setThinking(false)
 
     dispatch({

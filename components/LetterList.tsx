@@ -1,6 +1,6 @@
-import { ReactNode, forwardRef } from 'react'
+import { forwardRef, type ReactNode } from 'react'
 import { css } from '../styled-system/css'
-import { SystemStyleObject } from '../styled-system/types'
+import type { SystemStyleObject } from '../styled-system/types'
 
 type Props = {
   children: ReactNode[]

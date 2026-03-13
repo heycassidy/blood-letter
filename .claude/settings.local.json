@@ -1,0 +1,28 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(node --version)",
+      "Bash(pnpm dlx @next/codemod@canary upgrade latest)",
+      "Bash(printf '\\\\n')",
+      "Bash(printf 'y\\\\n\\\\n')",
+      "Bash(pnpm add next@latest react@latest react-dom@latest)",
+      "Bash(pnpm add -D @types/react@latest @types/react-dom@latest @types/node@latest eslint-config-next@latest)",
+      "Bash(pnpm add -D eslint@latest)",
+      "Bash(pnpm remove @typescript-eslint/eslint-plugin @typescript-eslint/parser eslint-config-standard eslint-plugin-import eslint-plugin-n eslint-plugin-promise eslint-plugin-react eslint-config-prettier eslint-plugin-prettier)",
+      "Bash(pnpm add -D @eslint/eslintrc)",
+      "Bash(pnpm build)",
+      "Bash(xargs cat)",
+      "Bash(node -e \":*)",
+      "Bash(git add .eslintrc.json app/layout.tsx app/page.tsx atoms/Button.tsx atoms/InfoList.tsx context/GameContextReducer.ts lib/MCTS.ts lib/utils.ts next-env.d.ts next.config.js package.json pnpm-lock.yaml tsconfig.json eslint.config.mjs)",
+      "Bash(git commit:*)",
+      "Bash(pnpm remove eslint eslint-config-next @eslint/eslintrc)",
+      "Bash(pnpm add -D @biomejs/biome)",
+      "Bash(pnpm biome init)",
+      "Bash(cat /Users/cass/projects/blood-letter/repo--blood-letter/.prettierrc*)",
+      "Bash(pnpm remove prettier)",
+      "Bash(pnpm biome check .)",
+      "Bash(pnpm biome check --write .)",
+      "Bash(git add -A)"
+    ]
+  }
+}

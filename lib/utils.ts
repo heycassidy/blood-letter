@@ -1,6 +1,6 @@
 import { randomInt } from 'd3-random'
 import { alea } from 'seedrandom'
-import { UUID } from './types'
+import type { UUID } from './types'
 
 export const itemIsInRange = (item: number, start = 0, stop = 10): boolean =>
   integerRange(start, stop).includes(item)

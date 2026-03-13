@@ -1,13 +1,13 @@
+import Button from '../atoms/Button'
+import InfoList from '../atoms/InfoList'
+import { useGameContext, useGameDispatchContext } from '../context/GameContext'
+import { GameActionKind } from '../context/GameContextReducer'
 import { gameConfig } from '../lib/gameConfig'
-import { getPoolTier, getPoolCapacity } from '../lib/helpers'
+import { getPoolCapacity, getPoolTier } from '../lib/helpers'
+import { LetterOriginKind } from '../lib/types'
 import { css } from '../styled-system/css'
 import Pool from './Pool'
 import Rack from './Rack'
-import InfoList from '../atoms/InfoList'
-import { useGameContext, useGameDispatchContext } from '../context/GameContext'
-import { LetterOriginKind } from '../lib/types'
-import { GameActionKind } from '../context/GameContextReducer'
-import Button from '../atoms/Button'
 
 const BuildPhase = () => {
   const {

@@ -1,7 +1,7 @@
-import { forwardRef, ComponentPropsWithRef } from 'react'
-import useSelectableLetterCard from '../hooks/useSelectableLetterCard'
+import { type ComponentPropsWithRef, forwardRef } from 'react'
 import useFreezableLetterCard from '../hooks/useFreezableLetterCard'
-import { LetterCardProps } from '../lib/types'
+import useSelectableLetterCard from '../hooks/useSelectableLetterCard'
+import type { LetterCardProps } from '../lib/types'
 import { css } from '../styled-system/css'
 
 type Ref = HTMLDivElement

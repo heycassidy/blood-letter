@@ -1,5 +1,5 @@
-import { PhaseKind, Letter, GameModeKind } from './types'
 import { createLetter } from './Letter'
+import { GameModeKind, type Letter, PhaseKind } from './types'
 
 const alphabet: Letter[] = [
   createLetter({ name: 'e', tier: 1, value: 1 }),

@@ -1,25 +1,25 @@
+import { create, current, rawReturn } from 'mutative'
 import { alea } from 'seedrandom'
-import { create, rawReturn, current } from 'mutative'
-import {
-  GameState,
-  PhaseKind,
-  LetterOriginKind,
-  UUID,
-  DroppableKind,
-  Letter,
-  GameModeKind,
-  PlayerClassificationKind,
-  Player,
-} from '../lib/types'
-import { createLetter } from '../lib/Letter'
-import { arrayMove } from '../lib/utils'
 import { gameConfig } from '../lib/gameConfig'
 import {
-  getHealthCost,
   getBattleWinner,
-  getRefreshedPool,
   getGameWinner,
+  getHealthCost,
+  getRefreshedPool,
 } from '../lib/helpers'
+import { createLetter } from '../lib/Letter'
+import {
+  DroppableKind,
+  GameModeKind,
+  type GameState,
+  type Letter,
+  LetterOriginKind,
+  PhaseKind,
+  type Player,
+  PlayerClassificationKind,
+  type UUID,
+} from '../lib/types'
+import { arrayMove } from '../lib/utils'
 
 export enum GameActionKind {
   Set,

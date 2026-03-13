@@ -1,12 +1,12 @@
+import InfoList from '../atoms/InfoList'
+import { useGameContext } from '../context/GameContext'
 import { gameConfig } from '../lib/gameConfig'
 import { getHealthCost } from '../lib/helpers'
-import { Player } from '../lib/types'
+import { getRackScore, getTotalScore, getWordBonus } from '../lib/Player'
+import type { Player } from '../lib/types'
 import { css } from '../styled-system/css'
-import LetterList from './LetterList'
 import LetterCard from './LetterCard'
-import { useGameContext } from '../context/GameContext'
-import InfoList from '../atoms/InfoList'
-import { getRackScore, getWordBonus, getTotalScore } from '../lib/Player'
+import LetterList from './LetterList'
 
 const BattleSide = ({ player }: { player: Player }) => {
   const { rackCapacity, healthCostMap } = gameConfig

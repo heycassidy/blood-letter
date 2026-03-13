@@ -1,14 +1,20 @@
 import { SingleBar } from 'cli-progress'
-import { randomItem, weightedRandomItem } from './utils'
 import { create } from 'mutative'
-import { getTotalScore } from './Player'
-import { MCTSMove, GameState, PhaseKind, UUID, Letter } from './types'
 import {
-  gameContextReducer,
   GameActionKind,
+  gameContextReducer,
 } from '../context/GameContextReducer'
 import { gameConfig } from './gameConfig'
 import { getPoolTier } from './helpers'
+import { getTotalScore } from './Player'
+import {
+  type GameState,
+  type Letter,
+  type MCTSMove,
+  PhaseKind,
+  type UUID,
+} from './types'
+import { randomItem, weightedRandomItem } from './utils'
 
 export class MCTSGame {
   state: GameState

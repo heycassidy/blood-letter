@@ -1,8 +1,8 @@
 import { nanoid } from 'nanoid'
 import { gameConfig } from '../lib/gameConfig'
-import { sumItemProperty, concatItemProperty } from './utils'
+import type { Player, PlayerOptions } from '../lib/types'
 import { getPoolForRound, wordsSet } from './helpers'
-import { Player, PlayerOptions } from '../lib/types'
+import { concatItemProperty, sumItemProperty } from './utils'
 
 const { initialRound, initialHealth, initialGold } = gameConfig
 

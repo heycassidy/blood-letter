@@ -1,12 +1,12 @@
-import { css } from '../styled-system/css'
 import {
-  FC,
   Children,
   cloneElement,
-  PropsWithChildren,
-  ReactNode,
+  type FC,
   isValidElement,
+  type PropsWithChildren,
+  type ReactNode,
 } from 'react'
+import { css } from '../styled-system/css'
 
 const InfoList: FC<PropsWithChildren> = ({ children }) => {
   return (

@@ -1,4 +1,4 @@
-import { GameActionKind } from '../context/GameContextReducer'
+import type { GameActionKind } from '../context/GameContextReducer'
 
 export type UUID = string | number
 

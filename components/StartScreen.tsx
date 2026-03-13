@@ -1,8 +1,8 @@
-import { css } from '../styled-system/css'
-import { useGameDispatchContext } from '../context/GameContext'
-import { GameModeKind } from '../lib/types'
-import { GameActionKind } from '../context/GameContextReducer'
 import Button from '../atoms/Button'
+import { useGameDispatchContext } from '../context/GameContext'
+import { GameActionKind } from '../context/GameContextReducer'
+import { GameModeKind } from '../lib/types'
+import { css } from '../styled-system/css'
 
 const StartScreen = () => {
   const dispatch = useGameDispatchContext()

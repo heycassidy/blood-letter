@@ -1,10 +1,10 @@
+import { useDroppable } from '@dnd-kit/core'
 import { useState } from 'react'
 import { useIsomorphicLayoutEffect } from '../hooks/useIsomorphicLayoutEffect'
-import { DroppableKind, Letter } from '../lib/types'
+import { DroppableKind, type Letter } from '../lib/types'
 import { css } from '../styled-system/css'
-import LetterList from './LetterList'
 import { DraggableLetterCard } from './DraggableLetterCard'
-import { useDroppable } from '@dnd-kit/core'
+import LetterList from './LetterList'
 
 type Props = {
   letters: Letter[]

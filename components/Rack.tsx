@@ -1,13 +1,13 @@
+import { useDroppable } from '@dnd-kit/core'
+import {
+  horizontalListSortingStrategy,
+  SortableContext,
+} from '@dnd-kit/sortable'
 import { useState } from 'react'
 import { useIsomorphicLayoutEffect } from '../hooks/useIsomorphicLayoutEffect'
-import { DroppableKind, Letter } from '../lib/types'
+import { DroppableKind, type Letter } from '../lib/types'
 import { css } from '../styled-system/css'
 import LetterList from './LetterList'
-import {
-  SortableContext,
-  horizontalListSortingStrategy,
-} from '@dnd-kit/sortable'
-import { useDroppable } from '@dnd-kit/core'
 import { SortableLetterCard } from './SortableLetterCard'
 
 type Props = {

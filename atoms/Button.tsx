@@ -1,5 +1,5 @@
+import type { ComponentPropsWithoutRef, FC } from 'react'
 import { css } from '../styled-system/css'
-import { FC, ComponentPropsWithoutRef } from 'react'
 
 type ButtonProps = ComponentPropsWithoutRef<'button'>
 

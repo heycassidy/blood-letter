@@ -1,14 +1,14 @@
+import type { ComponentPropsWithoutRef } from 'react'
 import { useGameContext, useGameDispatchContext } from '../context/GameContext'
-import { Letter } from '../lib/types'
 import { GameActionKind } from '../context/GameContextReducer'
-import { ComponentPropsWithoutRef } from 'react'
+import type { Letter } from '../lib/types'
 
 const useSelectableLetterCard = (
   letter: Letter,
   enabled?: boolean
 ): [boolean, ComponentPropsWithoutRef<any>] => {
   let selected = false
-  let props: ComponentPropsWithoutRef<any> = {}
+  const props: ComponentPropsWithoutRef<any> = {}
 
   if (!enabled) {
     return [selected, props]

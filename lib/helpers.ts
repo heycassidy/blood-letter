@@ -1,8 +1,8 @@
-import { Letter, LetterOriginKind, Player } from './types'
 import { gameConfig } from './gameConfig'
-import { getFromNumericMapWithMax, weightedRandomItems } from './utils'
 import { createLetter } from './Letter'
 import { getTotalScore } from './Player'
+import { type Letter, LetterOriginKind, type Player } from './types'
+import { getFromNumericMapWithMax, weightedRandomItems } from './utils'
 import { wordList } from './words'
 
 export const wordsSet: Set<string> = new Set<string>(wordList)

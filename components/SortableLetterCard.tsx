@@ -1,6 +1,6 @@
 import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
-import { LetterCardProps, UUID } from '../lib/types'
+import type { LetterCardProps, UUID } from '../lib/types'
 import LetterCard from './LetterCard'
 
 interface Props {

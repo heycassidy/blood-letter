@@ -1,5 +1,5 @@
 import { useDraggable } from '@dnd-kit/core'
-import { LetterCardProps, UUID } from '../lib/types'
+import type { LetterCardProps, UUID } from '../lib/types'
 import LetterCard from './LetterCard'
 
 interface Props {

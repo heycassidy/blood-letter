@@ -1,11 +1,11 @@
-import { ComponentPropsWithoutRef } from 'react'
-import { Letter } from '../lib/types'
+import type { ComponentPropsWithoutRef } from 'react'
+import type { Letter } from '../lib/types'
 
 const useFreezableLetterCard = (
   letter: Letter,
   enabled?: boolean
 ): [boolean, ComponentPropsWithoutRef<any>] => {
-  let props: ComponentPropsWithoutRef<any> = {}
+  const props: ComponentPropsWithoutRef<any> = {}
   let frozen = false
 
   if (!enabled) {

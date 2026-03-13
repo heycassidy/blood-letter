@@ -1,46 +1,47 @@
 'use client'
 
-import React, {
-  PropsWithChildren,
-  createContext,
-  useState,
-  useContext,
-  useReducer,
-  useCallback,
-} from 'react'
 import {
-  DndContext,
-  DragOverlay,
+  type CollisionDetection,
   closestCenter,
+  DndContext,
+  type DragCancelEvent,
+  type DragEndEvent,
+  type DragOverEvent,
+  DragOverlay,
+  type DragStartEvent,
+  KeyboardSensor,
   PointerSensor,
+  pointerWithin,
+  rectIntersection,
   useSensor,
   useSensors,
-  DragEndEvent,
-  DragCancelEvent,
-  DragStartEvent,
-  DragOverEvent,
-  rectIntersection,
-  CollisionDetection,
-  pointerWithin,
-  KeyboardSensor,
 } from '@dnd-kit/core'
-import { CancelDropArguments } from '@dnd-kit/core/dist/components/DndContext/DndContext'
+import type { CancelDropArguments } from '@dnd-kit/core/dist/components/DndContext/DndContext'
+import type React from 'react'
 import {
-  GameState,
-  LetterOriginKind,
-  PlayerClassificationKind,
-  GameModeKind,
-  DroppableKind,
-  Player,
-  Letter,
-} from '../lib/types'
-import { createPlayer } from '../lib/Player'
-import { gameConfig } from '../lib/gameConfig'
+  createContext,
+  type PropsWithChildren,
+  useCallback,
+  useContext,
+  useReducer,
+  useState,
+} from 'react'
 import LetterCard from '../components/LetterCard'
+import { gameConfig } from '../lib/gameConfig'
+import { createPlayer } from '../lib/Player'
 import {
-  gameContextReducer,
-  GameContextAction,
+  DroppableKind,
+  GameModeKind,
+  type GameState,
+  type Letter,
+  LetterOriginKind,
+  type Player,
+  PlayerClassificationKind,
+} from '../lib/types'
+import {
   GameActionKind,
+  type GameContextAction,
+  gameContextReducer,
 } from './GameContextReducer'
 
 const GameContext = createContext<GameState | undefined>(undefined)
