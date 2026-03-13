@@ -134,13 +134,13 @@ export const GameContextProvider = ({ children }: PropsWithChildren) => {
 
       return rectIntersection(args)
     },
-    [state.players[state.activePlayerIndex].rack, state.draggingLetter]
+    [state.players, state.activePlayerIndex]
   )
 
   function initGameState(): GameState {
     const players: Player[] = []
 
-    Array.from({ length: numberOfPlayers }).map((_, i) => {
+    Array.from({ length: numberOfPlayers }).forEach((_, i) => {
       const playerName = `Player ${i + 1} ${
         defaultGameMode === GameModeKind.AgainstComputer && i !== 0
           ? '(computer)'
@@ -235,7 +235,7 @@ export const GameContextProvider = ({ children }: PropsWithChildren) => {
     }
   }
 
-  function handleDragCancel({}: DragCancelEvent): void {
+  function handleDragCancel(_: DragCancelEvent): void {
     if (clonedState) {
       dispatch({
         type: GameActionKind.Set,

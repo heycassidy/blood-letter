@@ -30,6 +30,7 @@ const LetterList = forwardRef<Ref, Props>((props, ref) => {
 
       <div className={backgroundStyles}>
         {[...Array(capacity)].map((_, i) => (
+          // biome-ignore lint/suspicious/noArrayIndexKey: static placeholder slots have no identity
           <span className={slotStyles} key={`empty-slot-${i}`}></span>
         ))}
       </div>

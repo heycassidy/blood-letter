@@ -300,6 +300,8 @@ export const gameContextReducer = (
 
           // setDraftForDraw
         }
+
+        break
       }
 
       case GameActionKind.IncrementRound: {

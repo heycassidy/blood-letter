@@ -7,17 +7,15 @@ const useSelectableLetterCard = (
   letter: Letter,
   enabled?: boolean
 ): [boolean, ComponentPropsWithoutRef<any>] => {
-  let selected = false
-  const props: ComponentPropsWithoutRef<any> = {}
-
-  if (!enabled) {
-    return [selected, props]
-  }
-
   const { selectedLetter } = useGameContext()
   const dispatch = useGameDispatchContext()
 
-  selected = selectedLetter?.id === letter.id
+  if (!enabled) {
+    return [false, {}]
+  }
+
+  const props: ComponentPropsWithoutRef<any> = {}
+  const selected = selectedLetter?.id === letter.id
 
   props['aria-selected'] = selected.toString()
 
@@ -38,7 +36,7 @@ const useSelectableLetterCard = (
     }
   }
 
-  return [selected, props]
+  return [selected, props] as [boolean, ComponentPropsWithoutRef<any>]
 }
 
 export default useSelectableLetterCard

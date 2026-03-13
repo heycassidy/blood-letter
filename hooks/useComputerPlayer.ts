@@ -8,6 +8,7 @@ const useComputerPlayer = (state: GameState) => {
   const dispatch = useGameDispatchContext()
   const [thinking, setThinking] = useState(false)
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: intentionally runs only on round/gameInProgress changes
   useEffect(() => {
     const { gameInProgress, gameMode } = state
 
