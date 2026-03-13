@@ -27,6 +27,12 @@
       "semicolons": "asNeeded"
     }
   },
+  "overrides": [
+    {
+      "includes": ["lib/runtime.js"],
+      "linter": { "enabled": false }
+    }
+  ],
   "assist": {
     "enabled": true,
     "actions": {

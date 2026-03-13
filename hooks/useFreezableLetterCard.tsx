@@ -4,8 +4,8 @@ import type { Letter } from '../lib/types'
 const useFreezableLetterCard = (
   letter: Letter,
   enabled?: boolean
-): [boolean, ComponentPropsWithoutRef<any>] => {
-  const props: ComponentPropsWithoutRef<any> = {}
+): [boolean, ComponentPropsWithoutRef<'div'>] => {
+  const props: ComponentPropsWithoutRef<'div'> = {}
   let frozen = false
 
   if (!enabled) {

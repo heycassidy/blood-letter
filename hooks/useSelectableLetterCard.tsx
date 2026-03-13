@@ -6,7 +6,7 @@ import type { Letter } from '../lib/types'
 const useSelectableLetterCard = (
   letter: Letter,
   enabled?: boolean
-): [boolean, ComponentPropsWithoutRef<any>] => {
+): [boolean, ComponentPropsWithoutRef<'div'>] => {
   const { selectedLetter } = useGameContext()
   const dispatch = useGameDispatchContext()
 
@@ -14,7 +14,7 @@ const useSelectableLetterCard = (
     return [false, {}]
   }
 
-  const props: ComponentPropsWithoutRef<any> = {}
+  const props: ComponentPropsWithoutRef<'div'> = {}
   const selected = selectedLetter?.id === letter.id
 
   props['aria-selected'] = selected.toString()
@@ -36,7 +36,7 @@ const useSelectableLetterCard = (
     }
   }
 
-  return [selected, props] as [boolean, ComponentPropsWithoutRef<any>]
+  return [selected, props] as [boolean, ComponentPropsWithoutRef<'div'>]
 }
 
 export default useSelectableLetterCard

@@ -12,12 +12,9 @@ const LetterCard = forwardRef<
 >((props, ref) => {
   const { letter, dragging, selectable, freezable, ...rest } = props
 
-  const [selected, selectableProps] = useSelectableLetterCard(
-    letter,
-    selectable
-  )
+  const [, selectableProps] = useSelectableLetterCard(letter, selectable)
 
-  const [frozen, freezableProps] = useFreezableLetterCard(letter, freezable)
+  const [, freezableProps] = useFreezableLetterCard(letter, freezable)
 
   const { name, value } = letter
 

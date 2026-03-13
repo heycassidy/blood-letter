@@ -27,9 +27,7 @@ export const getRandomPoolLetters = (
   amount: number,
   randomSeed?: number
 ): Letter[] => {
-  const { alphabet } = gameConfig
-
-  const alphabetWithWeights = alphabet.map((letter) => {
+  const alphabetWithWeights = letters.map((letter) => {
     if (letter.tier === tier || letter.tier < tier) {
       return {
         letter,

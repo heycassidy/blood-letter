@@ -13,9 +13,12 @@ const InfoList: FC<PropsWithChildren> = ({ children }) => {
     <div className={listStyles}>
       {Children.map(children, (child: ReactNode) => {
         if (isValidElement(child)) {
-          return cloneElement(child as React.ReactElement<any>, {
-            className: itemStyles,
-          })
+          return cloneElement(
+            child as React.ReactElement<{ className?: string }>,
+            {
+              className: itemStyles,
+            }
+          )
         }
       })}
     </div>
