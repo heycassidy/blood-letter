@@ -1,9 +1,0 @@
-{
-  "search.exclude": {
-    "**/docs": true
-  },
-  "cSpell.words": [
-    "MCTS"
-  ],
-  "prettier.configPath": "prettier.config.js"
-}
