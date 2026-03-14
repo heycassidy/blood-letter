@@ -23,9 +23,6 @@ importers:
       chroma-js:
         specifier: ^2.4.2
         version: 2.6.0
-      cli-progress:
-        specifier: ^3.12.0
-        version: 3.12.0
       d3-random:
         specifier: ^3.0.1
         version: 3.0.1
@@ -60,9 +57,6 @@ importers:
       '@types/chroma-js':
         specifier: ^2.1.4
         version: 2.4.4
-      '@types/cli-progress':
-        specifier: ^3.11.6
-        version: 3.11.6
       '@types/d3-random':
         specifier: ^3.0.3
         version: 3.0.3
@@ -677,9 +671,6 @@ packages:
   '@types/chroma-js@2.4.4':
     resolution: {integrity: sha512-/DTccpHTaKomqussrn+ciEvfW4k6NAHzNzs/sts1TCqg333qNxOhy8TNIoQCmbGG3Tl8KdEhkGAssb1n3mTXiQ==}
 
-  '@types/cli-progress@3.11.6':
-    resolution: {integrity: sha512-cE3+jb9WRlu+uOSAugewNpITJDt1VF8dHOopPO4IABFc3SXYL5WE/+PTz/FCdZRRfIujiWW3n3aMbv1eIGVRWA==}
-
   '@types/d3-random@3.0.3':
     resolution: {integrity: sha512-Imagg1vJ3y76Y2ea0871wpabqp613+8/r0mCLEBfdtqC7xMSfj9idOnmBYyMoULfHePJyxMAw3nWhJxzc+LFwQ==}
 
@@ -1065,10 +1056,6 @@ packages:
 
   chroma-js@2.6.0:
     resolution: {integrity: sha512-BLHvCB9s8Z1EV4ethr6xnkl/P2YRFOGqfgvuMG/MyCbZPrTA+NeiByY6XvgF0zP4/2deU2CXnWyMa3zu1LqQ3A==}
-
-  cli-progress@3.12.0:
-    resolution: {integrity: sha512-tRkV3HJ1ASwm19THiiLIXLO7Im7wlTuKnvkYaTkyoAPefqjNg7W7DHKUlGRxy9vxDvbyCYQkQozvptuMkGCg8A==}
-    engines: {node: '>=4'}
 
   client-only@0.0.1:
     resolution: {integrity: sha512-IV3Ou0jSMzZrd3pZ48nLkT9DA7Ag1pnPzaiQhpW7c3RbcqqzvzzVu+L8gfqMp/8IM2MQtSiqaCxrrcfu8I8rMA==}
@@ -2713,10 +2700,6 @@ snapshots:
 
   '@types/chroma-js@2.4.4': {}
 
-  '@types/cli-progress@3.11.6':
-    dependencies:
-      '@types/node': 25.5.0
-
   '@types/d3-random@3.0.3': {}
 
   '@types/hast@3.0.4':
@@ -3439,10 +3422,6 @@ snapshots:
       readdirp: 4.1.2
 
   chroma-js@2.6.0: {}
-
-  cli-progress@3.12.0:
-    dependencies:
-      string-width: 4.2.3
 
   client-only@0.0.1: {}
 

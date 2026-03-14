@@ -1,4 +1,3 @@
-import { SingleBar } from 'cli-progress'
 import { create } from 'mutative'
 import {
   GameActionKind,
@@ -353,16 +352,8 @@ export class MCTS {
     const bestScoreForTier =
       bestScorePerTierMap[getPoolTier(this.game.state.round, poolTierMap)]
 
-    const progressBar = new SingleBar({
-      format:
-        'Building stats... [{bar}] {percentage}% | ETA: {eta}s | {value}/{total}',
-      stopOnComplete: true,
-    })
-
     // Build stats
-    progressBar.start(this.iterations, 0)
     for (let i = 0; i < this.iterations; i++) {
-      progressBar.increment()
       this.game.state = this.game.cloneState(originalState)
 
       // Phase 1: Select
