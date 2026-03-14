@@ -1,6 +1,6 @@
 import { nanoid } from 'nanoid'
-import { gameConfig } from '../lib/gameConfig'
-import type { Player, PlayerOptions } from '../lib/types'
+import { gameConfig } from '@/lib/gameConfig'
+import type { Player, PlayerOptions } from '@/lib/types'
 import { getPoolForRound, wordsSet } from './helpers'
 import { concatItemProperty, sumItemProperty } from './utils'
 

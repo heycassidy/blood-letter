@@ -21,6 +21,7 @@
     "chroma-js": "^2.4.2",
     "cli-progress": "^3.12.0",
     "d3-random": "^3.0.1",
+    "lucide-react": "^0.577.0",
     "mutative": "^1.0.8",
     "nanoid": "^4.0.0",
     "next": "^16.1.6",

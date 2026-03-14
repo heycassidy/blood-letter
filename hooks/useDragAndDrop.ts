@@ -9,14 +9,14 @@ import { type ComponentProps, useCallback, useState } from 'react'
 import {
   GameActionKind,
   type GameContextAction,
-} from '../context/GameContextReducer'
-import { gameConfig } from '../lib/gameConfig'
+} from '@/context/GameContextReducer'
+import { gameConfig } from '@/lib/gameConfig'
 import {
   DroppableKind,
   type GameState,
   type Letter,
   LetterOriginKind,
-} from '../lib/types'
+} from '@/lib/types'
 
 type DragDropProviderProps = ComponentProps<typeof DragDropProvider>
 

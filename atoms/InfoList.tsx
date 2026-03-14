@@ -4,7 +4,7 @@ import {
   type PropsWithChildren,
   type ReactNode,
 } from 'react'
-import { css } from '../styled-system/css'
+import { css } from '@/styled-system/css'
 
 const InfoList: FC<PropsWithChildren> = ({ children }) => {
   return (
@@ -26,7 +26,7 @@ const itemStyles = css({
   lineHeight: 'tight',
   paddingY: '0',
   paddingX: '2',
-  background: 'gray.300',
+  background: 'gray.4',
 })
 
 export default InfoList

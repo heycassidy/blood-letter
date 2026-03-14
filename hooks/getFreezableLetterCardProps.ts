@@ -1,5 +1,5 @@
 import type { ComponentPropsWithoutRef } from 'react'
-import type { Letter } from '../lib/types'
+import type { Letter } from '@/lib/types'
 
 type FreezableProps = ComponentPropsWithoutRef<'div'> & {
   'data-frozen'?: string

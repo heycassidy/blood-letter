@@ -1,8 +1,8 @@
-import Button from '../atoms/Button'
-import { useGameDispatchContext } from '../context/GameContext'
-import { GameActionKind } from '../context/GameContextReducer'
-import { GameModeKind } from '../lib/types'
-import { css } from '../styled-system/css'
+import { Button } from './ui/button'
+import { useGameDispatchContext } from '@/context/GameContext'
+import { GameActionKind } from '@/context/GameContextReducer'
+import { GameModeKind } from '@/lib/types'
+import { css } from '@/styled-system/css'
 
 const StartScreen = () => {
   const dispatch = useGameDispatchContext()
@@ -10,6 +10,8 @@ const StartScreen = () => {
   return (
     <div className={styles}>
       <Button
+          variant="subtle"
+          size="xs"
         onClick={() => {
           dispatch({
             type: GameActionKind.StartGame,
@@ -20,6 +22,8 @@ const StartScreen = () => {
         Start Game vs Computer
       </Button>
       <Button
+          variant="subtle"
+          size="xs"
         onClick={() => {
           dispatch({
             type: GameActionKind.StartGame,

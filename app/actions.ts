@@ -1,7 +1,7 @@
 'use server'
 
-import { MCTS, MCTSGame } from '../lib/MCTS'
-import type { GameState } from '../lib/types'
+import { MCTS, MCTSGame } from '@/lib/MCTS'
+import type { GameState } from '@/lib/types'
 
 export async function playComputerTurn(initialState: GameState) {
   const computerPlayerIndex = 1

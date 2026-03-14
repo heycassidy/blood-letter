@@ -1,10 +1,10 @@
-import Button from '../atoms/Button'
-import InfoList from '../atoms/InfoList'
-import { useGameContext, useGameDispatchContext } from '../context/GameContext'
-import { GameActionKind } from '../context/GameContextReducer'
-import { getPlayerByIndex } from '../lib/helpers'
-import { css } from '../styled-system/css'
+import InfoList from '@/atoms/InfoList'
+import { useGameContext, useGameDispatchContext } from '@/context/GameContext'
+import { GameActionKind } from '@/context/GameContextReducer'
+import { getPlayerByIndex } from '@/lib/helpers'
+import { css } from '@/styled-system/css'
 import BattleSide from './BattleSide'
+import { Button } from './ui/button'
 
 const BattlePhase = () => {
   const { players, battleWinnerIndex, gameOver } = useGameContext()
@@ -27,6 +27,8 @@ const BattlePhase = () => {
 
       {!gameOver && (
         <Button
+          variant="subtle"
+          size="xs"
           onClick={() => {
             dispatch({
               type: GameActionKind.IncrementRound,

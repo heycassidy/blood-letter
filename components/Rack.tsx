@@ -1,7 +1,7 @@
 import { pointerIntersection } from '@dnd-kit/collision'
 import { useDroppable } from '@dnd-kit/react'
-import { DroppableKind, type Letter } from '../lib/types'
-import { css } from '../styled-system/css'
+import { DroppableKind, type Letter } from '@/lib/types'
+import { css } from '@/styled-system/css'
 import LetterList from './LetterList'
 import { SortableLetterCard } from './SortableLetterCard'
 
@@ -35,7 +35,7 @@ const Rack = ({ letters = [], capacity }: Props) => {
 
 const styles = css({
   border: '[1px solid black]',
-  backgroundColor: 'gray.200',
+  backgroundColor: 'gray.3',
   padding: '2',
   display: 'grid',
   gap: '2',

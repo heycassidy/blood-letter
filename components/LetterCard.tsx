@@ -1,8 +1,8 @@
 import { type ComponentPropsWithRef, forwardRef } from 'react'
-import getFreezableLetterCardProps from '../hooks/getFreezableLetterCardProps'
-import useSelectableLetterCard from '../hooks/useSelectableLetterCard'
-import type { LetterCardProps } from '../lib/types'
-import { css, cx } from '../styled-system/css'
+import getFreezableLetterCardProps from '@/hooks/getFreezableLetterCardProps'
+import useSelectableLetterCard from '@/hooks/useSelectableLetterCard'
+import type { LetterCardProps } from '@/lib/types'
+import { css, cx } from '@/styled-system/css'
 
 type Ref = HTMLDivElement
 
@@ -55,22 +55,22 @@ LetterCard.displayName = 'LetterCard'
 const styles = css({
   borderStyle: 'solid',
   borderWidth: '1px',
-  borderColor: 'gray.900',
+  borderColor: 'gray.11',
   backgroundColor: 'white',
   position: 'relative',
   display: 'flex',
   userSelect: 'none',
   width: '12',
   height: '12',
-  zIndex: 1,
+  zIndex: '[1]',
   _pressed: { opacity: '0.5' },
   _selected: { borderWidth: '3px' },
   _frozen: {
-    color: 'blue.700',
-    backgroundColor: 'blue.50',
-    borderColor: 'blue.600',
-    boxShadow: 'inner',
-    boxShadowColor: 'blue.300',
+    color: 'blue.11',
+    backgroundColor: 'blue.2',
+    borderColor: 'blue.9',
+    boxShadow: 'inset',
+    boxShadowColor: 'blue.6',
   },
 })
 

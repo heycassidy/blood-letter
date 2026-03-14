@@ -1,11 +1,11 @@
-import Button from '../atoms/Button'
-import InfoList from '../atoms/InfoList'
-import { useGameContext, useGameDispatchContext } from '../context/GameContext'
-import { GameActionKind } from '../context/GameContextReducer'
-import { gameConfig } from '../lib/gameConfig'
-import { getPoolCapacity, getPoolTier } from '../lib/helpers'
-import { LetterOriginKind } from '../lib/types'
-import { css } from '../styled-system/css'
+import { Button } from './ui/button'
+import InfoList from '@/atoms/InfoList'
+import { useGameContext, useGameDispatchContext } from '@/context/GameContext'
+import { GameActionKind } from '@/context/GameContextReducer'
+import { gameConfig } from '@/lib/gameConfig'
+import { getPoolCapacity, getPoolTier } from '@/lib/helpers'
+import { LetterOriginKind } from '@/lib/types'
+import { css } from '@/styled-system/css'
 import Pool from './Pool'
 import Rack from './Rack'
 
@@ -57,6 +57,8 @@ const BuildPhase = () => {
         })}
       >
         <Button
+          variant="subtle"
+          size="xs"
           onClick={() => {
             dispatch({
               type: GameActionKind.RefreshPool,
@@ -71,6 +73,8 @@ const BuildPhase = () => {
             {selectedLetter.origin === LetterOriginKind.Pool &&
               gold >= letterBuyCost && (
                 <Button
+          variant="subtle"
+          size="xs"
                   onClick={() =>
                     dispatch({
                       type: GameActionKind.BuyLetter,
@@ -84,6 +88,8 @@ const BuildPhase = () => {
 
             {selectedLetter.origin === LetterOriginKind.Pool && (
               <Button
+          variant="subtle"
+          size="xs"
                 onClick={() =>
                   dispatch({
                     type: GameActionKind.ToggleFreeze,
@@ -97,6 +103,8 @@ const BuildPhase = () => {
 
             {selectedLetter.origin === LetterOriginKind.Rack && (
               <Button
+          variant="subtle"
+          size="xs"
                 onClick={() =>
                   dispatch({
                     type: GameActionKind.SellLetter,
@@ -111,6 +119,8 @@ const BuildPhase = () => {
         )}
 
         <Button
+          variant="subtle"
+          size="xs"
           onClick={() => {
             dispatch({
               type: GameActionKind.EndTurn,

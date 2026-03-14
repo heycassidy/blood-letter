@@ -1,6 +1,6 @@
 import './index.css'
 import type { Metadata } from 'next'
-import { GameContextProvider } from '../context/GameContext'
+import { GameContextProvider } from '@/context/GameContext'
 
 export const metadata: Metadata = {
   title: 'Blood Letter',

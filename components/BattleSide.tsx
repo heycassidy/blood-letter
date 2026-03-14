@@ -1,10 +1,10 @@
-import InfoList from '../atoms/InfoList'
-import { useGameContext } from '../context/GameContext'
-import { gameConfig } from '../lib/gameConfig'
-import { getHealthCost, getPlayerByIndex } from '../lib/helpers'
-import { getRackScore, getTotalScore, getWordBonus } from '../lib/Player'
-import type { Player } from '../lib/types'
-import { css } from '../styled-system/css'
+import InfoList from '@/atoms/InfoList'
+import { useGameContext } from '@/context/GameContext'
+import { gameConfig } from '@/lib/gameConfig'
+import { getHealthCost, getPlayerByIndex } from '@/lib/helpers'
+import { getRackScore, getTotalScore, getWordBonus } from '@/lib/Player'
+import type { Player } from '@/lib/types'
+import { css } from '@/styled-system/css'
 import LetterCard from './LetterCard'
 import LetterList from './LetterList'
 
@@ -50,8 +50,8 @@ const styles = css({
   justifyItems: 'start',
   borderStyle: 'solid',
   borderWidth: '1px',
-  borderColor: 'gray.900',
-  backgroundColor: 'gray.200',
+  borderColor: 'gray.11',
+  backgroundColor: 'gray.3',
 })
 
 export default BattleSide

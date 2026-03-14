@@ -1,6 +1,6 @@
 import { useDroppable } from '@dnd-kit/react'
-import { DroppableKind, type Letter } from '../lib/types'
-import { css } from '../styled-system/css'
+import { DroppableKind, type Letter } from '@/lib/types'
+import { css } from '@/styled-system/css'
 import { DraggableLetterCard } from './DraggableLetterCard'
 import LetterList from './LetterList'
 
@@ -34,8 +34,8 @@ const Pool = ({ letters = [], amount }: Props) => {
 const styles = css({
   borderStyle: 'solid',
   borderWidth: '1px',
-  borderColor: 'gray.900',
-  backgroundColor: 'gray.200',
+  borderColor: 'gray.11',
+  backgroundColor: 'gray.3',
   padding: '2',
   display: 'grid',
   gap: '2',

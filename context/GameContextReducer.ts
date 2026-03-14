@@ -1,13 +1,13 @@
 import { create, current, rawReturn } from 'mutative'
 import { alea } from 'seedrandom'
-import { gameConfig } from '../lib/gameConfig'
+import { gameConfig } from '@/lib/gameConfig'
 import {
   getBattleWinner,
   getGameWinner,
   getHealthCost,
   getRefreshedPool,
-} from '../lib/helpers'
-import { createLetter } from '../lib/Letter'
+} from '@/lib/helpers'
+import { createLetter } from '@/lib/Letter'
 import {
   DroppableKind,
   GameModeKind,
@@ -18,8 +18,8 @@ import {
   type Player,
   PlayerClassificationKind,
   type UUID,
-} from '../lib/types'
-import { arrayMove } from '../lib/utils'
+} from '@/lib/types'
+import { arrayMove } from '@/lib/utils'
 
 export enum GameActionKind {
   Set,

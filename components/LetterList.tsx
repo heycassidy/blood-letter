@@ -1,6 +1,6 @@
 import { forwardRef, type ReactNode } from 'react'
-import { css } from '../styled-system/css'
-import type { SystemStyleObject } from '../styled-system/types'
+import { css } from '@/styled-system/css'
+import type { SystemStyleObject } from '@/styled-system/types'
 
 type Props = {
   children: ReactNode[]
@@ -20,7 +20,7 @@ const gridCSS: SystemStyleObject = {
 }
 
 const slotCSS: SystemStyleObject = {
-  backgroundColor: 'gray.300',
+  backgroundColor: 'gray.4',
   width: '12',
   height: '12',
 }

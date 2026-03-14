@@ -3,7 +3,7 @@ import { create } from 'mutative'
 import {
   GameActionKind,
   gameContextReducer,
-} from '../context/GameContextReducer'
+} from '@/context/GameContextReducer'
 import { gameConfig } from './gameConfig'
 import { getPoolTier } from './helpers'
 import { getTotalScore } from './Player'

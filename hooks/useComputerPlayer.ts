@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { playComputerTurn } from '../app/actions'
-import { useGameDispatchContext } from '../context/GameContext'
-import { GameActionKind } from '../context/GameContextReducer'
-import { GameModeKind, type GameState } from '../lib/types'
+import { playComputerTurn } from '@/app/actions'
+import { useGameDispatchContext } from '@/context/GameContext'
+import { GameActionKind } from '@/context/GameContextReducer'
+import { GameModeKind, type GameState } from '@/lib/types'
 
 const useComputerPlayer = (state: GameState) => {
   const dispatch = useGameDispatchContext()

@@ -1,7 +1,7 @@
 import type { ComponentPropsWithoutRef } from 'react'
-import { useGameContext, useGameDispatchContext } from '../context/GameContext'
-import { GameActionKind } from '../context/GameContextReducer'
-import type { Letter } from '../lib/types'
+import { useGameContext, useGameDispatchContext } from '@/context/GameContext'
+import { GameActionKind } from '@/context/GameContextReducer'
+import type { Letter } from '@/lib/types'
 
 const useSelectableLetterCard = (
   letter: Letter,

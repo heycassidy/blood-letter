@@ -1,5 +1,5 @@
 import { nanoid } from 'nanoid'
-import type { Letter, LetterOptions } from '../lib/types'
+import type { Letter, LetterOptions } from '@/lib/types'
 
 // Function to create a Letter object
 function createLetter(options: Readonly<LetterOptions>): Letter {

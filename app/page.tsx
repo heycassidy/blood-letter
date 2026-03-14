@@ -1,15 +1,15 @@
 'use client'
 
 import type { NextPage } from 'next'
-import BattlePhase from '../components/BattlePhase'
-import BuildPhase from '../components/BuildPhase'
-import Layout from '../components/Layout'
-import StartScreen from '../components/StartScreen'
-import { useGameContext } from '../context/GameContext'
-import useComputerPlayer from '../hooks/useComputerPlayer'
-import { getPlayerByIndex } from '../lib/helpers'
-import { PhaseKind, PlayerClassificationKind } from '../lib/types'
-import { css } from '../styled-system/css'
+import BattlePhase from '@/components/BattlePhase'
+import BuildPhase from '@/components/BuildPhase'
+import Layout from '@/components/Layout'
+import StartScreen from '@/components/StartScreen'
+import { useGameContext } from '@/context/GameContext'
+import useComputerPlayer from '@/hooks/useComputerPlayer'
+import { getPlayerByIndex } from '@/lib/helpers'
+import { PhaseKind, PlayerClassificationKind } from '@/lib/types'
+import { css } from '@/styled-system/css'
 
 const Home: NextPage = () => {
   const gameState = useGameContext()

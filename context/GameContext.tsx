@@ -9,16 +9,16 @@ import {
   useReducer,
   useRef,
 } from 'react'
-import LetterCard from '../components/LetterCard'
-import { useDragAndDrop } from '../hooks/useDragAndDrop'
-import { gameConfig } from '../lib/gameConfig'
-import { createPlayer } from '../lib/Player'
+import LetterCard from '@/components/LetterCard'
+import { useDragAndDrop } from '@/hooks/useDragAndDrop'
+import { gameConfig } from '@/lib/gameConfig'
+import { createPlayer } from '@/lib/Player'
 import {
   GameModeKind,
   type GameState,
   type Player,
   PlayerClassificationKind,
-} from '../lib/types'
+} from '@/lib/types'
 import {
   type GameContextAction,
   gameContextReducer,

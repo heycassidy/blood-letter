@@ -1,6 +1,6 @@
 import { useDraggable } from '@dnd-kit/react'
-import type { LetterCardProps, UUID } from '../lib/types'
-import { css } from '../styled-system/css'
+import type { LetterCardProps, UUID } from '@/lib/types'
+import { css } from '@/styled-system/css'
 import LetterCard from './LetterCard'
 
 interface Props {
