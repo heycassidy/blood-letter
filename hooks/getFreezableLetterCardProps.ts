@@ -5,7 +5,7 @@ type FreezableProps = ComponentPropsWithoutRef<'div'> & {
   'data-frozen'?: string
 }
 
-const useFreezableLetterCard = (
+const getFreezableLetterCardProps = (
   letter: Letter,
   enabled?: boolean
 ): [boolean, FreezableProps] => {
@@ -25,4 +25,4 @@ const useFreezableLetterCard = (
   return [frozen, props]
 }
 
-export default useFreezableLetterCard
+export default getFreezableLetterCardProps

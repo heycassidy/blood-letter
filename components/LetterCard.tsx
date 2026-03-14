@@ -1,8 +1,8 @@
 import { type ComponentPropsWithRef, forwardRef } from 'react'
-import useFreezableLetterCard from '../hooks/useFreezableLetterCard'
+import getFreezableLetterCardProps from '../hooks/getFreezableLetterCardProps'
 import useSelectableLetterCard from '../hooks/useSelectableLetterCard'
 import type { LetterCardProps } from '../lib/types'
-import { css } from '../styled-system/css'
+import { css, cx } from '../styled-system/css'
 
 type Ref = HTMLDivElement
 
@@ -10,18 +10,18 @@ const LetterCard = forwardRef<
   Ref,
   LetterCardProps & ComponentPropsWithRef<'div'>
 >((props, ref) => {
-  const { letter, dragging, selectable, freezable, ...rest } = props
+  const { letter, dragging, selectable, freezable, className, ...rest } = props
 
   const [, selectableProps] = useSelectableLetterCard(letter, selectable)
 
-  const [, freezableProps] = useFreezableLetterCard(letter, freezable)
+  const [, freezableProps] = getFreezableLetterCardProps(letter, freezable)
 
   const { name, value } = letter
 
   return (
     <div
       ref={ref}
-      className={styles}
+      className={cx(styles, className)}
       {...selectableProps}
       {...freezableProps}
       {...rest}

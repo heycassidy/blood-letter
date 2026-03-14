@@ -1,6 +1,7 @@
-import { useSortable } from '@dnd-kit/react/sortable'
 import { closestCenter } from '@dnd-kit/collision'
+import { useSortable } from '@dnd-kit/react/sortable'
 import type { LetterCardProps, UUID } from '../lib/types'
+import { css } from '../styled-system/css'
 import LetterCard from './LetterCard'
 
 interface Props {
@@ -21,10 +22,15 @@ export const SortableLetterCard = (props: Props & LetterCardProps) => {
   return (
     <LetterCard
       ref={ref}
-      style={{ touchAction: 'none', cursor: 'pointer' }}
+      className={dragStyles}
       letter={letter}
       dragging={isDragSource}
       {...rest}
     />
   )
 }
+
+const dragStyles = css({
+  touchAction: 'none',
+  cursor: 'pointer',
+})

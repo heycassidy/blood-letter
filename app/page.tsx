@@ -7,6 +7,7 @@ import Layout from '../components/Layout'
 import StartScreen from '../components/StartScreen'
 import { useGameContext } from '../context/GameContext'
 import useComputerPlayer from '../hooks/useComputerPlayer'
+import { getPlayerByIndex } from '../lib/helpers'
 import { PhaseKind, PlayerClassificationKind } from '../lib/types'
 import { css } from '../styled-system/css'
 
@@ -20,8 +21,7 @@ const Home: NextPage = () => {
     players,
     activePlayerIndex,
   } = gameState
-  const gameWinner =
-    gameWinnerIndex !== undefined ? players[gameWinnerIndex] : undefined
+  const gameWinner = getPlayerByIndex(players, gameWinnerIndex)
 
   const activePlayerClassification = players[activePlayerIndex].classification
   const computerPlayerIsThinking = useComputerPlayer(gameState)

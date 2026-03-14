@@ -2,14 +2,14 @@ import Button from '../atoms/Button'
 import InfoList from '../atoms/InfoList'
 import { useGameContext, useGameDispatchContext } from '../context/GameContext'
 import { GameActionKind } from '../context/GameContextReducer'
+import { getPlayerByIndex } from '../lib/helpers'
 import { css } from '../styled-system/css'
 import BattleSide from './BattleSide'
 
 const BattlePhase = () => {
   const { players, battleWinnerIndex, gameOver } = useGameContext()
   const dispatch = useGameDispatchContext()
-  const battleWinner =
-    battleWinnerIndex !== undefined ? players[battleWinnerIndex] : undefined
+  const battleWinner = getPlayerByIndex(players, battleWinnerIndex)
 
   return (
     <div className={styles}>
@@ -20,7 +20,7 @@ const BattlePhase = () => {
       )}
 
       <div className={matchupStyles}>
-        {Array.from(players.values()).map((player) => (
+        {players.map((player) => (
           <BattleSide player={player} key={player.id} />
         ))}
       </div>

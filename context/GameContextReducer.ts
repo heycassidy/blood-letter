@@ -23,7 +23,6 @@ import { arrayMove } from '../lib/utils'
 
 export enum GameActionKind {
   Set,
-  ReturnFromComputerPlayer,
 
   RestartGame,
   StartGame,
@@ -468,7 +467,7 @@ export const gameContextReducer = (
         const letter = draft.players[playerIndex].rack.find(
           ({ id }) => id === letterId
         )
-        if (letter === undefined) return draft
+        if (letter === undefined) return
 
         const newIndex = draft.players[playerIndex].pool.length + 1
 
@@ -492,7 +491,7 @@ export const gameContextReducer = (
       }
 
       case GameActionKind.RefreshPool: {
-        if (draft.players[playerIndex].gold < poolRefreshCost) return draft
+        if (draft.players[playerIndex].gold < poolRefreshCost) return
 
         const newPool = getRefreshedPool(
           draft.players[playerIndex].pool,

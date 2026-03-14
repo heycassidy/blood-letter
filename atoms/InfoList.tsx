@@ -1,8 +1,6 @@
 import {
   Children,
-  cloneElement,
   type FC,
-  isValidElement,
   type PropsWithChildren,
   type ReactNode,
 } from 'react'
@@ -11,16 +9,9 @@ import { css } from '../styled-system/css'
 const InfoList: FC<PropsWithChildren> = ({ children }) => {
   return (
     <div className={listStyles}>
-      {Children.map(children, (child: ReactNode) => {
-        if (isValidElement(child)) {
-          return cloneElement(
-            child as React.ReactElement<{ className?: string }>,
-            {
-              className: itemStyles,
-            }
-          )
-        }
-      })}
+      {Children.map(children, (child: ReactNode) => (
+        <span className={itemStyles}>{child}</span>
+      ))}
     </div>
   )
 }

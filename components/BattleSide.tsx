@@ -1,7 +1,7 @@
 import InfoList from '../atoms/InfoList'
 import { useGameContext } from '../context/GameContext'
 import { gameConfig } from '../lib/gameConfig'
-import { getHealthCost } from '../lib/helpers'
+import { getHealthCost, getPlayerByIndex } from '../lib/helpers'
 import { getRackScore, getTotalScore, getWordBonus } from '../lib/Player'
 import type { Player } from '../lib/types'
 import { css } from '../styled-system/css'
@@ -11,16 +11,16 @@ import LetterList from './LetterList'
 const BattleSide = ({ player }: { player: Player }) => {
   const { rackCapacity, healthCostMap } = gameConfig
   const { round, players, battleWinnerIndex } = useGameContext()
-  const battleWinner =
-    battleWinnerIndex !== undefined ? players[battleWinnerIndex] : undefined
+  const battleWinner = getPlayerByIndex(players, battleWinnerIndex)
+  const wordBonus = getWordBonus(player)
 
   return (
     <div className={styles}>
       <InfoList>
         <span>{player.name}</span>
         <span>Letters: {getRackScore(player)}</span>
-        {getWordBonus(player) > 0 ? (
-          <span>Word Bonus: {getWordBonus(player)}</span>
+        {wordBonus > 0 ? (
+          <span>Word Bonus: {wordBonus}</span>
         ) : (
           <span>Not in word list</span>
         )}

@@ -1,7 +1,5 @@
-import { useDroppable } from '@dnd-kit/react'
 import { pointerIntersection } from '@dnd-kit/collision'
-import { useState } from 'react'
-import { useIsomorphicLayoutEffect } from '../hooks/useIsomorphicLayoutEffect'
+import { useDroppable } from '@dnd-kit/react'
 import { DroppableKind, type Letter } from '../lib/types'
 import { css } from '../styled-system/css'
 import LetterList from './LetterList'
@@ -18,16 +16,10 @@ const Rack = ({ letters = [], capacity }: Props) => {
     collisionDetector: pointerIntersection,
   })
 
-  const [rackLetters, setRackLetters] = useState<Letter[]>(letters)
-
-  useIsomorphicLayoutEffect(() => {
-    setRackLetters(letters)
-  }, [letters])
-
   return (
     <div className={styles}>
       <LetterList capacity={capacity} ref={ref}>
-        {rackLetters.map((letter, index) => (
+        {letters.map((letter, index) => (
           <SortableLetterCard
             id={letter.id}
             key={letter.id}

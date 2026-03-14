@@ -120,6 +120,11 @@ export const getBattleWinner = (players: Player[]): Player | null =>
     return acc
   }, null)
 
+export const getPlayerByIndex = (
+  players: Player[],
+  index: number | undefined
+): Player | undefined => (index !== undefined ? players[index] : undefined)
+
 export const getGameWinner = (players: Player[]): Player | null => {
   const { healthToLose, battleVictoriesToWin } = gameConfig
 
