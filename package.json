@@ -15,8 +15,9 @@
     "docs": "npx typedoc && open ./docs/index.html"
   },
   "dependencies": {
-    "@dnd-kit/react": "^0.3.2",
+    "@ark-ui/react": "^5.34.1",
     "@dnd-kit/collision": "^0.3.2",
+    "@dnd-kit/react": "^0.3.2",
     "chroma-js": "^2.4.2",
     "cli-progress": "^3.12.0",
     "d3-random": "^3.0.1",
@@ -29,7 +30,7 @@
   },
   "devDependencies": {
     "@biomejs/biome": "^2.4.6",
-    "@pandacss/dev": "^0.46.1",
+    "@pandacss/dev": "^1.9.0",
     "@types/chroma-js": "^2.1.4",
     "@types/cli-progress": "^3.11.6",
     "@types/d3-random": "^3.0.3",
